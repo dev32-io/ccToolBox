@@ -62,7 +62,7 @@ Using the settings parsed in Step 0 (from `~/.config/ccToolBox/daily-briefing/se
 
 ## Step 2: Fetch Data (parallel subagents)
 
-Dispatch all agents in a SINGLE message so they run concurrently. Each agent should use WebSearch and return structured data: title, 1-line summary, URL for each item.
+Dispatch all agents in a SINGLE message so they run concurrently. **Use `model: "sonnet"` for every agent** — these are simple search tasks that don't need opus. Each agent should use WebSearch and return structured data: title, 1-line summary, URL for each item.
 
 Launch these agents simultaneously:
 - **weather agent**: Search "[location] weather today [current date]". Return 1-2 sentence summary with temperature, conditions, high/low, wind.
@@ -90,7 +90,7 @@ Once all Step 2 agents have returned:
    - Novelty (breaking news over ongoing stories)
    - Engagement (high vote count, comment count, stars)
 
-2. **Fetch lead story image:** Dispatch one Agent to search for a relevant image for the lead story:
+2. **Fetch lead story image:** Dispatch one Agent (`model: "sonnet"`) to search for a relevant image for the lead story:
    - **lead-image agent**: Search "[lead story title] image" or "[lead story topic] photo". Return a single image URL suitable for embedding in HTML. The image should be a direct URL to a .jpg/.png/.webp file, not a page URL.
 
    If no suitable image is found, the lead story will render as text-only.
@@ -99,10 +99,11 @@ The lead story will be placed in the big left column of the top row. The remaini
 
 ## Step 3: Generate TTS + HTML + Audio (parallel)
 
-Once the lead story image agent has returned (or confirmed no image), run two parallel pipelines in a SINGLE message:
+Once the lead story image agent has returned (or confirmed no image), dispatch two Agent subagents in a SINGLE message so they run concurrently:
 
-**Pipeline A — TTS audio** (sequential within pipeline):
+**Pipeline A — TTS audio subagent** (`model: "sonnet"`):
 
+Dispatch an Agent with instructions to perform these steps sequentially:
 1. **Write TTS text** (`Write` tool): Write speech-optimized plain text to `/tmp/daily-briefing-YYYY-MM-DD.txt`
    - Start with: "Good morning. Here is your daily briefing for [day of week], [month] [day], [year]."
    - **Lead story first**, regardless of settings order: "Our top story today..." then the lead story summary.
@@ -117,16 +118,19 @@ Once the lead story image agent has returned (or confirmed no image), run two pa
    <plugin-root>/scripts/tts.sh /tmp/daily-briefing-YYYY-MM-DD.txt /tmp/daily-briefing-YYYY-MM-DD.mp3 [voice]
    ```
 
-**Pipeline B — HTML** (runs concurrently with Pipeline A):
+**Pipeline B — HTML subagent** (`model: "sonnet"`):
 
+Dispatch an Agent with instructions to:
 1. **Write HTML** (`Write` tool): Write the full HTML to `/tmp/daily-briefing-YYYY-MM-DD.html` (see HTML spec below). The audio tag points to the known MP3 path — the file path is deterministic so it can be referenced before the audio exists.
 
-**After both pipelines complete — Open browser** (`Bash` tool):
+Pass ALL fetched data (all source results, lead story selection, image URLs, closing section data) to both subagents in their prompts. They need the complete dataset to generate their outputs.
+
+**After both subagents complete — Open browser** (`Bash` tool):
 ```
 open /tmp/daily-briefing-YYYY-MM-DD.html
 ```
 
-The page opens only after the MP3 is ready, so the audio player works immediately without needing a refresh.
+The page opens only after both pipelines finish, so the audio player works immediately without needing a refresh.
 
 ## HTML Spec
 
