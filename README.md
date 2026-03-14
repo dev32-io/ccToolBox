@@ -4,23 +4,50 @@ A personal Claude Code plugin marketplace. Add it once per machine, get access t
 
 ## Setup
 
-Add this marketplace to Claude Code:
+### 1. Add the marketplace
 
 ```bash
-claude plugins add-marketplace github:dev32-io/ccToolBox
+claude plugins marketplace add github:dev32-io/ccToolBox
 ```
 
-Then install individual plugins:
+This registers ccToolBox as a plugin source. You only need to do this once per machine.
+
+### 2. Install a plugin
 
 ```bash
-claude plugins install daily-briefing
+claude plugins install daily-briefing@ccToolBox
+```
+
+### 3. Verify
+
+```bash
+claude plugins list
+```
+
+### Updating
+
+To pull the latest plugin versions:
+
+```bash
+claude plugins marketplace update ccToolBox
+claude plugins update daily-briefing@ccToolBox
+```
+
+### Uninstalling
+
+```bash
+# Remove a plugin
+claude plugins uninstall daily-briefing@ccToolBox
+
+# Remove the marketplace entirely
+claude plugins marketplace remove ccToolBox
 ```
 
 ## Available Plugins
 
 | Plugin | Description |
 |--------|-------------|
-| [daily-briefing](plugins/daily-briefing/) | Personalized daily news/tech/weather briefing with TTS audio |
+| [daily-briefing](plugins/daily-briefing/) | Vintage broadsheet daily briefing with 12 sources, TTS audio, and dark/light mode |
 
 ## Adding Plugins
 
