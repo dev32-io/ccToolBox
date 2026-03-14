@@ -58,6 +58,7 @@ Since these paths are known upfront, the HTML can reference the MP3 path before 
 Using the settings parsed in Step 0 (from `~/.config/ccToolBox/daily-briefing/settings.md`):
 - **General section**: extract `voice` and `location` values
 - **Sources section**: extract the ordered list of source keys and their descriptions
+- **Closing Section**: check `today-in-history` and `inspiration-quote` toggles (both default to `true`)
 
 ## Step 2: Fetch Data (parallel subagents)
 
@@ -76,6 +77,7 @@ Launch these agents simultaneously:
 - **maker-hobby agent**: Search "Instructables featured projects [current date]" AND "reddit r/3Dprinting hot posts [current date]". Return 1-2 items (title, summary, URL).
 - **news-ap agent**: Search "AP News top headlines today [current date]". Return 2-5 short headlines with URLs.
 - **extra agent** (only if user has customized the extra source — skip if it still says "(add your own sections here)"): Search based on the user's description text. Return 1-3 items (title, summary, URL).
+- **today-in-history agent** (only if `today-in-history` is `true` in settings): Search "this day in history [month] [day]" AND "on this day [month] [day] famous events" AND "[month] [day] holidays observances". Return: any public holidays or observances for today (e.g., Pi Day, International Women's Day), plus 2-3 notable historical events — each with year and short description. Prioritize science, tech, and culturally significant events.
 
 All agents are research-only — they do NOT write files.
 
@@ -108,7 +110,8 @@ Once the lead story image agent has returned (or confirmed no image), run two pa
    - For GitHub repos, narrate the description rather than the "user/repo" path (e.g., "A trending repository for building AI agents" not "anthropics slash claude code")
    - NO URLs — never read a URL aloud
    - Expand abbreviations: "S and P 500" not "S&P 500", "AI" can stay as "AI"
-   - End with: "That's your briefing. Have a great day."
+   - If closing section is enabled, end with: "And finally, on this day in history..." followed by the historical events and quote. Then: "That's your briefing. Have a great day."
+   - If closing section is disabled, end with: "That's your briefing. Have a great day."
 2. **Generate audio** (`Bash` tool): Run:
    ```
    <plugin-root>/scripts/tts.sh /tmp/daily-briefing-YYYY-MM-DD.txt /tmp/daily-briefing-YYYY-MM-DD.mp3 [voice]
@@ -202,11 +205,14 @@ body (background: var(--bg-page))
     │   ├── .col (LEAD STORY — big header, image, full summary)
     │   ├── .col (2-3 stacked sources separated by hr.col-divider)
     │   └── .col (2-3 stacked sources separated by hr.col-divider)
-    └── .row.row-bottom (grid: 1fr 1fr 1.2fr 1fr)
-        ├── .col (space-science with APOD image)
-        ├── .col (gaming + maker-hobby stacked)
-        ├── .col (AP News headlines)
-        └── .col (extra + quote)
+    ├── .row.row-bottom (grid: 1fr 1fr 1.2fr 1fr)
+    │   ├── .col (space-science with APOD image)
+    │   ├── .col (gaming + maker-hobby stacked)
+    │   ├── .col (AP News headlines)
+    │   └── .col (extra)
+    └── .closing-section (full-width, centered)
+        ├── "ON THIS DAY" — holidays, events, historical items
+        └── inspiration quote in italics
 ```
 
 ### Audio Player
@@ -277,7 +283,14 @@ Distribute non-lead tech sources across columns 2 and 3 to balance height. The l
 - Column 1: Space & Science (with APOD image if available)
 - Column 2: Gaming (top) + Maker/Hobby (bottom), stacked with divider
 - Column 3: AP News headlines
-- Column 4: Extra (if customized by user) + optional closing quote in italics. If `extra` is not customized, redistribute the other bottom-row sources to 3 columns (`1fr 1fr 1fr`) instead of 4, giving each section more space.
+- Column 4: Extra (if customized by user). If `extra` is not customized, redistribute the other bottom-row sources to 3 columns (`1fr 1fr 1fr`) instead of 4, giving each section more space.
+
+**Closing section (full-width, below bottom row):**
+Rendered as a full-width bar spanning all columns, with a thin top border (`1px solid var(--border-light)`), centered text, and padding above.
+
+- If `today-in-history` is enabled: render a `.section-label` "ON THIS DAY" followed by any holidays/observances for today (e.g., "🥧 Pi Day · International Day of Mathematics"), then 2-3 short historical events (e.g., "1879 — Albert Einstein born · 2005 — First YouTube video uploaded"). Use `·` or `|` as separators. Keep it to two or three lines.
+- If `inspiration-quote` is enabled: render a quote in italics below the history line. Claude picks a quote that connects thematically to something in today's briefing (e.g., if the lead story is about open source, pick a quote about sharing knowledge). Format: `"Quote text." — Author`
+- Both can appear together: history on top, quote below with a small gap.
 
 **Filling content:** Every column in both rows must have enough content to avoid blank space. Write fuller summaries, add context or analysis, expand on why a story matters. A newspaper column should feel dense with text — short bullet points with large gaps look wrong. If a source returned fewer items, compensate with longer descriptions for each item.
 
@@ -291,5 +304,5 @@ Distribute non-lead tech sources across columns 2 and 3 to balance height. The l
 - The lead story is always narrated first in TTS, regardless of settings order
 - For GitHub repos in TTS, narrate descriptions not repo paths ("a trending project for..." not "user slash repo-name")
 - If the `extra` source still has the default placeholder text "(add your own sections here)", skip it entirely — do not search or render
-- Do not invent sections that aren't in the settings (e.g., don't add a "Pi Day" section just because it's Pi Day — use the actual configured sources)
+- Do not invent ad-hoc sections — use the configured sources and closing section settings
 - Bottom row columns must be visually balanced — write enough content to fill each column. If a source has few items, write longer summaries with context and analysis rather than leaving white space

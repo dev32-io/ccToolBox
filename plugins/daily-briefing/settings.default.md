@@ -1,5 +1,5 @@
 ---
-version: 2
+version: 3
 ---
 # Daily Briefing Settings
 
@@ -20,3 +20,7 @@ version: 2
 - maker-hobby: 1-2 items from Instructables, r/3Dprinting
 - news-ap: 2-5 very short headlines from AP News
 - extra: (add your own sections here)
+
+## Closing Section
+- today-in-history: true
+- inspiration-quote: true
