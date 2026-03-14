@@ -1,64 +1,72 @@
+# Daily Briefing v2 Implementation Plan
+
+> **For agentic workers:** REQUIRED: Use superpowers:subagent-driven-development (if subagents available) or superpowers:executing-plans to implement this plan. Steps use checkbox (`- [ ]`) syntax for tracking.
+
+**Goal:** Redesign the daily-briefing skill with vintage broadsheet layout, 12 content sources, image fetching, and dark/light mode toggle.
+
+**Architecture:** Update the SKILL.md instructions to add 6 new fetch agents, a lead story selection step, image searching, and a complete HTML spec rewrite with CSS custom properties for theming. Update settings.default.md with new sources (version 1 → 2).
+
+**Tech Stack:** Claude Code plugin system (markdown skills), HTML/CSS/JS (inline in generated output)
+
+**Spec:** `docs/superpowers/specs/2026-03-14-daily-briefing-v2-design-v2.md`
+
 ---
-name: daily-briefing
-description: >
-  Generate a daily news/tech/weather briefing with TTS audio.
-  Use when the user says "good morning" or invokes /daily.
-  Fetches live data, generates a newspaper-styled HTML page with
-  an embedded audio player, and opens it in the browser.
-tools: Read, Bash, WebSearch, Write, Agent
+
+## Chunk 1: Settings and SKILL.md Updates
+
+### Task 1: Update settings.default.md
+
+**Files:**
+- Modify: `plugins/daily-briefing/settings.default.md`
+
+- [ ] **Step 1: Replace settings.default.md content**
+
+Write the full updated content to `plugins/daily-briefing/settings.default.md`:
+
+```markdown
+---
+version: 2
+---
+# Daily Briefing Settings
+
+## General
+- voice: en-US-AvaMultilingualNeural
+- location: Burnaby, BC, Canada
+
+## Sources (in order of appearance)
+- weather: short summary for {location}
+- tech-hn: 2-5 items from Hacker News (AI, CS, tech)
+- tech-devto: 2-5 items from Dev.to (AI, CS, tech)
+- tech-github: 3-5 trending repositories from GitHub
+- tech-tc: 2-3 top TechCrunch headlines
+- reddit-claudeai: 2-5 hot new posts from r/ClaudeAI
+- ai-ml: 2-3 items from arXiv AI + The Batch
+- space-science: 1-2 items from NASA, SpaceX, space news
+- gaming: 2-3 items from r/gaming, game releases
+- maker-hobby: 1-2 items from Instructables, r/3Dprinting
+- news-ap: 2-5 very short headlines from AP News
+- extra: (add your own sections here)
+```
+
+- [ ] **Step 2: Commit**
+
+```bash
+git add plugins/daily-briefing/settings.default.md
+git commit -m "feat(daily-briefing): add new sources and bump settings version to 2"
+```
+
 ---
 
-# Daily Briefing
+### Task 2: Rewrite SKILL.md — Step 2 (Fetch Data)
 
-Generate a personalized daily briefing as a newspaper-styled HTML page with TTS audio.
+**Files:**
+- Modify: `plugins/daily-briefing/skills/daily-briefing/SKILL.md`
 
-**IMPORTANT: Maximize parallelism throughout. Use subagents for concurrent fetching. Run TTS and HTML generation in parallel. Minimize user permission prompts by batching tool calls.**
+- [ ] **Step 1: Replace the Step 2 section**
 
-## Step 0: Settings Initialization
+Find the current Step 2 section (lines 62-73 of SKILL.md) and replace it with:
 
-Before anything else, resolve paths and initialize settings.
-
-**Determine plugin root:** This skill file is located at `skills/daily-briefing/SKILL.md` within the plugin. The plugin root is two directories up from this file. Resolve the absolute path to the plugin root directory.
-
-**Settings flow:**
-
-1. Read user settings from `~/.config/ccToolBox/daily-briefing/settings.md`
-2. Read default settings from `<plugin-root>/settings.default.md`
-3. **If user settings file does not exist (first run):**
-   - Run: `mkdir -p ~/.config/ccToolBox/daily-briefing`
-   - Copy `<plugin-root>/settings.default.md` to `~/.config/ccToolBox/daily-briefing/settings.md`
-   - Inform user: "Created default settings at `~/.config/ccToolBox/daily-briefing/settings.md` — edit this file to customize."
-   - Use the defaults and continue.
-4. **If user settings are malformed** (missing or unparseable frontmatter):
-   - Run: `cp ~/.config/ccToolBox/daily-briefing/settings.md ~/.config/ccToolBox/daily-briefing/settings.md.bak`
-   - Copy fresh defaults to user path
-   - Inform user: "Settings were malformed. Backed up to `settings.md.bak` and reset to defaults."
-5. **If user settings version < default version:**
-   - Run: `cp ~/.config/ccToolBox/daily-briefing/settings.md ~/.config/ccToolBox/daily-briefing/settings.md.v<old>.bak`
-   - Read both files. Migrate user values (voice, location, sources) into the new structure. Preserve user customizations, fill new fields with defaults.
-   - Write migrated settings back to user path.
-   - Inform user what changed.
-6. **If user settings version > default version:**
-   - Warn user: "Your settings version is newer than the plugin default. Proceeding with your settings as-is."
-7. **If versions match:** proceed normally.
-
-After this flow, the parsed settings (voice, location, sources list) are available for all subsequent steps.
-
-## Output Paths (pre-determined)
-
-Compute these once at the start. Use the current date in YYYY-MM-DD format:
-- TTS text: `/tmp/daily-briefing-YYYY-MM-DD.txt`
-- Audio: `/tmp/daily-briefing-YYYY-MM-DD.mp3`
-- HTML: `/tmp/daily-briefing-YYYY-MM-DD.html`
-
-Since these paths are known upfront, the HTML can reference the MP3 path before the audio is generated.
-
-## Step 1: Read Settings
-
-Using the settings parsed in Step 0 (from `~/.config/ccToolBox/daily-briefing/settings.md`):
-- **General section**: extract `voice` and `location` values
-- **Sources section**: extract the ordered list of source keys and their descriptions
-
+```markdown
 ## Step 2: Fetch Data (parallel subagents)
 
 Dispatch all agents in a SINGLE message so they run concurrently. Each agent should use WebSearch and return structured data: title, 1-line summary, URL for each item.
@@ -78,7 +86,28 @@ Launch these agents simultaneously:
 - **extra agent** (only if user has customized the extra source — skip if it still says "(add your own sections here)"): Search based on the user's description text. Return 1-3 items (title, summary, URL).
 
 All agents are research-only — they do NOT write files.
+```
 
+- [ ] **Step 2: Verify no old Step 2 content remains**
+
+```bash
+grep -n "tech-hn agent\|tech-devto agent\|reddit-claudeai agent\|news-ap agent" plugins/daily-briefing/skills/daily-briefing/SKILL.md
+```
+
+Expected: only the new agent lines appear, no duplicates.
+
+---
+
+### Task 3: Add SKILL.md — Step 2.5 (Lead Story Selection)
+
+**Files:**
+- Modify: `plugins/daily-briefing/skills/daily-briefing/SKILL.md`
+
+- [ ] **Step 1: Insert Step 2.5 between Step 2 and Step 3**
+
+After the Step 2 section's closing line ("All agents are research-only — they do NOT write files."), insert:
+
+```markdown
 ## Step 2.5: Lead Story Selection + Lead Image
 
 Once all Step 2 agents have returned:
@@ -94,7 +123,20 @@ Once all Step 2 agents have returned:
    If no suitable image is found, the lead story will render as text-only.
 
 The lead story will be placed in the big left column of the top row. The remaining items from its original source still appear in their normal column position.
+```
 
+---
+
+### Task 4: Rewrite SKILL.md — Step 3 (Generate TTS + HTML + Audio)
+
+**Files:**
+- Modify: `plugins/daily-briefing/skills/daily-briefing/SKILL.md`
+
+- [ ] **Step 1: Replace the Step 3 section**
+
+Find the current Step 3 section (lines 75-101) and replace with:
+
+```markdown
 ## Step 3: Generate TTS + HTML + Audio (parallel)
 
 Once the lead story image agent has returned (or confirmed no image), do the following in a SINGLE message with parallel tool calls:
@@ -123,7 +165,20 @@ open /tmp/daily-briefing-YYYY-MM-DD.html
 ```
 
 The HTML opens immediately (the audio player will load the MP3 once tts.sh finishes writing it).
+```
 
+---
+
+### Task 5: Rewrite SKILL.md — HTML Spec
+
+**Files:**
+- Modify: `plugins/daily-briefing/skills/daily-briefing/SKILL.md`
+
+- [ ] **Step 1: Replace the HTML Spec section**
+
+Find the current "## HTML Spec" section (lines 103-127) and replace with the complete new spec:
+
+```markdown
 ## HTML Spec
 
 Single self-contained HTML file with inline CSS and JavaScript. Must include `<meta name="darkreader-lock">` in `<head>` to prevent Dark Reader browser extension interference.
@@ -275,7 +330,20 @@ Distribute non-lead tech sources across columns 2 and 3 to balance height. The l
 - Column 2: Gaming (top) + Maker/Hobby (bottom), stacked with divider
 - Column 3: AP News headlines
 - Column 4: Extra (if present) + optional closing quote in italics
+```
 
+---
+
+### Task 6: Update SKILL.md — Important Notes
+
+**Files:**
+- Modify: `plugins/daily-briefing/skills/daily-briefing/SKILL.md`
+
+- [ ] **Step 1: Replace the Important Notes section**
+
+Find the current "## Important Notes" section (lines 129-135) and replace with:
+
+```markdown
 ## Important Notes
 
 - All web searches should include the current date for freshness
@@ -286,3 +354,136 @@ Distribute non-lead tech sources across columns 2 and 3 to balance height. The l
 - The lead story is always narrated first in TTS, regardless of settings order
 - For GitHub repos in TTS, narrate descriptions not repo paths ("a trending project for..." not "user slash repo-name")
 - If the `extra` source still has the default placeholder text "(add your own sections here)", skip it entirely — do not search or render
+```
+
+- [ ] **Step 2: Verify the complete SKILL.md is consistent**
+
+```bash
+grep -c "## Step" plugins/daily-briefing/skills/daily-briefing/SKILL.md
+```
+
+Expected: 5 (Step 0, Step 1, Step 2, Step 2.5, Step 3)
+
+- [ ] **Step 3: Commit all SKILL.md changes**
+
+```bash
+git add plugins/daily-briefing/skills/daily-briefing/SKILL.md
+git commit -m "feat(daily-briefing): v2 redesign — new sources, lead story, broadsheet layout, dark mode"
+```
+
+---
+
+### Task 7: Update plugin CLAUDE.md
+
+**Files:**
+- Modify: `plugins/daily-briefing/CLAUDE.md`
+
+- [ ] **Step 1: Replace CLAUDE.md content**
+
+Write the updated content to `plugins/daily-briefing/CLAUDE.md`:
+
+```markdown
+# daily-briefing Plugin
+
+Generates a personalized daily briefing as a vintage broadsheet newspaper-styled HTML page with TTS audio. Features 12 content sources, dynamic lead story selection, image fetching, and dark/light mode toggle.
+
+## Components
+
+- `skills/daily-briefing/SKILL.md` — main skill definition (invoked via `/daily-briefing` or "good morning")
+- `scripts/tts.sh` — TTS generation using Docker (openai-edge-tts)
+- `settings.default.md` — versioned default settings template
+
+## Dependencies
+
+- **Docker** — required for TTS audio generation (`scripts/tts.sh` runs a container)
+- **curl, jq** — used by `tts.sh` for API calls
+
+## Content Sources (12)
+
+**Tech:** Hacker News, Dev.to, GitHub Trending, TechCrunch, r/ClaudeAI, AI/ML (arXiv + The Batch)
+**Non-tech:** Space/Science (NASA APOD), Gaming, Maker/Hobby (Instructables, r/3Dprinting)
+**News:** AP News
+**User-defined:** Extra (customizable via settings)
+**Weather:** Location-based summary
+
+## Features
+
+- **Lead story selection** — Claude picks the most impactful tech story and promotes it to the big left column
+- **Image fetching** — 2-3 images via WebSearch (lead story + NASA APOD)
+- **Dark/light mode** — toggle button, defaults to light, respects `prefers-color-scheme`
+- **Dark Reader lock** — `<meta name="darkreader-lock">` prevents extension interference
+- **Responsive layout** — collapses from 3/4 columns to 2 to 1 on narrow screens
+
+## Settings
+
+- Default settings ship in `settings.default.md` with `version: N` frontmatter
+- User settings live at `~/.config/ccToolBox/daily-briefing/settings.md`
+- The skill handles first-run copy and version migration automatically
+- **When changing the settings structure, bump the `version` integer in `settings.default.md`**
+
+## Testing Locally
+
+Invoke the skill with `/daily-briefing` or say "good morning" in a Claude Code session where this marketplace is registered.
+```
+
+- [ ] **Step 2: Commit**
+
+```bash
+git add plugins/daily-briefing/CLAUDE.md
+git commit -m "docs(daily-briefing): update CLAUDE.md for v2 features"
+```
+
+---
+
+### Task 8: Final verification and push
+
+- [ ] **Step 1: Verify settings version is 2**
+
+```bash
+head -3 plugins/daily-briefing/settings.default.md
+```
+
+Expected:
+```
+---
+version: 2
+---
+```
+
+- [ ] **Step 2: Verify SKILL.md has all steps**
+
+```bash
+grep "^## Step" plugins/daily-briefing/skills/daily-briefing/SKILL.md
+```
+
+Expected:
+```
+## Step 0: Settings Initialization
+## Step 1: Read Settings
+## Step 2: Fetch Data (parallel subagents)
+## Step 2.5: Lead Story Selection + Lead Image
+## Step 3: Generate TTS + HTML + Audio (parallel)
+```
+
+- [ ] **Step 3: Verify no old path references**
+
+```bash
+grep -n "Development/notes" plugins/daily-briefing/skills/daily-briefing/SKILL.md
+```
+
+Expected: no matches.
+
+- [ ] **Step 4: Verify HTML spec references dark mode**
+
+```bash
+grep -c "darkreader-lock\|data-theme\|prefers-color-scheme" plugins/daily-briefing/skills/daily-briefing/SKILL.md
+```
+
+Expected: at least 3 matches.
+
+- [ ] **Step 5: Push to both remotes**
+
+```bash
+git push origin main
+git push lab main
+```
