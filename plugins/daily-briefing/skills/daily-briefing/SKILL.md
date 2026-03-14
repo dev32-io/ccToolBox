@@ -53,6 +53,11 @@ Compute these once at the start. Use the current date in YYYY-MM-DD format:
 
 Since these paths are known upfront, the HTML can reference the MP3 path before the audio is generated.
 
+**Cleanup previous run** (`Bash` tool): Remove any existing output files for today:
+```
+rm -f /tmp/daily-briefing-YYYY-MM-DD.txt /tmp/daily-briefing-YYYY-MM-DD.mp3 /tmp/daily-briefing-YYYY-MM-DD.html
+```
+
 ## Step 1: Read Settings
 
 Using the settings parsed in Step 0 (from `~/.config/ccToolBox/daily-briefing/settings.md`):
@@ -62,7 +67,7 @@ Using the settings parsed in Step 0 (from `~/.config/ccToolBox/daily-briefing/se
 
 ## Step 2: Fetch Data (parallel subagents)
 
-Dispatch all agents in a SINGLE message so they run concurrently. **Use `model: "sonnet"` for every agent** — these are simple search tasks that don't need opus. Each agent should use WebSearch and return structured data: title, 1-line summary, URL for each item.
+Dispatch all agents in a SINGLE message so they run concurrently. **Use `model: "sonnet"` for every agent** — these are simple search tasks that don't need opus. Each agent is research-only and should **only use WebSearch and WebFetch tools**. Return structured data: title, 1-line summary, URL for each item.
 
 Launch these agents simultaneously:
 - **weather agent**: Search "[location] weather today [current date]". Return 1-2 sentence summary with temperature, conditions, high/low, wind.
@@ -104,7 +109,7 @@ Once the lead story image agent has returned (or confirmed no image), dispatch t
 **Pipeline A — TTS audio subagent** (`model: "sonnet"`):
 
 Dispatch an Agent with instructions to perform these steps sequentially:
-1. **Write TTS text**: First, attempt to `Read` `/tmp/daily-briefing-YYYY-MM-DD.txt` (this may fail if it doesn't exist — that's fine, it satisfies the Write tool's read requirement for re-runs). Then use the `Write` tool to write speech-optimized plain text to `/tmp/daily-briefing-YYYY-MM-DD.txt`.
+1. **Write TTS text** (`Write` tool): Write speech-optimized plain text to `/tmp/daily-briefing-YYYY-MM-DD.txt`.
    - Start with: "Good morning. Here is your daily briefing for [day of week], [month] [day], [year]."
    - **Lead story first**, regardless of settings order: "Our top story today..." then the lead story summary.
    - Then remaining sources in settings order, with natural transitions: "Next, in tech news from Dev.to...", "Moving to space and science...", "In gaming news...", "From the maker community..."
@@ -121,9 +126,7 @@ Dispatch an Agent with instructions to perform these steps sequentially:
 **Pipeline B — HTML subagent** (`model: "sonnet"`):
 
 Dispatch an Agent with instructions to:
-1. **Write HTML**: First, attempt to `Read` `/tmp/daily-briefing-YYYY-MM-DD.html` (this may fail if it doesn't exist — that's fine, it satisfies the Write tool's read requirement for re-runs). Then use the `Write` tool to write the full HTML (see HTML spec below). The audio tag points to the known MP3 path — the file path is deterministic so it can be referenced before the audio exists.
-
-**Important:** Always attempt to `Read` each `/tmp/` output file before using the `Write` tool, even if the file doesn't exist yet. This satisfies the Write tool's read-before-overwrite requirement and ensures re-runs on the same day work correctly.
+1. **Write HTML** (`Write` tool): Write the full HTML to `/tmp/daily-briefing-YYYY-MM-DD.html` (see HTML spec below). The audio tag points to the known MP3 path — the file path is deterministic so it can be referenced before the audio exists.
 
 Pass ALL fetched data (all source results, lead story selection, image URLs, closing section data) to both subagents in their prompts. They need the complete dataset to generate their outputs.
 
