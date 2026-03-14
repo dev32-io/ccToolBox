@@ -104,7 +104,7 @@ Once the lead story image agent has returned (or confirmed no image), dispatch t
 **Pipeline A — TTS audio subagent** (`model: "sonnet"`):
 
 Dispatch an Agent with instructions to perform these steps sequentially:
-1. **Write TTS text** (`Bash` tool, using `cat > /tmp/daily-briefing-YYYY-MM-DD.txt << 'EOF' ... EOF`): Write speech-optimized plain text.
+1. **Write TTS text**: First, attempt to `Read` `/tmp/daily-briefing-YYYY-MM-DD.txt` (this may fail if it doesn't exist — that's fine, it satisfies the Write tool's read requirement for re-runs). Then use the `Write` tool to write speech-optimized plain text to `/tmp/daily-briefing-YYYY-MM-DD.txt`.
    - Start with: "Good morning. Here is your daily briefing for [day of week], [month] [day], [year]."
    - **Lead story first**, regardless of settings order: "Our top story today..." then the lead story summary.
    - Then remaining sources in settings order, with natural transitions: "Next, in tech news from Dev.to...", "Moving to space and science...", "In gaming news...", "From the maker community..."
@@ -121,9 +121,9 @@ Dispatch an Agent with instructions to perform these steps sequentially:
 **Pipeline B — HTML subagent** (`model: "sonnet"`):
 
 Dispatch an Agent with instructions to:
-1. **Write HTML** (`Bash` tool, using `cat > /tmp/daily-briefing-YYYY-MM-DD.html << 'HTMLEOF' ... HTMLEOF`): Write the full HTML (see HTML spec below). The audio tag points to the known MP3 path — the file path is deterministic so it can be referenced before the audio exists.
+1. **Write HTML**: First, attempt to `Read` `/tmp/daily-briefing-YYYY-MM-DD.html` (this may fail if it doesn't exist — that's fine, it satisfies the Write tool's read requirement for re-runs). Then use the `Write` tool to write the full HTML (see HTML spec below). The audio tag points to the known MP3 path — the file path is deterministic so it can be referenced before the audio exists.
 
-**Important:** Use `Bash` with heredoc (not the `Write` tool) for all `/tmp/` file writes. The Write tool requires a prior Read if the file already exists, which fails on re-runs within the same day. Bash overwrites unconditionally and avoids sandbox approval prompts.
+**Important:** Always attempt to `Read` each `/tmp/` output file before using the `Write` tool, even if the file doesn't exist yet. This satisfies the Write tool's read-before-overwrite requirement and ensures re-runs on the same day work correctly.
 
 Pass ALL fetched data (all source results, lead story selection, image URLs, closing section data) to both subagents in their prompts. They need the complete dataset to generate their outputs.
 
