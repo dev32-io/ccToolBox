@@ -97,32 +97,33 @@ The lead story will be placed in the big left column of the top row. The remaini
 
 ## Step 3: Generate TTS + HTML + Audio (parallel)
 
-Once the lead story image agent has returned (or confirmed no image), do the following in a SINGLE message with parallel tool calls:
+Once the lead story image agent has returned (or confirmed no image), run two parallel pipelines in a SINGLE message:
 
-**Tool call 1 — Write TTS text** (`Write` tool): Write speech-optimized plain text to `/tmp/daily-briefing-YYYY-MM-DD.txt`
-- Start with: "Good morning. Here is your daily briefing for [day of week], [month] [day], [year]."
-- **Lead story first**, regardless of settings order: "Our top story today..." then the lead story summary.
-- Then remaining sources in settings order, with natural transitions: "Next, in tech news from Dev.to...", "Moving to space and science...", "In gaming news...", "From the maker community..."
-- For GitHub repos, narrate the description rather than the "user/repo" path (e.g., "A trending repository for building AI agents" not "anthropics slash claude code")
-- NO URLs — never read a URL aloud
-- Expand abbreviations: "S and P 500" not "S&P 500", "AI" can stay as "AI"
-- End with: "That's your briefing. Have a great day."
+**Pipeline A — TTS audio** (sequential within pipeline):
 
-**Tool call 2 — Write HTML** (`Write` tool): Write the full HTML to `/tmp/daily-briefing-YYYY-MM-DD.html` (see HTML spec below). The audio tag already points to the known MP3 path.
+1. **Write TTS text** (`Write` tool): Write speech-optimized plain text to `/tmp/daily-briefing-YYYY-MM-DD.txt`
+   - Start with: "Good morning. Here is your daily briefing for [day of week], [month] [day], [year]."
+   - **Lead story first**, regardless of settings order: "Our top story today..." then the lead story summary.
+   - Then remaining sources in settings order, with natural transitions: "Next, in tech news from Dev.to...", "Moving to space and science...", "In gaming news...", "From the maker community..."
+   - For GitHub repos, narrate the description rather than the "user/repo" path (e.g., "A trending repository for building AI agents" not "anthropics slash claude code")
+   - NO URLs — never read a URL aloud
+   - Expand abbreviations: "S and P 500" not "S&P 500", "AI" can stay as "AI"
+   - End with: "That's your briefing. Have a great day."
+2. **Generate audio** (`Bash` tool): Run:
+   ```
+   <plugin-root>/scripts/tts.sh /tmp/daily-briefing-YYYY-MM-DD.txt /tmp/daily-briefing-YYYY-MM-DD.mp3 [voice]
+   ```
 
-Then, once the TTS text file is written:
+**Pipeline B — HTML** (runs concurrently with Pipeline A):
 
-**Tool call 3 — Generate audio** (`Bash` tool): Run:
-```
-<plugin-root>/scripts/tts.sh /tmp/daily-briefing-YYYY-MM-DD.txt /tmp/daily-briefing-YYYY-MM-DD.mp3 [voice]
-```
+1. **Write HTML** (`Write` tool): Write the full HTML to `/tmp/daily-briefing-YYYY-MM-DD.html` (see HTML spec below). The audio tag points to the known MP3 path — the file path is deterministic so it can be referenced before the audio exists.
 
-**Tool call 4 — Open browser** (`Bash` tool): Run simultaneously with TTS generation:
+**After both pipelines complete — Open browser** (`Bash` tool):
 ```
 open /tmp/daily-briefing-YYYY-MM-DD.html
 ```
 
-The HTML opens immediately (the audio player will load the MP3 once tts.sh finishes writing it).
+The page opens only after the MP3 is ready, so the audio player works immediately without needing a refresh.
 
 ## HTML Spec
 
@@ -180,7 +181,7 @@ Use CSS custom properties on `:root[data-theme]` for all colors. Default to ligh
 
 ### Dark Mode Toggle
 
-Fixed-position pill button in the top-right corner. On page load, check `window.matchMedia('(prefers-color-scheme: dark)')` to set initial theme. Clicking toggles between light ("🌙 Dark Mode" label) and dark ("☀ Light Mode" label) by switching `data-theme` on `<html>`.
+Fixed-position pill button in the top-right corner. Always starts in light mode (matching `<html data-theme="light">`). Clicking toggles between light ("🌙 Dark Mode" label) and dark ("☀ Light Mode" label) by switching `data-theme` on `<html>`. Do NOT check `prefers-color-scheme` — the page always defaults to light.
 
 ### Page Structure
 
