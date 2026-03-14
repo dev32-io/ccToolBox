@@ -247,6 +247,8 @@ The lead story occupies the full left column (2fr) of the top row:
 
 All article titles/headlines are clickable links (`<a href="..." target="_blank">`). Style: `color: var(--text-title); text-decoration: none; border-bottom: 1px solid var(--border-light)`. On hover: `border-bottom-color: var(--border-heavy)`.
 
+**Link quality:** Every link MUST point to the specific article or post, never to a homepage, category page, or generic listing (e.g., link to the actual Batch newsletter issue, not `deeplearning.ai/the-batch/`). If a specific article URL is not available from the search results, do not make the title a link — render it as plain text instead.
+
 ### Responsive Breakpoints
 
 ```css
@@ -275,7 +277,9 @@ Distribute non-lead tech sources across columns 2 and 3 to balance height. The l
 - Column 1: Space & Science (with APOD image if available)
 - Column 2: Gaming (top) + Maker/Hobby (bottom), stacked with divider
 - Column 3: AP News headlines
-- Column 4: Extra (if present) + optional closing quote in italics
+- Column 4: Extra (if customized by user) + optional closing quote in italics. If `extra` is not customized, redistribute the other bottom-row sources to 3 columns (`1fr 1fr 1fr`) instead of 4, giving each section more space.
+
+**Filling content:** Every column in both rows must have enough content to avoid blank space. Write fuller summaries, add context or analysis, expand on why a story matters. A newspaper column should feel dense with text — short bullet points with large gaps look wrong. If a source returned fewer items, compensate with longer descriptions for each item.
 
 ## Important Notes
 
@@ -287,3 +291,5 @@ Distribute non-lead tech sources across columns 2 and 3 to balance height. The l
 - The lead story is always narrated first in TTS, regardless of settings order
 - For GitHub repos in TTS, narrate descriptions not repo paths ("a trending project for..." not "user slash repo-name")
 - If the `extra` source still has the default placeholder text "(add your own sections here)", skip it entirely — do not search or render
+- Do not invent sections that aren't in the settings (e.g., don't add a "Pi Day" section just because it's Pi Day — use the actual configured sources)
+- Bottom row columns must be visually balanced — write enough content to fill each column. If a source has few items, write longer summaries with context and analysis rather than leaving white space
