@@ -1,0 +1,7 @@
+{
+  "name": "daily-briefing",
+  "description": "Generate a personalized daily news/tech/weather briefing with TTS audio",
+  "author": {
+    "name": "dev32-io"
+  }
+}

@@ -1,0 +1,15 @@
+{
+  "name": "ccToolBox",
+  "description": "Personal Claude Code plugin collection by dev32-io",
+  "owner": {
+    "name": "dev32-io"
+  },
+  "plugins": [
+    {
+      "name": "daily-briefing",
+      "description": "Generate a personalized daily news/tech/weather briefing with TTS audio",
+      "source": "./plugins/daily-briefing",
+      "category": "productivity"
+    }
+  ]
+}
