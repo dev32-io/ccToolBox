@@ -13,17 +13,13 @@ tools: Read, Bash, WebSearch, Write, Agent
 
 Generate a personalized daily briefing as a newspaper-styled HTML page with TTS audio.
 
-**IMPORTANT: Maximize parallelism throughout. Use subagents for concurrent fetching. Run TTS and HTML generation in parallel. Minimize user permission prompts by batching tool calls.**
-
-**IMPORTANT: Always use the system date from Bash (`date +%Y-%m-%d`, `date +%A`, etc.) for the current date — never rely on the session date from Claude Code context. Run `date` commands via the Bash tool whenever you need the current date.**
+**IMPORTANT: Maximize parallelism. Batch tool calls. Always use system date from Bash (`date +%Y-%m-%d`) — never session date.**
 
 ## Step 0: Settings Initialization
 
-Before anything else, resolve paths and get the current system date.
+**Get current date** (`Bash`): Run `date +%Y-%m-%d` and `date '+%A, %B %d, %Y'`.
 
-**Get current date** (`Bash` tool): Run `date +%Y-%m-%d` and `date '+%A, %B %d, %Y'` to get the date in both formats. Use these values throughout.
-
-**Determine plugin root:** This skill file is located at `skills/daily-briefing/SKILL.md` within the plugin. The plugin root is two directories up from this file. Resolve the absolute path to the plugin root directory.
+**Determine plugin root:** Two directories up from this skill file.
 
 **Settings flow:**
 
@@ -47,9 +43,7 @@ Before anything else, resolve paths and get the current system date.
    - Warn user: "Your settings version is newer than the plugin default. Proceeding with your settings as-is."
 7. **If versions match:** proceed normally.
 
-After this flow, the parsed settings (voice, location, sources list, retention, closing section) are available for all subsequent steps.
-
-**Retention cleanup** (`Bash` tool): After settings are loaded, clean up old output files based on the `retention` setting (default 14 days):
+**Retention cleanup** (`Bash`):
 ```
 mkdir -p ~/.ccToolBox/daily-briefing/output
 find ~/.ccToolBox/daily-briefing/output -name "daily-briefing-*" -mtime +<retention_days> -delete
@@ -69,7 +63,7 @@ Compute these once at the start using the system date from Step 0:
 - Audio: `~/.ccToolBox/daily-briefing/output/daily-briefing-YYYY-MM-DD.mp3`
 - HTML: `~/.ccToolBox/daily-briefing/output/daily-briefing-YYYY-MM-DD.html`
 
-Since these paths are known upfront, the HTML can reference the MP3 path before the audio is generated. Use the **full expanded path** (not `~`) when referencing the MP3 in the HTML `<audio>` tag.
+Use the **full expanded path** (not `~`) in the HTML `<audio>` tag.
 
 ## Step 1: Read Settings
 
@@ -84,11 +78,11 @@ Using the settings parsed in Step 0 (from `~/.ccToolBox/daily-briefing/settings.
 All agents dispatched in this skill MUST follow these rules.
 Copy relevant rules into each agent's prompt when dispatching.
 
-- **Model:** Use `model: "sonnet"` for every agent — these are simple tasks that don't need opus
+- **Model:** Use `model: "sonnet"` for every agent
 - **Tools:** Fetch agents may only use **WebSearch and WebFetch** tools. Generation subagents (Pipeline A/B) may use Write and Bash.
 - **Research-only:** Fetch agents do NOT write files
-- **System date:** Pass the system date (from Step 0 `date` command) to every agent in its prompt — agents must use this date in search queries, never their own session date
-- **URL quality:** Every URL returned MUST be a direct link to the specific article, post, or repo — never a homepage, listing page, or aggregator front page. Bad examples: `https://news.ycombinator.com/news`, `https://dev.to/`, `https://github.com/trending`, `https://techcrunch.com/`. If no specific article URL is available, return the item without a URL.
+- **System date:** Pass the system date from Step 0 to every agent prompt
+- **URL quality:** URLs must link to the specific article/post/repo, never homepages. Bad: `news.ycombinator.com/news`, `dev.to/`, `github.com/trending`. No URL? Return the item without one.
 - **Link rendering:** In HTML, only make a title a clickable link if the URL points to the specific article. If no direct URL, render as plain text.
 - **TTS narration:** No URLs read aloud. For GitHub repos, narrate the description not the "user/repo" path. Expand abbreviations ("S and P 500" not "S&P 500", "AI" stays as "AI").
 - **Content density:** Write fuller summaries with context and analysis — a newspaper column should feel dense. If a source returned few items, compensate with longer descriptions.
@@ -115,8 +109,6 @@ Launch these agents simultaneously:
 - **extra agent** (only if user has customized the extra source — skip if it still says "(add your own sections here)"): Search based on the user's description text. Return 1-3 items (title, summary, URL).
 - **today-in-history agent** (only if `today-in-history` is `true` in settings): Search "this day in history [month] [day]" AND "on this day [month] [day] famous events" AND "[month] [day] holidays observances". Return: any public holidays or observances for today (e.g., Pi Day, International Women's Day), plus 2-3 notable historical events — each with year and short description. Prioritize science, tech, and culturally significant events.
 
-All agents are research-only — they do NOT write files.
-
 ## Step 2.5: Lead Story Selection + Lead Image
 
 Once all Step 2 agents have returned:
@@ -127,19 +119,15 @@ Once all Step 2 agents have returned:
    - Engagement (high vote count, comment count, stars)
 
 2. **Fetch lead story image:** Dispatch one Agent (`model: "sonnet"`) to search for a relevant image for the lead story:
-   - **lead-image agent**: Search "[lead story title] image" or "[lead story topic] photo". Return a single image URL suitable for embedding in HTML. The image should be a direct URL to a .jpg/.png/.webp file, not a page URL.
+   - **lead-image agent**: Search "[lead story title] image" or "[lead story topic] photo". Return a direct image URL (.jpg/.png/.webp) suitable for embedding in HTML, not a page URL.
 
-   If no suitable image is found, the lead story will render as text-only.
-
-The lead story will be placed in the big left column of the top row. The remaining items from its original source still appear in their normal column position.
+   If no image found, render lead story as text-only.
 
 ## Step 3: Generate TTS + HTML + Audio (parallel)
 
-Once the lead story image agent has returned (or confirmed no image), dispatch two Agent subagents in a SINGLE message so they run concurrently:
+Dispatch two Agent subagents in a SINGLE message:
 
 **Pipeline A — TTS audio subagent** (`model: "sonnet"`):
-
-Dispatch an Agent with instructions to perform these steps sequentially:
 1. **Write TTS text** (`Write` tool): Write speech-optimized plain text to `~/.ccToolBox/daily-briefing/output/daily-briefing-YYYY-MM-DD.txt`.
    - Start with a **short, creative greeting** that fits the day — reference the day of the week, a holiday if applicable, the weather, or something topical. Keep it to 1-2 sentences and flow naturally into the lead story. **Avoid generic greetings like "Good morning" or "Hello".** Examples: "Happy Friday — looks like a clear day in Burnaby, perfect for catching up on what's new.", "It's a rainy Wednesday, so grab your coffee — here's what you need to know."
    - **Lead story first**, regardless of settings order: "Our top story today..." then the lead story summary.
@@ -156,17 +144,14 @@ Dispatch an Agent with instructions to perform these steps sequentially:
 
 **Pipeline B — HTML subagent** (`model: "sonnet"`):
 
-Dispatch an Agent with instructions to:
-1. **Write HTML** (`Write` tool): Write the full HTML to `~/.ccToolBox/daily-briefing/output/daily-briefing-YYYY-MM-DD.html` (see HTML spec below). The audio tag points to the known MP3 path — the file path is deterministic so it can be referenced before the audio exists.
+1. **Write HTML** (`Write` tool): Write the full HTML to `~/.ccToolBox/daily-briefing/output/daily-briefing-YYYY-MM-DD.html` (see HTML spec below).
 
-Pass ALL fetched data (all source results, lead story selection, image URLs, closing section data) to both subagents in their prompts. They need the complete dataset to generate their outputs.
+Pass ALL fetched data to both subagents in their prompts.
 
-**After both subagents complete — Open browser** (`Bash` tool):
+**After both subagents complete — Open browser** (`Bash`):
 ```
 open ~/.ccToolBox/daily-briefing/output/daily-briefing-YYYY-MM-DD.html
 ```
-
-The page opens only after both pipelines finish, so the audio player works immediately without needing a refresh.
 
 ## HTML Spec
 
@@ -224,7 +209,7 @@ Use CSS custom properties on `:root[data-theme]` for all colors. Default to ligh
 
 ### Dark Mode Toggle
 
-Fixed-position pill button in the top-right corner. Always starts in light mode (matching `<html data-theme="light">`). Clicking toggles between light ("🌙 Dark Mode" label) and dark ("☀ Light Mode" label) by switching `data-theme` on `<html>`. Do NOT check `prefers-color-scheme` — the page always defaults to light.
+Fixed-position pill button, top-right. Defaults to light mode. Toggles `data-theme` on `<html>` between light/dark. Do NOT check `prefers-color-scheme`.
 
 ### Page Structure
 
@@ -286,8 +271,8 @@ The lead story occupies the full left column (2fr) of the top row:
 
 - Lead story and space/science sections may have `<img>` tags
 - Images use `width:100%; object-fit:cover; border:1px solid var(--border-light)`
-- Fallback: `onerror="this.style.display='none'"` — if the image fails to load, it disappears and the section flows as text-only
-- If no image URL was found during fetching, simply omit the `<img>` tag entirely
+- Fallback: `onerror="this.style.display='none'"`
+- No image URL found? Omit the `<img>` tag
 
 ### Links
 
