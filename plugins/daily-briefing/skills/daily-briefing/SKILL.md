@@ -78,7 +78,7 @@ Using the settings parsed in Step 0 (from `~/.ccToolBox/daily-briefing/settings.
 All agents dispatched in this skill MUST follow these rules.
 Copy relevant rules into each agent's prompt when dispatching.
 
-- **Model:** Use `model: "sonnet"` for every agent
+- **Model:** Use `model: "haiku"` for fetch agents and lead image agent. Use `model: "sonnet"` for generation subagents (Pipeline A/B).
 - **Tools:** Fetch agents may only use **WebSearch and WebFetch** tools. Generation subagents (Pipeline A/B) may use Write and Bash.
 - **Research-only:** Fetch agents do NOT write files
 - **System date:** Pass the system date from Step 0 to every agent prompt
@@ -118,7 +118,7 @@ Once all Step 2 agents have returned:
    - Novelty (breaking news over ongoing stories)
    - Engagement (high vote count, comment count, stars)
 
-2. **Fetch lead story image:** Dispatch one Agent (`model: "sonnet"`) to search for a relevant image for the lead story:
+2. **Fetch lead story image:** Dispatch one Agent (`model: "haiku"`) to search for a relevant image for the lead story:
    - **lead-image agent**: Search "[lead story title] image" or "[lead story topic] photo". Return a direct image URL (.jpg/.png/.webp) suitable for embedding in HTML, not a page URL.
 
    If no image found, render lead story as text-only.
