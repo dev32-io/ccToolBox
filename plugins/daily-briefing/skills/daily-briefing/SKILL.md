@@ -79,11 +79,26 @@ Using the settings parsed in Step 0 (from `~/.ccToolBox/daily-briefing/settings.
 - **Retention section**: extract `days` value (default 14)
 - **Closing Section**: check `today-in-history` and `inspiration-quote` toggles (both default to `true`)
 
+## Agent Rules
+
+All agents dispatched in this skill MUST follow these rules.
+Copy relevant rules into each agent's prompt when dispatching.
+
+- **Model:** Use `model: "sonnet"` for every agent — these are simple tasks that don't need opus
+- **Tools:** Fetch agents may only use **WebSearch and WebFetch** tools. Generation subagents (Pipeline A/B) may use Write and Bash.
+- **Research-only:** Fetch agents do NOT write files
+- **System date:** Pass the system date (from Step 0 `date` command) to every agent in its prompt — agents must use this date in search queries, never their own session date
+- **URL quality:** Every URL returned MUST be a direct link to the specific article, post, or repo — never a homepage, listing page, or aggregator front page. Bad examples: `https://news.ycombinator.com/news`, `https://dev.to/`, `https://github.com/trending`, `https://techcrunch.com/`. If no specific article URL is available, return the item without a URL.
+- **Link rendering:** In HTML, only make a title a clickable link if the URL points to the specific article. If no direct URL, render as plain text.
+- **TTS narration:** No URLs read aloud. For GitHub repos, narrate the description not the "user/repo" path. Expand abbreviations ("S and P 500" not "S&P 500", "AI" stays as "AI").
+- **Content density:** Write fuller summaries with context and analysis — a newspaper column should feel dense. If a source returned few items, compensate with longer descriptions.
+- **No invented sections:** Only use configured sources and closing section settings — do not invent ad-hoc sections.
+- **Graceful skips:** If a source search returns no results, skip that section — do not leave empty columns.
+- **Data reuse:** TTS and HTML are generated from the SAME fetched data — never fetch twice.
+
 ## Step 2: Fetch Data (parallel subagents)
 
-Dispatch all agents in a SINGLE message so they run concurrently. **Use `model: "sonnet"` for every agent** — these are simple search tasks that don't need opus. Each agent is research-only and should **only use WebSearch and WebFetch tools**. Return structured data: title, 1-line summary, URL for each item.
-
-**Pass the system date (from Step 0) to each agent in its prompt** — agents must use this date in their search queries, not their own session date.
+Dispatch all agents in a SINGLE message so they run concurrently. See **Agent Rules** above for model, tools, and URL requirements.
 
 Launch these agents simultaneously:
 - **weather agent**: Search "[location] weather today [current date]". Return 1-2 sentence summary with temperature, conditions, high/low, wind.
@@ -276,9 +291,7 @@ The lead story occupies the full left column (2fr) of the top row:
 
 ### Links
 
-All article titles/headlines are clickable links (`<a href="..." target="_blank">`). Style: `color: var(--text-title); text-decoration: none; border-bottom: 1px solid var(--border-light)`. On hover: `border-bottom-color: var(--border-heavy)`.
-
-**Link quality:** Every link MUST point to the specific article or post, never to a homepage, category page, or generic listing (e.g., link to the actual Batch newsletter issue, not `deeplearning.ai/the-batch/`). If a specific article URL is not available from the search results, do not make the title a link — render it as plain text instead.
+All article titles/headlines are clickable links (`<a href="..." target="_blank">`). Style: `color: var(--text-title); text-decoration: none; border-bottom: 1px solid var(--border-light)`. On hover: `border-bottom-color: var(--border-heavy)`. See **Agent Rules** for URL quality and link rendering requirements.
 
 ### Responsive Breakpoints
 
@@ -317,18 +330,12 @@ Rendered as a full-width bar spanning all columns, with a thin top border (`1px 
 - If `inspiration-quote` is enabled: render a quote in italics below the history line. Claude picks a quote that connects thematically to something in today's briefing (e.g., if the lead story is about open source, pick a quote about sharing knowledge). Format: `"Quote text." — Author`
 - Both can appear together: history on top, quote below with a small gap.
 
-**Filling content:** Every column in both rows must have enough content to avoid blank space. Write fuller summaries, add context or analysis, expand on why a story matters. A newspaper column should feel dense with text — short bullet points with large gaps look wrong. If a source returned fewer items, compensate with longer descriptions for each item.
+See **Agent Rules** for content density requirements.
 
 ## Important Notes
 
-- **Always use system date from Bash** (`date` command) for the current date — never rely on Claude Code session date context
-- All web searches should include the current date for freshness
-- If a source search returns no results, skip that section gracefully — do not leave empty columns
-- The TTS script and HTML are generated from the SAME fetched data — do not fetch twice
+- See **Agent Rules** for all agent behavior requirements (model, tools, URLs, content, dates)
 - Container cleanup is handled by tts.sh — do not manage Docker directly
 - Minimize round-trips: batch as many tool calls as possible into single messages
 - The lead story is always narrated first in TTS, regardless of settings order
-- For GitHub repos in TTS, narrate descriptions not repo paths ("a trending project for..." not "user slash repo-name")
 - If the `extra` source still has the default placeholder text "(add your own sections here)", skip it entirely — do not search or render
-- Do not invent ad-hoc sections — use the configured sources and closing section settings
-- Bottom row columns must be visually balanced — write enough content to fill each column. If a source has few items, write longer summaries with context and analysis rather than leaving white space
