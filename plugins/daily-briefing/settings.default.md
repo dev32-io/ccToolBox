@@ -1,5 +1,5 @@
 ---
-version: 1.3.0
+version: 1.4.0
 ---
 # Daily Briefing Settings
 
@@ -20,6 +20,9 @@ version: 1.3.0
 - maker-hobby: 1-2 items from Instructables, r/3Dprinting
 - news-ap: 2-5 very short headlines from AP News
 - extra: (add your own sections here)
+
+## Retention
+- days: 14
 
 ## Closing Section
 - today-in-history: true

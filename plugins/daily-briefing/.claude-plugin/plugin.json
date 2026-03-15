@@ -1,7 +1,7 @@
 {
   "name": "daily-briefing",
   "description": "Generate a personalized daily news/tech/weather briefing with TTS audio",
-  "version": "1.3.3",
+  "version": "1.4.0",
   "author": {
     "name": "dev32-io"
   }

@@ -2,9 +2,10 @@
 name: daily-briefing
 description: >
   Generate a daily news/tech/weather briefing with TTS audio.
-  Use when the user says "good morning" or invokes /daily.
-  Fetches live data, generates a newspaper-styled HTML page with
-  an embedded audio player, and opens it in the browser.
+  Use when the user asks for their daily briefing, e.g. "get my daily briefing",
+  "give me my daily", "show me what's happening today", "what's the news today",
+  or invokes /daily-briefing.
+  Do NOT trigger on casual greetings like "good morning" or "hello".
 tools: Read, Bash, WebSearch, Write, Agent
 ---
 
@@ -14,27 +15,31 @@ Generate a personalized daily briefing as a newspaper-styled HTML page with TTS 
 
 **IMPORTANT: Maximize parallelism throughout. Use subagents for concurrent fetching. Run TTS and HTML generation in parallel. Minimize user permission prompts by batching tool calls.**
 
+**IMPORTANT: Always use the system date from Bash (`date +%Y-%m-%d`, `date +%A`, etc.) for the current date — never rely on the session date from Claude Code context. Run `date` commands via the Bash tool whenever you need the current date.**
+
 ## Step 0: Settings Initialization
 
-Before anything else, resolve paths and initialize settings.
+Before anything else, resolve paths and get the current system date.
+
+**Get current date** (`Bash` tool): Run `date +%Y-%m-%d` and `date '+%A, %B %d, %Y'` to get the date in both formats. Use these values throughout.
 
 **Determine plugin root:** This skill file is located at `skills/daily-briefing/SKILL.md` within the plugin. The plugin root is two directories up from this file. Resolve the absolute path to the plugin root directory.
 
 **Settings flow:**
 
-1. Read user settings from `~/.config/ccToolBox/daily-briefing/settings.md`
+1. Read user settings from `~/.ccToolBox/daily-briefing/settings.md`
 2. Read default settings from `<plugin-root>/settings.default.md`
 3. **If user settings file does not exist (first run):**
-   - Run: `mkdir -p ~/.config/ccToolBox/daily-briefing`
-   - Copy `<plugin-root>/settings.default.md` to `~/.config/ccToolBox/daily-briefing/settings.md`
-   - Inform user: "Created default settings at `~/.config/ccToolBox/daily-briefing/settings.md` — edit this file to customize."
+   - Run: `mkdir -p ~/.ccToolBox/daily-briefing/output`
+   - Copy `<plugin-root>/settings.default.md` to `~/.ccToolBox/daily-briefing/settings.md`
+   - Inform user: "Created default settings at `~/.ccToolBox/daily-briefing/settings.md` — edit this file to customize."
    - Use the defaults and continue.
 4. **If user settings are malformed** (missing or unparseable frontmatter):
-   - Run: `cp ~/.config/ccToolBox/daily-briefing/settings.md ~/.config/ccToolBox/daily-briefing/settings.md.bak`
+   - Run: `cp ~/.ccToolBox/daily-briefing/settings.md ~/.ccToolBox/daily-briefing/settings.md.bak`
    - Copy fresh defaults to user path
    - Inform user: "Settings were malformed. Backed up to `settings.md.bak` and reset to defaults."
 5. **If user settings version < default version:**
-   - Run: `cp ~/.config/ccToolBox/daily-briefing/settings.md ~/.config/ccToolBox/daily-briefing/settings.md.v<old>.bak`
+   - Run: `cp ~/.ccToolBox/daily-briefing/settings.md ~/.ccToolBox/daily-briefing/settings.md.v<old>.bak`
    - Read both files. Migrate user values (voice, location, sources) into the new structure. Preserve user customizations, fill new fields with defaults.
    - Write migrated settings back to user path.
    - Inform user what changed.
@@ -42,32 +47,43 @@ Before anything else, resolve paths and initialize settings.
    - Warn user: "Your settings version is newer than the plugin default. Proceeding with your settings as-is."
 7. **If versions match:** proceed normally.
 
-After this flow, the parsed settings (voice, location, sources list) are available for all subsequent steps.
+After this flow, the parsed settings (voice, location, sources list, retention, closing section) are available for all subsequent steps.
+
+**Retention cleanup** (`Bash` tool): After settings are loaded, clean up old output files based on the `retention` setting (default 14 days):
+```
+mkdir -p ~/.ccToolBox/daily-briefing/output
+find ~/.ccToolBox/daily-briefing/output -name "daily-briefing-*" -mtime +<retention_days> -delete
+```
+
+**Cleanup today's files** (`Bash` tool): Remove any existing output files for today's date (enables re-runs):
+```
+rm -f ~/.ccToolBox/daily-briefing/output/daily-briefing-YYYY-MM-DD.txt ~/.ccToolBox/daily-briefing/output/daily-briefing-YYYY-MM-DD.mp3 ~/.ccToolBox/daily-briefing/output/daily-briefing-YYYY-MM-DD.html
+```
 
 ## Output Paths (pre-determined)
 
-Compute these once at the start. Use the current date in YYYY-MM-DD format:
-- TTS text: `/tmp/daily-briefing-YYYY-MM-DD.txt`
-- Audio: `/tmp/daily-briefing-YYYY-MM-DD.mp3`
-- HTML: `/tmp/daily-briefing-YYYY-MM-DD.html`
+Output directory: `~/.ccToolBox/daily-briefing/output/`
 
-Since these paths are known upfront, the HTML can reference the MP3 path before the audio is generated.
+Compute these once at the start using the system date from Step 0:
+- TTS text: `~/.ccToolBox/daily-briefing/output/daily-briefing-YYYY-MM-DD.txt`
+- Audio: `~/.ccToolBox/daily-briefing/output/daily-briefing-YYYY-MM-DD.mp3`
+- HTML: `~/.ccToolBox/daily-briefing/output/daily-briefing-YYYY-MM-DD.html`
 
-**Cleanup previous run** (`Bash` tool): Remove any existing output files for today:
-```
-rm -f /tmp/daily-briefing-YYYY-MM-DD.txt /tmp/daily-briefing-YYYY-MM-DD.mp3 /tmp/daily-briefing-YYYY-MM-DD.html
-```
+Since these paths are known upfront, the HTML can reference the MP3 path before the audio is generated. Use the **full expanded path** (not `~`) when referencing the MP3 in the HTML `<audio>` tag.
 
 ## Step 1: Read Settings
 
-Using the settings parsed in Step 0 (from `~/.config/ccToolBox/daily-briefing/settings.md`):
+Using the settings parsed in Step 0 (from `~/.ccToolBox/daily-briefing/settings.md`):
 - **General section**: extract `voice` and `location` values
 - **Sources section**: extract the ordered list of source keys and their descriptions
+- **Retention section**: extract `days` value (default 14)
 - **Closing Section**: check `today-in-history` and `inspiration-quote` toggles (both default to `true`)
 
 ## Step 2: Fetch Data (parallel subagents)
 
 Dispatch all agents in a SINGLE message so they run concurrently. **Use `model: "sonnet"` for every agent** — these are simple search tasks that don't need opus. Each agent is research-only and should **only use WebSearch and WebFetch tools**. Return structured data: title, 1-line summary, URL for each item.
+
+**Pass the system date (from Step 0) to each agent in its prompt** — agents must use this date in their search queries, not their own session date.
 
 Launch these agents simultaneously:
 - **weather agent**: Search "[location] weather today [current date]". Return 1-2 sentence summary with temperature, conditions, high/low, wind.
@@ -109,8 +125,8 @@ Once the lead story image agent has returned (or confirmed no image), dispatch t
 **Pipeline A — TTS audio subagent** (`model: "sonnet"`):
 
 Dispatch an Agent with instructions to perform these steps sequentially:
-1. **Write TTS text** (`Write` tool): Write speech-optimized plain text to `/tmp/daily-briefing-YYYY-MM-DD.txt`.
-   - Start with: "Good morning. Here is your daily briefing for [day of week], [month] [day], [year]."
+1. **Write TTS text** (`Write` tool): Write speech-optimized plain text to `~/.ccToolBox/daily-briefing/output/daily-briefing-YYYY-MM-DD.txt`.
+   - Start with a **short, creative greeting** that fits the day — reference the day of the week, a holiday if applicable, the weather, or something topical. Keep it to 1-2 sentences and flow naturally into the lead story. **Avoid generic greetings like "Good morning" or "Hello".** Examples: "Happy Friday — looks like a clear day in Burnaby, perfect for catching up on what's new.", "It's a rainy Wednesday, so grab your coffee — here's what you need to know."
    - **Lead story first**, regardless of settings order: "Our top story today..." then the lead story summary.
    - Then remaining sources in settings order, with natural transitions: "Next, in tech news from Dev.to...", "Moving to space and science...", "In gaming news...", "From the maker community..."
    - For GitHub repos, narrate the description rather than the "user/repo" path (e.g., "A trending repository for building AI agents" not "anthropics slash claude code")
@@ -120,19 +136,19 @@ Dispatch an Agent with instructions to perform these steps sequentially:
    - If closing section is disabled, end with: "That's your briefing. Have a great day."
 2. **Generate audio** (`Bash` tool): Run:
    ```
-   <plugin-root>/scripts/tts.sh /tmp/daily-briefing-YYYY-MM-DD.txt /tmp/daily-briefing-YYYY-MM-DD.mp3 [voice]
+   <plugin-root>/scripts/tts.sh ~/.ccToolBox/daily-briefing/output/daily-briefing-YYYY-MM-DD.txt ~/.ccToolBox/daily-briefing/output/daily-briefing-YYYY-MM-DD.mp3 [voice]
    ```
 
 **Pipeline B — HTML subagent** (`model: "sonnet"`):
 
 Dispatch an Agent with instructions to:
-1. **Write HTML** (`Write` tool): Write the full HTML to `/tmp/daily-briefing-YYYY-MM-DD.html` (see HTML spec below). The audio tag points to the known MP3 path — the file path is deterministic so it can be referenced before the audio exists.
+1. **Write HTML** (`Write` tool): Write the full HTML to `~/.ccToolBox/daily-briefing/output/daily-briefing-YYYY-MM-DD.html` (see HTML spec below). The audio tag points to the known MP3 path — the file path is deterministic so it can be referenced before the audio exists.
 
 Pass ALL fetched data (all source results, lead story selection, image URLs, closing section data) to both subagents in their prompts. They need the complete dataset to generate their outputs.
 
 **After both subagents complete — Open browser** (`Bash` tool):
 ```
-open /tmp/daily-briefing-YYYY-MM-DD.html
+open ~/.ccToolBox/daily-briefing/output/daily-briefing-YYYY-MM-DD.html
 ```
 
 The page opens only after both pipelines finish, so the audio player works immediately without needing a refresh.
@@ -226,7 +242,7 @@ body (background: var(--bg-page))
 
 ### Audio Player
 
-The `.audio-bar` contains a real `<audio>` element (hidden) pointing to `file:///tmp/daily-briefing-YYYY-MM-DD.mp3`. The visible `.play-btn` button toggles play/pause via JavaScript. The `.audio-track` shows progress. Style the button as a proper rectangular button with padding, background color, and hover state — not just an icon.
+The `.audio-bar` contains a real `<audio>` element (hidden) pointing to the full expanded path of the MP3 file (e.g., `file:///Users/username/.ccToolBox/daily-briefing/output/daily-briefing-YYYY-MM-DD.mp3`). The visible `.play-btn` button toggles play/pause via JavaScript. The `.audio-track` shows progress. Style the button as a proper rectangular button with padding, background color, and hover state — not just an icon.
 
 ### Column Layout
 
@@ -305,6 +321,7 @@ Rendered as a full-width bar spanning all columns, with a thin top border (`1px 
 
 ## Important Notes
 
+- **Always use system date from Bash** (`date` command) for the current date — never rely on Claude Code session date context
 - All web searches should include the current date for freshness
 - If a source search returns no results, skip that section gracefully — do not leave empty columns
 - The TTS script and HTML are generated from the SAME fetched data — do not fetch twice
