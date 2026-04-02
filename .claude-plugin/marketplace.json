@@ -11,6 +11,13 @@
       "version": "1.5.1",
       "source": "./plugins/daily-briefing",
       "category": "productivity"
+    },
+    {
+      "name": "offline-research",
+      "description": "Tools for structured offline research using ralph-loop",
+      "version": "1.0.0",
+      "source": "./plugins/offline-research",
+      "category": "productivity"
     }
   ]
 }

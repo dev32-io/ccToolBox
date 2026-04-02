@@ -1,0 +1,8 @@
+{
+  "name": "offline-research",
+  "description": "Tools for structured offline research using ralph-loop",
+  "version": "1.0.0",
+  "author": {
+    "name": "dev32-io"
+  }
+}
