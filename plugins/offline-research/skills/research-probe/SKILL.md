@@ -21,13 +21,22 @@ Express genuine interest through specific observations from your survey. React n
 
 ## Flow
 
+On skill start, create tasks for each phase using TaskCreate:
+1. "Intake — extract topics" (activeForm: "Extracting topics")
+2. "Quick survey — scan the landscape" (activeForm: "Surveying the landscape")
+3. "Critical assessment — present findings" (activeForm: "Preparing assessment")
+4. "Guided refinement — iterate with user" (activeForm: "Refining scope")
+5. "Generate — write research files" (activeForm: "Generating research files")
+
+Mark each task `in_progress` when starting it, `completed` when done. Keep internal work (searches, reads, writes) quiet — no narration between tool calls within a phase. Only speak to the user when presenting results or asking questions.
+
 ### Step 1: Intake
 
 The user has provided freeform text describing what they want to research. Read it carefully — it may be messy, stream-of-consciousness, bullet points, or well-structured. Extract all topics and intents.
 
 ### Step 2: Quick Survey
 
-Do fast web searches across the user's topics to understand the landscape. Use WebSearch. This is not deep research — just enough to form an informed opinion. Spend 2-5 searches total. Note what you find.
+Do fast web searches across the user's topics to understand the landscape. Use WebSearch. This is not deep research — just enough to form an informed opinion. Spend 2-5 searches total. Do not narrate each search — just do them and collect notes silently.
 
 ### Step 3: Critical Assessment
 
@@ -83,9 +92,30 @@ Determine the plugin root (two directories up from this skill file) to find temp
 
 **Write both files** to the user's chosen directory using the Write tool.
 
-**Output the ralph-loop command:**
-```
-/ralph-loop:ralph-loop "Read <path>/prompt.md and execute the research mission. Read <path>/progress.md to find your current phase and next incomplete task. For deep dive topics, read the spec from <path>/topics/ and write output to <path>/findings/. Update progress.md after each step. Output <promise>ALL PHASES COMPLETE</promise> when every phase is done." --max-iterations 15 --completion-promise "ALL PHASES COMPLETE"
-```
+**Present two run options (without showing commands yet):**
 
-Replace `<path>` with the actual workspace path. Tell the user to copy-paste this into the research container.
+Derive `<folder-name>` from the last path segment of the user's chosen directory (e.g. `2026-04-02-llm-safety`).
+
+> **How do you want to run this research?**
+> 1. In the offline research container (Recommended)
+> 2. Locally
+
+After the user picks, print only the selected command:
+
+- **Container command** (uses `/workspace/<folder-name>/` as the path):
+  ```
+  /ralph-loop:ralph-loop "Read /workspace/<folder-name>/prompt.md and execute the research mission. Read /workspace/<folder-name>/progress.md to find your current phase and next incomplete task. For deep dive topics, read the spec from /workspace/<folder-name>/topics/ and write output to /workspace/<folder-name>/findings/. Update progress.md after each step. Output <promise>ALL PHASES COMPLETE</promise> when every phase is done." --max-iterations 15 --completion-promise "ALL PHASES COMPLETE"
+  ```
+
+- **Local command** (uses `<local-path>/` as the path):
+  ```
+  /ralph-loop:ralph-loop "Read <local-path>/prompt.md and execute the research mission. Read <local-path>/progress.md to find your current phase and next incomplete task. For deep dive topics, read the spec from <local-path>/topics/ and write output to <local-path>/findings/. Update progress.md after each step. Output <promise>ALL PHASES COMPLETE</promise> when every phase is done." --max-iterations 15 --completion-promise "ALL PHASES COMPLETE"
+  ```
+
+Replace `<folder-name>` and `<local-path>` with actual values.
+
+Then ask:
+
+> Copy to clipboard? (y/n)
+
+If yes, copy the selected command to clipboard via `printf '%s' '<command>' | pbcopy`.
