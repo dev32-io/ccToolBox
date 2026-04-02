@@ -51,11 +51,13 @@ Continue until scope feels right.
 
 ### Step 5: Generate
 
-Ask where to write the research files:
+Ask the user if they'd like you to write the research files now, or if they want to make further adjustments first.
+
+Once confirmed, ask where to write them:
 
 > Where should I write the research files?
-> 1. `~/research/YYYY-MM-DD-short-title/`
-> 2. `<git-root>/research/YYYY-MM-DD-short-title/` (or `./YYYY-MM-DD-short-title/` if not in a git repo)
+> 1. `~/offline-research/YYYY-MM-DD-short-title/`
+> 2. `<git-root>/offline-research/YYYY-MM-DD-short-title/` (or `./YYYY-MM-DD-short-title/` if not in a git repo)
 > 3. Type a custom path
 
 Get the current date via `date +%Y-%m-%d`. Determine git root via `git rev-parse --show-toplevel 2>/dev/null`.
