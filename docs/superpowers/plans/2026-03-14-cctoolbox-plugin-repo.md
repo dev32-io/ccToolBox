@@ -307,8 +307,7 @@ git remote -v
 
 Expected:
 ```
-lab     git@lab.null32.com:kevin-ye/cctoolbox.git (fetch)
-lab     git@lab.null32.com:kevin-ye/cctoolbox.git (push)
+(private mirror redacted)
 origin  git@github.com:dev32-io/ccToolBox.git (fetch)
 origin  git@github.com:dev32-io/ccToolBox.git (push)
 ```
@@ -363,7 +362,6 @@ Plugins with user settings follow this pattern:
 ## Remotes
 
 - `origin` → `git@github.com:dev32-io/ccToolBox.git` (main)
-- `lab` → `git@lab.null32.com:kevin-ye/cctoolbox.git` (mirror)
 ```
 
 - [ ] **Step 2: Commit**

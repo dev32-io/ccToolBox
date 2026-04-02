@@ -33,7 +33,6 @@ ccToolBox/
 ## Git Remotes
 
 - `origin` → `git@github.com:dev32-io/ccToolBox.git` (main, public)
-- `lab` → `git@lab.null32.com:kevin-ye/cctoolbox.git` (private mirror)
 
 ## Marketplace Manifest
 

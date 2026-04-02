@@ -36,4 +36,3 @@ Plugins with user settings follow this pattern:
 ## Remotes
 
 - `origin` → `git@github.com:dev32-io/ccToolBox.git` (main)
-- `lab` → `git@lab.null32.com:kevin-ye/cctoolbox.git` (mirror)

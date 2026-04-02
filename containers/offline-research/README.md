@@ -1,17 +1,17 @@
-# Research Tool Container
+# Offline Research Container
 
 Sandboxed Claude Code environment for web research and GitHub exploration. No sensitive host data is mounted — only settings for quality of life.
 
 ## Build
 
 ```bash
-docker build -t claude-research containers/research-tool/
+docker build -t offline-research containers/offline-research/
 ```
 
 ## Run
 
 ```bash
-./containers/research-tool/launch.sh [workspace_dir]
+./containers/offline-research/launch.sh [workspace_dir]
 ```
 
 Defaults to `~/research` as workspace. The launcher creates a persistent named container (`research-sandbox`) — auth and installed plugins survive between sessions.
@@ -25,7 +25,7 @@ Defaults to `~/research` as workspace. The launcher creates a persistent named c
 ## Resume
 
 ```bash
-./containers/research-tool/launch.sh
+./containers/offline-research/launch.sh
 ```
 
 Resumes the existing container — no re-login or plugin install needed.
@@ -34,7 +34,7 @@ Resumes the existing container — no re-login or plugin install needed.
 
 ```bash
 docker rm research-sandbox
-./containers/research-tool/launch.sh
+./containers/offline-research/launch.sh
 ```
 
 ## Notes

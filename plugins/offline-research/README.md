@@ -20,4 +20,4 @@ Guides you from freeform research intent to a structured prompt ready for ralph-
 ## Requirements
 
 - ralph-loop plugin (installed in research container)
-- Research container from `containers/research-tool/`
+- Research container from `containers/offline-research/`
