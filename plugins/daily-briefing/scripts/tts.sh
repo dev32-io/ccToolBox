@@ -16,6 +16,12 @@ fi
 
 TEXT_CONTENT=$(cat "$TEXT_FILE")
 
+# Kill stale container from previous run if it exists
+if docker ps -aq --filter "name=$CONTAINER_NAME" | grep -q .; then
+    echo "Removing stale TTS container..." >&2
+    docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1 || true
+fi
+
 # Cleanup function to ensure container is always removed
 cleanup() {
     if docker ps -q --filter "name=$CONTAINER_NAME" | grep -q .; then

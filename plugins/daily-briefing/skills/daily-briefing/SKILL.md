@@ -14,3 +14,5 @@ tools: Agent, Bash
 Dispatch the `daily-briefing-agent` orchestrator agent to generate the briefing.
 
 **Before dispatching**, determine the plugin root (two directories up from this skill file) and get the current system date via `date +%Y-%m-%d`. Pass both to the agent prompt so it can find settings and scripts.
+
+**Do not open the HTML file** — the orchestrator agent handles browser opening.

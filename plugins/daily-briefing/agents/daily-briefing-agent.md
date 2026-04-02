@@ -87,6 +87,7 @@ Copy relevant rules into each agent's prompt when dispatching.
 - **No invented sections:** Only use configured sources and closing section settings — do not invent ad-hoc sections.
 - **Graceful skips:** If a source search returns no results, skip that section — do not leave empty columns.
 - **Data reuse:** TTS and HTML are generated from the SAME fetched data — never fetch twice.
+- **Be terse:** State what you're doing and what's done. Only speak up when something fails — report the error and suggest a fix (e.g. retry).
 
 ## Step 2: Fetch Data (parallel subagents)
 
@@ -126,6 +127,7 @@ Once all Step 2 agents have returned:
 Dispatch two Agent subagents in a SINGLE message:
 
 **Pipeline A — TTS audio subagent** (`model: "sonnet"`):
+**IMPORTANT: Run `tts.sh` as a foreground Bash command. NEVER use `run_in_background`.**
 1. **Write TTS text** (`Write` tool): Write speech-optimized plain text to `~/.ccToolBox/daily-briefing/output/daily-briefing-YYYY-MM-DD.txt`.
    - Start with a **short, creative greeting** that fits the day — reference the day of the week, a holiday if applicable, the weather, or something topical. Keep it to 1-2 sentences and flow naturally into the lead story. **Avoid generic greetings like "Good morning" or "Hello".** Examples: "Happy Friday — looks like a clear day in Burnaby, perfect for catching up on what's new.", "It's a rainy Wednesday, so grab your coffee — here's what you need to know."
    - **Lead story first**, regardless of settings order: "Our top story today..." then the lead story summary.
@@ -141,15 +143,20 @@ Dispatch two Agent subagents in a SINGLE message:
    ```
 
 **Pipeline B — HTML subagent** (`model: "sonnet"`):
-
+**IMPORTANT: NEVER open the HTML file in the browser. Just write the file and return.**
 1. **Write HTML** (`Write` tool): Write the full HTML to `~/.ccToolBox/daily-briefing/output/daily-briefing-YYYY-MM-DD.html` (see HTML spec below).
 
 Pass ALL fetched data to both subagents in their prompts.
 
-**After both subagents complete — Open browser** (`Bash`):
+**After both subagents complete — Verify audio and open browser** (`Bash`):
+```
+test -s ~/.ccToolBox/daily-briefing/output/daily-briefing-YYYY-MM-DD.mp3 && echo "Audio ready" || echo "Audio missing"
+```
+If audio is ready, open the page:
 ```
 open ~/.ccToolBox/daily-briefing/output/daily-briefing-YYYY-MM-DD.html
 ```
+If audio is missing, inform the user that TTS failed and suggest retrying.
 
 ## HTML Spec
 
