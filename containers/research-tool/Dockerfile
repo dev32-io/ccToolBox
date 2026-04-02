@@ -4,7 +4,6 @@ ARG CLAUDE_CODE_VERSION=latest
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
   git \
-  gh \
   curl \
   jq \
   less \
@@ -26,4 +25,9 @@ RUN npm install -g @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}
 WORKDIR /workspace
 ENV SHELL=/bin/bash
 
-ENTRYPOINT ["bash"]
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+USER root
+RUN chmod +x /usr/local/bin/entrypoint.sh
+USER node
+
+ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

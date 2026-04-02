@@ -11,26 +11,35 @@ docker build -t claude-research containers/research-tool/
 ## Run
 
 ```bash
-docker run --rm -it \
-  -v ~/research:/workspace \
-  -v ~/.claude/settings.json:/home/node/.claude/settings.json:ro \
-  -v ~/.claude/settings.local.json:/home/node/.claude/settings.local.json:ro \
-  -v ~/.claude/themes:/home/node/.claude/themes:ro \
-  -v ~/.claude/scripts:/home/node/.claude/scripts:ro \
-  -v ~/.claude/plugins:/home/node/.claude/plugins:ro \
-  claude-research
+./containers/research-tool/launch.sh [workspace_dir]
 ```
 
-## Inside the container
+Defaults to `~/research` as workspace. The launcher creates a persistent named container (`research-sandbox`) — auth and installed plugins survive between sessions.
+
+## First Run
+
+1. `claude login` (one-time)
+2. Install plugins you need (e.g. ralph-loop)
+3. Use Claude normally with `--dangerously-skip-permissions`
+
+## Resume
 
 ```bash
-claude login
-claude --dangerously-skip-permissions
+./containers/research-tool/launch.sh
+```
+
+Resumes the existing container — no re-login or plugin install needed.
+
+## Fresh Start
+
+```bash
+docker rm research-sandbox
+./containers/research-tool/launch.sh
 ```
 
 ## Notes
 
-- Container is ephemeral (`--rm`) — nothing persists except `/workspace` (mounted to `~/research`)
-- Auth is session-scoped — you must `claude login` each time
-- Host `~/.claude` memories, history, and project config are never mounted
-- Adjust the mount list as needed — the five mounts above cover settings, themes, scripts, and plugins
+- Auth and plugins persist inside the named container
+- `/workspace` is mounted to your host (`~/research` by default)
+- Nothing from host `~/.claude` is mounted — fully isolated
+- To start fresh: `docker rm research-sandbox` then relaunch
