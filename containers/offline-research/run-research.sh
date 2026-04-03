@@ -76,12 +76,12 @@ in_schedule() {
     start="${start/:/}"
     end="${end/:/}"
 
-    if [[ "$start" -gt "$end" ]]; then
+    if [[ "10#$start" -gt "10#$end" ]]; then
         # Overnight window (e.g., 23:00-07:00)
-        [[ "$now" -ge "$start" || "$now" -lt "$end" ]]
+        [[ "10#$now" -ge "10#$start" || "10#$now" -lt "10#$end" ]]
     else
         # Same-day window (e.g., 09:00-17:00)
-        [[ "$now" -ge "$start" && "$now" -lt "$end" ]]
+        [[ "10#$now" -ge "10#$start" && "10#$now" -lt "10#$end" ]]
     fi
 }
 
