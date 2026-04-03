@@ -94,12 +94,20 @@ Determine the plugin root (two directories up from this skill file) to find temp
   ```
   | topic-name | ACTIVE | - | - | - | - | - | - | - | 0 |
   ```
+- Replace `[TOPIC_RESEARCH]` with one line per topic:
+  ```
+  - [ ] Research: topic-name
+  ```
+- Replace `[TOPIC_CRITIQUE]` with one line per topic:
+  ```
+  - [ ] Critique & Score: topic-name
+  ```
 
 **Write `critique-loop.md` and `scoring-rubric.md`** unchanged (no placeholders to fill).
 
 **Write all four files** to the user's chosen directory using the Write tool.
 
-**Calculate max-iterations:** Count the number of initial topics and add 15. The initial phases consume iterations proportional to topic count; the +15 guarantees room for the critique-expand loop. Example: 8 topics → `--max-iterations 23`.
+**Calculate max-iterations:** `topics × 8 + 10`. Covers 3 rounds of research + critique & score + synthesis, plus buffer for new topics and PoC work. Example: 7 topics → `--max-iterations 66`.
 
 **Present two run options (without showing commands yet):**
 
@@ -113,12 +121,12 @@ After the user picks, print only the selected command:
 
 - **Container command** (uses `/workspace/<folder-name>/` as the path):
   ```
-  /ralph-loop:ralph-loop "Read /workspace/<folder-name>/prompt.md and execute the research mission. Read /workspace/<folder-name>/progress.md to find your current phase and next incomplete task. For deep dive topics, read the spec from /workspace/<folder-name>/topics/ and write output to /workspace/<folder-name>/findings/. Update progress.md after each step. Output <promise>ALL PHASES COMPLETE</promise> when every phase is done." --max-iterations <TOPIC_COUNT + 15> --completion-promise "ALL PHASES COMPLETE"
+  /ralph-loop:ralph-loop "Read /workspace/<folder-name>/prompt.md for context. Read /workspace/<folder-name>/progress.md and do the next unchecked item in the Task Queue. Check it off when done. Output TASK DONE and stop." --max-iterations <TOPIC_COUNT * 8 + 10> --completion-promise "TASK DONE"
   ```
 
 - **Local command** (uses `<local-path>/` as the path):
   ```
-  /ralph-loop:ralph-loop "Read <local-path>/prompt.md and execute the research mission. Read <local-path>/progress.md to find your current phase and next incomplete task. For deep dive topics, read the spec from <local-path>/topics/ and write output to <local-path>/findings/. Update progress.md after each step. Output <promise>ALL PHASES COMPLETE</promise> when every phase is done." --max-iterations <TOPIC_COUNT + 15> --completion-promise "ALL PHASES COMPLETE"
+  /ralph-loop:ralph-loop "Read <local-path>/prompt.md for context. Read <local-path>/progress.md and do the next unchecked item in the Task Queue. Check it off when done. Output TASK DONE and stop." --max-iterations <TOPIC_COUNT * 8 + 10> --completion-promise "TASK DONE"
   ```
 
 Replace `<folder-name>` and `<local-path>` with actual values.
