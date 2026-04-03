@@ -44,7 +44,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends golang-go \
 
 # Node.js ecosystem
 USER root
-RUN npm install -g typescript ts-node tsx pnpm yarn
+RUN npm install -g typescript ts-node tsx pnpm
 
 # Databases & storage
 RUN apt-get update && apt-get install -y --no-install-recommends \
