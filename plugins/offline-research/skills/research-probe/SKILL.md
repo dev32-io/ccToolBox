@@ -76,6 +76,8 @@ Determine the plugin root (two directories up from this skill file) to find temp
 **Read templates:**
 - Read `<plugin-root>/templates/prompt.md`
 - Read `<plugin-root>/templates/progress.md`
+- Read `<plugin-root>/templates/critique-loop.md`
+- Read `<plugin-root>/templates/scoring-rubric.md`
 
 **Fill prompt.md:**
 - Replace `[TOPIC]` with the research mission title
@@ -88,9 +90,16 @@ Determine the plugin root (two directories up from this skill file) to find temp
   ```
 
 **Fill progress.md:**
-- Replace `[TOPIC_CHECKLIST]` with one `- [ ] topic-name.md` per topic
+- Replace `[TOPIC_SCOREBOARD]` with one row per topic:
+  ```
+  | topic-name | ACTIVE | - | - | - | - | - | - | - | 0 |
+  ```
 
-**Write both files** to the user's chosen directory using the Write tool.
+**Write `critique-loop.md` and `scoring-rubric.md`** unchanged (no placeholders to fill).
+
+**Write all four files** to the user's chosen directory using the Write tool.
+
+**Calculate max-iterations:** Count the number of initial topics and add 15. The initial phases consume iterations proportional to topic count; the +15 guarantees room for the critique-expand loop. Example: 8 topics → `--max-iterations 23`.
 
 **Present two run options (without showing commands yet):**
 
@@ -104,12 +113,12 @@ After the user picks, print only the selected command:
 
 - **Container command** (uses `/workspace/<folder-name>/` as the path):
   ```
-  /ralph-loop:ralph-loop "Read /workspace/<folder-name>/prompt.md and execute the research mission. Read /workspace/<folder-name>/progress.md to find your current phase and next incomplete task. For deep dive topics, read the spec from /workspace/<folder-name>/topics/ and write output to /workspace/<folder-name>/findings/. Update progress.md after each step. Output <promise>ALL PHASES COMPLETE</promise> when every phase is done." --max-iterations 15 --completion-promise "ALL PHASES COMPLETE"
+  /ralph-loop:ralph-loop "Read /workspace/<folder-name>/prompt.md and execute the research mission. Read /workspace/<folder-name>/progress.md to find your current phase and next incomplete task. For deep dive topics, read the spec from /workspace/<folder-name>/topics/ and write output to /workspace/<folder-name>/findings/. Update progress.md after each step. Output <promise>ALL PHASES COMPLETE</promise> when every phase is done." --max-iterations <TOPIC_COUNT + 15> --completion-promise "ALL PHASES COMPLETE"
   ```
 
 - **Local command** (uses `<local-path>/` as the path):
   ```
-  /ralph-loop:ralph-loop "Read <local-path>/prompt.md and execute the research mission. Read <local-path>/progress.md to find your current phase and next incomplete task. For deep dive topics, read the spec from <local-path>/topics/ and write output to <local-path>/findings/. Update progress.md after each step. Output <promise>ALL PHASES COMPLETE</promise> when every phase is done." --max-iterations 15 --completion-promise "ALL PHASES COMPLETE"
+  /ralph-loop:ralph-loop "Read <local-path>/prompt.md and execute the research mission. Read <local-path>/progress.md to find your current phase and next incomplete task. For deep dive topics, read the spec from <local-path>/topics/ and write output to <local-path>/findings/. Update progress.md after each step. Output <promise>ALL PHASES COMPLETE</promise> when every phase is done." --max-iterations <TOPIC_COUNT + 15> --completion-promise "ALL PHASES COMPLETE"
   ```
 
 Replace `<folder-name>` and `<local-path>` with actual values.
