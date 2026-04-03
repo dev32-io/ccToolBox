@@ -2,13 +2,13 @@
 # Test: Docker image builds successfully and all tools exist (integration test, requires Docker)
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+CONTAINER_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
 # Check Docker is available
 command -v docker >/dev/null 2>&1 || { echo "SKIP: docker not found"; exit 0; }
 
 # Build the image
-docker build -q -t arch-tool-test "$SCRIPT_DIR" >/dev/null 2>&1 || { echo "FAIL: docker build failed"; exit 1; }
+docker build -q -t arch-tool-test "$CONTAINER_DIR" >/dev/null 2>&1 || { echo "FAIL: docker build failed"; exit 1; }
 
 # Verify base tools
 docker run --rm --entrypoint bash arch-tool-test -c "

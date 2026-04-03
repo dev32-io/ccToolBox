@@ -2,7 +2,8 @@
 # Test: template files have expected placeholders and no stale ones
 set -euo pipefail
 
-TEMPLATES="$(cd "$(dirname "$0")/../../.." && pwd)/plugins/offline-research/templates"
+PROJECT_ROOT="$(git rev-parse --show-toplevel)"
+TEMPLATES="$PROJECT_ROOT/plugins/offline-research/templates/research-probe"
 
 # prompt.md should have [TOPIC] and [TOPICS]
 grep -q '\[TOPIC\]' "$TEMPLATES/prompt.md" || { echo "FAIL: prompt.md missing [TOPIC]"; exit 1; }

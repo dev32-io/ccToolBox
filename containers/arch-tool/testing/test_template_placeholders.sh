@@ -2,7 +2,8 @@
 # Test: arch-forge template files have expected placeholders and no stale ones
 set -euo pipefail
 
-TEMPLATES="$(cd "$(dirname "$0")/../../.." && pwd)/plugins/offline-research/templates/arch-forge"
+PROJECT_ROOT="$(git rev-parse --show-toplevel)"
+TEMPLATES="$PROJECT_ROOT/plugins/offline-research/templates/arch-forge"
 
 # prompt.md should have all project placeholders
 grep -q '\[PROJECT_NAME\]' "$TEMPLATES/prompt.md" || { echo "FAIL: prompt.md missing [PROJECT_NAME]"; exit 1; }

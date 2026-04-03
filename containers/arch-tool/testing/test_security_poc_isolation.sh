@@ -2,7 +2,7 @@
 # Test: poc user isolation — cannot access .private/ directory (integration test, requires Docker)
 set -euo pipefail
 
-SCRIPT_DIR="$(cd "$(dirname "$0")/.." && pwd)"
+CONTAINER_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
 # Check Docker is available
 command -v docker >/dev/null 2>&1 || { echo "SKIP: docker not found"; exit 0; }
