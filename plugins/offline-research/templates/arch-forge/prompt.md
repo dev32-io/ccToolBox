@@ -50,15 +50,31 @@ This is the starting skeleton. Your job is to expand, validate, and refine — n
 
 When the task queue is empty, output `<promise>TASK DONE</promise>` instead.
 
-## PoC Execution
+## PoC Execution — CRITICAL
 
-When building prototypes, execute code as the `poc` user for security isolation:
+**ALL PoC code MUST be written and executed via `sudo -u poc`.** The `/workspace/poc/` directory is owned by the `poc` user — you cannot write to it directly. Any attempt to write or run code there without `sudo -u poc` will fail with Permission denied. This is intentional security enforcement, not a bug.
 
+**Writing files:**
+```bash
+sudo -u poc mkdir -p /workspace/poc/<name>
+sudo -u poc bash -c "cat > /workspace/poc/<name>/index.js << 'POCEOF'
+// your code here
+POCEOF"
+```
+
+**Running code:**
 ```bash
 sudo -u poc bash -c "cd /workspace/poc/<name> && node index.js"
 sudo -u poc bash -c "cd /workspace/poc/<name> && bun run index.ts"
 sudo -u poc bash -c "cd /workspace/poc/<name> && python3 main.py"
 ```
+
+**Installing dependencies:**
+```bash
+sudo -u poc bash -c "cd /workspace/poc/<name> && npm install <package>"
+```
+
+You CAN read PoC results directly (e.g., `cat /workspace/poc/<name>/output.txt`) — only writing and executing requires `sudo -u poc`.
 
 PoCs should be minimal — just enough to validate feasibility. Limited scope: prove the concept works, measure key metrics, then move on. Do not build production code.
 
