@@ -55,9 +55,9 @@ When the task queue is empty, output `<promise>TASK DONE</promise>` instead.
 When building prototypes, execute code as the `poc` user for security isolation:
 
 ```bash
-su -c "cd /workspace/poc/<name> && node index.js" poc
-su -c "cd /workspace/poc/<name> && bun run index.ts" poc
-su -c "cd /workspace/poc/<name> && python3 main.py" poc
+sudo -u poc bash -c "cd /workspace/poc/<name> && node index.js"
+sudo -u poc bash -c "cd /workspace/poc/<name> && bun run index.ts"
+sudo -u poc bash -c "cd /workspace/poc/<name> && python3 main.py"
 ```
 
 PoCs should be minimal — just enough to validate feasibility. Limited scope: prove the concept works, measure key metrics, then move on. Do not build production code.

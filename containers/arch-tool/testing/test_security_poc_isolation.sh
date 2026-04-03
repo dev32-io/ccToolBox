@@ -69,8 +69,20 @@ echo "$poc_output" | grep -q "Permission denied" || { echo "FAIL: poc should not
 
 # --- poc CAN write to /workspace/poc/ (designated sandbox) ---
 
-docker exec "$CONTAINER" bash -c "mkdir -p /workspace/poc && chown poc:poc /workspace/poc"
+docker exec "$CONTAINER" bash -c "mkdir -p /workspace/poc && chown poc:poc /workspace/poc && chmod 755 /workspace/poc"
 docker exec "$CONTAINER" bash -c "runuser -u poc -- touch /workspace/poc/test-file.js" || { echo "FAIL: poc should be able to write to /workspace/poc/"; exit 1; }
+
+# --- node CANNOT write to /workspace/poc/ (bidirectional enforcement) ---
+# Forces model to use "sudo -u poc" — can't skip the sandbox by running as node directly
+
+node_output=$(docker exec --user node "$CONTAINER" bash -c "touch /workspace/poc/node-bypass.js 2>&1" || true)
+echo "$node_output" | grep -q "Permission denied" || { echo "FAIL: node should not be able to write to /workspace/poc/, got: $node_output"; exit 1; }
+
+# node CAN read from /workspace/poc/ (needs to read PoC results for scoring)
+docker exec --user node "$CONTAINER" bash -c "cat /workspace/poc/test-file.js" >/dev/null 2>&1 || { echo "FAIL: node should be able to read from /workspace/poc/"; exit 1; }
+
+# node CAN write to /workspace/poc/ via sudo -u poc (the intended path)
+docker exec --user node "$CONTAINER" bash -c "sudo -u poc touch /workspace/poc/via-sudo.js" || { echo "FAIL: node should write to /workspace/poc/ via sudo -u poc"; exit 1; }
 
 # --- poc cannot write to system paths ---
 
@@ -79,3 +91,19 @@ echo "$poc_output" | grep -q "Permission denied\|Read-only\|cannot touch" || { e
 
 poc_output=$(docker exec "$CONTAINER" bash -c "runuser -u poc -- touch /etc/evil 2>&1" || true)
 echo "$poc_output" | grep -q "Permission denied\|Read-only\|cannot touch" || { echo "FAIL: poc should not write to /etc/, got: $poc_output"; exit 1; }
+
+# --- sudo delegation: node can run commands as poc ---
+
+# node user can delegate to poc via sudo (how Claude Code runs PoC code)
+docker exec --user node "$CONTAINER" sudo -u poc whoami 2>/dev/null | grep -q "poc" || { echo "FAIL: node should be able to sudo -u poc"; exit 1; }
+
+# node can execute code as poc in the sandbox
+docker exec --user node "$CONTAINER" bash -c "sudo -u poc bash -c 'echo test > /workspace/poc/sudo-test.txt'" || { echo "FAIL: node should sudo -u poc to write in /workspace/poc/"; exit 1; }
+
+# poc via sudo still cannot read auth tokens
+poc_output=$(docker exec --user node "$CONTAINER" bash -c "sudo -u poc cat /home/node/.private/.claude/sessions/auth.json 2>&1" || true)
+echo "$poc_output" | grep -q "Permission denied" || { echo "FAIL: sudo -u poc still cannot read auth tokens, got: $poc_output"; exit 1; }
+
+# poc cannot sudo back to node (one-way delegation)
+poc_output=$(docker exec "$CONTAINER" bash -c "runuser -u poc -- sudo -u node whoami 2>&1" || true)
+echo "$poc_output" | grep -q "not allowed\|not permitted\|unknown user\|is not in the sudoers\|password is required" || { echo "FAIL: poc should not be able to sudo to node, got: $poc_output"; exit 1; }

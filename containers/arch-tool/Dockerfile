@@ -71,7 +71,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # --- Security: poc user for sandboxed code execution ---
 
+RUN apt-get update && apt-get install -y --no-install-recommends sudo gosu \
+  && apt-get clean && rm -rf /var/lib/apt/lists/*
 RUN useradd -m -s /bin/bash poc
+# node (Claude Code) can delegate execution to poc, but poc cannot escalate back
+RUN echo 'node ALL=(poc) NOPASSWD: ALL' > /etc/sudoers.d/poc-sandbox \
+  && chmod 440 /etc/sudoers.d/poc-sandbox
 
 # --- Non-root user setup ---
 
@@ -99,6 +104,5 @@ ENV TZ=America/Vancouver
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 USER root
 RUN chmod +x /usr/local/bin/entrypoint.sh
-USER node
-
+# Entrypoint runs as root to set up /workspace/poc, then drops to node via gosu
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]

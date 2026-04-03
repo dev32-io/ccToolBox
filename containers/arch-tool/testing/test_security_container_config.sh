@@ -23,6 +23,12 @@ grep -q '\-\-pids-limit=' "$CONTAINER_DIR/launch.sh" || { echo "FAIL: launch.sh 
 # poc user created
 grep -q 'useradd.*poc' "$CONTAINER_DIR/Dockerfile" || { echo "FAIL: Dockerfile missing useradd poc"; exit 1; }
 
+# sudo installed for node→poc delegation
+grep -q 'sudo' "$CONTAINER_DIR/Dockerfile" || { echo "FAIL: Dockerfile missing sudo install"; exit 1; }
+
+# sudoers rule: node can become poc (one-way)
+grep -q 'node.*poc.*NOPASSWD' "$CONTAINER_DIR/Dockerfile" || { echo "FAIL: Dockerfile missing node→poc sudoers rule"; exit 1; }
+
 # --- entrypoint.sh checks ---
 
 grep -q 'chmod 700\|\.private' "$CONTAINER_DIR/entrypoint.sh" || { echo "FAIL: entrypoint.sh missing chmod 700 or .private reference"; exit 1; }
