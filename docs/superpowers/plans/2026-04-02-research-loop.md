@@ -419,25 +419,47 @@ git commit -m "feat(offline-research): write 4 templates and calculate max-itera
 
 ---
 
-### Task 6: Remove redundant container reference templates
+### Task 6: Consolidate templates to plugin directory
 
-The templates at `containers/offline-research/research_template/` are a redundant copy. The skill reads from `plugins/offline-research/templates/` and writes filled versions to the workspace. A second copy is just drift waiting to happen. Delete it.
+Templates are split across two locations: `plugins/offline-research/templates/` (what the skill reads) and `containers/offline-research/research_template/` (redundant copy with some unique content). Move `ralph-command.md` to the plugin templates dir, then delete the container copy.
 
 **Files:**
-- Delete: `containers/offline-research/research_template/prompt.md`
-- Delete: `containers/offline-research/research_template/progress.md`
-- Delete: `containers/offline-research/research_template/ralph-command.md`
+- Move: `containers/offline-research/research_template/ralph-command.md` → `plugins/offline-research/templates/ralph-command.md`
+- Delete: `containers/offline-research/research_template/` (prompt.md and progress.md are already in plugin templates)
 
-- [ ] **Step 1: Remove the directory**
+- [ ] **Step 1: Move ralph-command.md to plugin templates**
+
+```bash
+git mv containers/offline-research/research_template/ralph-command.md plugins/offline-research/templates/ralph-command.md
+```
+
+- [ ] **Step 2: Update ralph-command.md content**
+
+Update to reference 4 template files and the new max-iterations formula:
+
+```markdown
+# Ralph Loop Command
+
+Copy your `prompt.md`, `progress.md`, `critique-loop.md`, and `scoring-rubric.md` to `/workspace/`, then run:
+
+```
+/ralph-loop:ralph-loop "Read /workspace/prompt.md and execute the research mission. Read /workspace/progress.md to find your current phase and next incomplete task. For deep dive topics, read the spec from /workspace/topics/ and write output to /workspace/findings/. Update progress.md after each step. Output <promise>ALL PHASES COMPLETE</promise> when every phase is done." --max-iterations <TOPIC_COUNT + 15> --completion-promise "ALL PHASES COMPLETE"
+```
+
+**Max-iterations:** Count your initial topics and add 15. Example: 8 topics → `--max-iterations 23`.
+```
+
+- [ ] **Step 3: Remove remaining container templates**
 
 ```bash
 git rm -r containers/offline-research/research_template/
 ```
 
-- [ ] **Step 2: Commit**
+- [ ] **Step 4: Commit**
 
 ```bash
-git commit -m "chore(offline-research): remove redundant container reference templates"
+git add plugins/offline-research/templates/ralph-command.md
+git commit -m "refactor(offline-research): consolidate all templates under plugins/"
 ```
 
 ---
