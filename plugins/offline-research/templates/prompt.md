@@ -6,11 +6,11 @@ You have full autonomy. Do not ask questions. Use your best judgement.
 
 ```
 /workspace/
-├── progress.md              # live scoreboard — scores, deltas, cycle log
-├── critique-loop.md         # Phase 6 loop protocol (read after Phase 5)
+├── progress.md              # scoreboard + task queue — your instruction sheet
+├── critique-loop.md         # how to handle Critique & Score tasks
 ├── scoring-rubric.md        # scoring dimensions for subagents
 ├── topics/
-│   ├── 01-topic-name.md     # sub-topics + questions (generated in Phase 1)
+│   ├── 01-topic-name.md     # sub-topics + questions
 │   └── ...
 ├── findings/
 │   ├── topic-name.md        # research output per topic
@@ -24,46 +24,17 @@ You have full autonomy. Do not ask questions. Use your best judgement.
 └── README.md                # final TLDR + navigation
 ```
 
-## Phases
+## How This Works
 
-### Phase 1: Scope Expansion
-Read the initial topics below. Think about what's missing.
-For each topic, create a file in `topics/` with:
-- The original bullet points
-- Sub-topics you think are important but weren't listed
-- Adjacent areas that would strengthen the research
-- 3-5 specific questions to answer
+1. Read `progress.md` and find the next unchecked item in the Task Queue
+2. Do that ONE item
+3. Check it off in progress.md
+4. Output `TASK DONE`
+5. Stop — you will be re-invoked automatically
 
-Update progress.md to mark Phase 1 complete.
+When the task queue is empty, output `<promise>TASK DONE</promise>` instead.
 
-### Phase 2: Survey
-Quick pass across all topics. For each:
-- Skim available sources, log them in sources.md
-- Note which areas are well-documented vs sparse
-- Flag any early contradictions
-
-Update progress.md with survey status per topic.
-
-### Phase 3: Deep Dive
-For each topic (read its spec from `topics/`, write output to `findings/`):
-1. Research thoroughly — multiple sources, specific examples, actionable detail
-2. Cite sources (reference entries in sources.md)
-3. Mark topic complete in progress.md
-
-### Phase 4: Synthesize
-1. Write connections.md — patterns and insights across topics
-2. Write contradictions.md — where sources disagree and why
-3. Write gaps.md — what's weak, what would someone challenge, what needs more work
-
-### Phase 5: Final Report
-1. Write README.md — TLDR summary with links to each findings file
-2. Update progress.md to mark Phase 5 complete
-
-### Phase 6: Critique & Expand Loop
-
-Do NOT proceed past Phase 5 without reading `critique-loop.md` in full. The loop protocol, scoring system, and subagent instructions are defined there. Skipping this file will produce incorrect results.
-
-Read `critique-loop.md` now and follow it exactly.
+Research isn't only reading. When a topic would benefit from *making something* — you should definitely do it. Build prototypes, draft architectures, sketch mockups. Create a folder in `poc/` and treat it as a topic.
 
 ## Initial Topics
 
