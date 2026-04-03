@@ -35,7 +35,7 @@ Read scoring-rubric.md                     ↓
         ↓                         Append: Critique & Score: <topic>
 Spawn Sonnet subagent                      ↓
         ↓                         Check off item ✓
-Update scoreboard                 Output stop word
+Update scoreboard                 Output TASK DONE
         ↓
 Δ > 3?
    ↓         ↓
@@ -50,7 +50,7 @@ Check off    Mark       Append:
 item ✓     CONCLUDED   - Improve (last chance)
 Output       ↓           ↓
 stop word  (nothing    Check off item ✓
-           added)      Output stop word
+           added)      Output TASK DONE
 ```
 
 Score feeds Work. Work feeds Score. When a topic plateaus twice (Δ ≤ 3 for 2 consecutive scores), it's CONCLUDED — no more items appended for it.
@@ -63,11 +63,11 @@ Score feeds Work. Work feeds Score. When a topic plateaus twice (Δ ≤ 3 for 2 
 
 Threshold is 3 (not 1) because Sonnet scorer variance produces ±2-3 noise on unchanged content.
 
-### Stop Word
+### One Item Per Invocation
 
-After completing every checklist item, the agent outputs `<promise>TASK DONE</promise>` as plain text. The loop runner (ralph-loop) detects this and re-invokes. This mechanically enforces one-item-per-iteration — the agent can't batch.
+The prompt instructs the agent: **do ONE checklist item, check it off, output `TASK DONE`, then stop.**
 
-When the queue is empty (no unchecked items remain), the agent outputs `<promise>ALL PHASES COMPLETE</promise>` instead.
+When the queue is empty, the agent outputs `<promise>TASK DONE</promise>` to stop the loop.
 
 ### Re-synthesis
 
@@ -140,7 +140,7 @@ Same friction-based scoring with 5 dimensions (0-10 each, max 50).
 
 - Pre-populates full task queue in progress.md (not just scoreboard rows)
 - Max-iterations formula: `topics × 8 + 10`
-- Ralph-loop `--completion-promise "ALL PHASES COMPLETE"` unchanged — this is the final stop signal. `TASK DONE` is the agent's per-item stop word that ends the current iteration naturally; ralph-loop re-invokes automatically.
+- Update ralph-loop command to use `--completion-promise "TASK DONE"` (was `"ALL PHASES COMPLETE"`)
 
 ## Max-Iterations Formula
 
@@ -183,23 +183,23 @@ Agent reads critique-loop.md + scoring-rubric.md, spawns Sonnet, gets 26/50 (gap
 - [ ] Research: parler-tts ← NEW
 ```
 
-Outputs `TASK DONE`. Loop re-invokes.
+Outputs TASK DONE. Loop re-invokes.
 
 **Iteration picks: `Critique & Score: audio-delivery`**
 
-Same process. 29/50. Appends Improve task. Outputs `TASK DONE`.
+Same process. 29/50. Appends Improve task. Outputs TASK DONE.
 
 **Iteration picks: `Critique & Score: gateway-architecture`**
 
-31/50. Appends Improve task + new topic `Research: poc-latency-benchmark` (agent decides a test script would help). Outputs `TASK DONE`.
+31/50. Appends Improve task + new topic `Research: poc-latency-benchmark` (agent decides a test script would help). Outputs TASK DONE.
 
 **Iteration picks: `Improve: stt-providers (gaps: latency benchmarks, Groq Whisper)`**
 
-Agent adds benchmarks table, writes Groq Whisper section. Appends `Critique & Score: stt-providers`. Outputs `TASK DONE`.
+Agent adds benchmarks table, writes Groq Whisper section. Appends `Critique & Score: stt-providers`. Outputs TASK DONE.
 
 **Iteration picks: `Improve: openrouter-streaming (gaps: code examples, pricing)`**
 
-Agent adds code examples, updates pricing. Appends `Critique & Score: openrouter-streaming`. Outputs `TASK DONE`.
+Agent adds code examples, updates pricing. Appends `Critique & Score: openrouter-streaming`. Outputs TASK DONE.
 
 **Later — `Critique & Score: stt-providers` (second time)**
 
