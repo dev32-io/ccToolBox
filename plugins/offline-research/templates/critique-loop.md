@@ -1,90 +1,102 @@
-# Phase 6: Critique & Expand Loop
+# Critique & Score — How It Works
 
-Do NOT proceed without reading this file in full. Every instruction here is load-bearing.
+You are handling a `Critique & Score: <topic>` task from the queue.
 
-## Overview
+## Step 1: Spawn Sonnet Subagent
 
-You have completed the initial research (Phases 1-5). Now you enter an iterative loop: score your work, find what's weak, expand into new territory, and keep going until every topic has plateaued — or you run out of iterations.
-
-## The Loop
-
-Repeat the following cycle:
-
-### 6a. Score — Spawn Sonnet Subagents
-
-For each ACTIVE topic in progress.md, spawn a subagent:
+Spawn a subagent for this ONE topic:
 
 - **Model:** sonnet
 - **Isolation:** The subagent gets ONLY the scoring rubric and the topic's output. No other context. No web access. No research history. This isolation is the point — if the subagent can't understand your findings without extra context, your findings aren't good enough.
 - **Prompt:** "You MUST read `<path>/scoring-rubric.md` before producing ANY output. Your scoring is invalid without it. Do not score from memory or assumption. After reading the rubric, read `<path>/findings/<topic>.md` and score it according to the rubric. Be curious — wonder what's missing, what doesn't add up, what you'd want to know more about."
 
-Replace `<path>` with the actual workspace path. For PoC topics, point the subagent at whatever the topic produced (code, plans, diagrams, READMEs in `poc/<topic>/`).
+Replace `<path>` with the actual workspace path. For PoC topics, point the subagent at whatever the topic produced in `poc/<topic>/`.
 
-Spawn subagents in parallel where possible — they are independent.
+## Step 2: Update Scoreboard
 
-### 6b. Update Scoreboard
+Record the scores in progress.md. Compute Δ (this score's total minus the last score's total for this topic). Update streak.
 
-Collect scores from all subagents. For each topic:
+## Step 3: Expand the Task Queue
 
-1. Record the new scores in the progress.md scoreboard
-2. Compute Δ (this cycle's total minus last cycle's total)
-3. Update streak:
-   - If Δ ≤ 1: increment streak by 1
-   - If Δ > 1: reset streak to 0
-4. If streak reaches 2: mark topic as **CONCLUDED**
+Based on the score result, append items to the task queue in progress.md:
 
-### 6c. Plan Next Actions
+```
+Δ > 3 (topic is gaining):
+├── Append: Improve: <topic> (gaps: ...) — from subagent's friction log
+├── Append: Research: <new-topic> — if subagent surfaced new areas
+├── Append: Research: poc-<name> — if building something would help
+└── Streak → 0
 
-Look at ACTIVE topics only. For each:
+Δ ≤ 3, streak 0 (first plateau):
+├── Append: Improve: <topic> (last chance: ...) — one more try
+└── Streak → 1
 
-- Read the subagent's friction log and "What's Missing" section
-- Decide what to do next: close gaps, research deeper, add new topics
-- Before adding any new topic, deduplicate against ALL topics in progress.md (both ACTIVE and CONCLUDED). If it substantially overlaps with an existing topic, don't add it.
-- New topics enter as ACTIVE with no prior scores.
+Δ ≤ 3, streak ≥ 1 (second plateau):
+├── Append nothing
+├── Mark CONCLUDED in scoreboard
+└── Topic done — no more tasks will be added for it
+```
 
-Research isn't only reading. When a topic would benefit from *making something* — you should definitely do it. This includes:
-- Building a prototype or proof-of-concept script
-- Drafting an architecture or system design
-- Sketching a visual mockup, diagram, or flowchart
-- Writing a plan that stress-tests an idea by trying to build it
+Before adding any new topic, deduplicate against ALL topics in the scoreboard (ACTIVE and CONCLUDED).
 
-Create a folder in `poc/` and add it as a topic in progress.md. Scored the same way.
+After the last `Critique & Score` item in the current round, also append `Synthesize` and `Final report` to keep the research output fresh.
 
-### 6d. Execute
+## Worked Example
 
-Research, build, or explore ACTIVE topics based on your plan from 6c. Write output to `findings/` (or `poc/` for PoC topics). Update `sources.md` with any new sources.
+Starting state — first round of scoring underway:
 
-### 6e. Re-synthesize
+```
+- [x] ... (expand, survey, research, synthesize, report done)
+- [x] Critique & Score: stt-providers → 28/50 (gaps: no latency benchmarks, missing Groq Whisper)
+- [ ] Critique & Score: openrouter-streaming
+- [ ] Critique & Score: cloud-tts-providers
+- [ ] Improve: stt-providers (gaps: latency benchmarks, Groq Whisper)
+- [ ] Research: groq-whisper-integration ← NEW
+- [ ] Synthesize
+- [ ] Final report
+```
 
-Update these files to reflect everything you now know:
-- `connections.md` — cross-topic patterns and insights
-- `contradictions.md` — where sources disagree
-- `gaps.md` — what's still weak
-- `README.md` — TLDR summary with navigation
+**Agent picks: `Critique & Score: openrouter-streaming`**
 
-Log the cycle in progress.md under the Cycle Log section.
+Spawns Sonnet → 25/50 (gaps: no code examples, pricing stale). Δ = 25 (first score, gaining). Appends:
 
-### Termination
+```
+- [x] Critique & Score: openrouter-streaming → 25/50
+- [ ] Critique & Score: cloud-tts-providers
+- [ ] Improve: stt-providers (gaps: latency benchmarks, Groq Whisper)
+- [ ] Research: groq-whisper-integration
+- [ ] Improve: openrouter-streaming (gaps: code examples, pricing) ← APPENDED
+- [ ] Synthesize
+- [ ] Final report
+```
 
-- **All topics CONCLUDED →** Output the completion promise and stop.
-- **Max iterations reached →** Do a final re-synthesis, output the completion promise, and stop.
-- **Otherwise →** Loop back to 6a.
+Outputs TASK DONE.
 
-CRITICAL: When stopping, you MUST end with a plain text message containing `<promise>ALL PHASES COMPLETE</promise>`. Do NOT end on a tool call. The loop that runs you detects completion by scanning your text output — if you end on a file write without this text, the loop will keep re-invoking you.
+**Agent picks: `Improve: stt-providers (gaps: latency benchmarks, Groq Whisper)`**
 
-## Topic Lifecycle
+Adds benchmarks table, writes Groq Whisper section. Appends:
 
-Two states only:
+```
+- [x] Improve: stt-providers ✓
+- [ ] ...
+- [ ] Critique & Score: stt-providers ← APPENDED (to verify improvement)
+```
 
-- **ACTIVE** — scored each cycle, researched if gaining
-- **CONCLUDED** — Δ ≤ 1 for 2 consecutive cycles. Permanent. No further research.
+Outputs TASK DONE.
 
-There is no parent/child distinction. Sub-topics are just topics. All topics live as rows in the progress.md scoreboard.
+**`Critique & Score: stt-providers` (second time) — Score: 40/50. Δ = +12. Gaining.**
 
-## Workspace Evolution
+```
+- [ ] Improve: stt-providers (gaps: VAD section thin) ← APPENDED
+- [ ] Research: vad-pipeline-integration ← NEW
+```
 
-You own this workspace. Organize it as the research demands:
-- Add new topic files in `topics/` and findings in `findings/`
-- Create `poc/` subfolders for prototyping work
-- Split, merge, or reorganize files when it makes the research clearer
-- Every new topic gets a row in the progress.md scoreboard
+**`Critique & Score: stt-providers` (third time) — Score: 42/50. Δ = +2. First plateau (streak → 1).**
+
+```
+- [ ] Improve: stt-providers (last chance: tighten VAD section) ← APPENDED
+```
+
+**`Critique & Score: stt-providers` (fourth time) — Score: 43/50. Δ = +1. Second plateau (streak → 2). CONCLUDED.**
+
+Nothing appended. Topic done.
