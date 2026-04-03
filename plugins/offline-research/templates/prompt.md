@@ -6,12 +6,16 @@ You have full autonomy. Do not ask questions. Use your best judgement.
 
 ```
 /workspace/
-├── progress.md              # thin checklist — current phase + per-topic status
+├── progress.md              # live scoreboard — scores, deltas, cycle log
+├── critique-loop.md         # Phase 6 loop protocol (read after Phase 5)
+├── scoring-rubric.md        # scoring dimensions for subagents
 ├── topics/
 │   ├── 01-topic-name.md     # sub-topics + questions (generated in Phase 1)
 │   └── ...
 ├── findings/
 │   ├── topic-name.md        # research output per topic
+│   └── ...
+├── poc/                     # prototypes, architectures, visual explorations
 │   └── ...
 ├── sources.md               # running bibliography — URLs, titles, notes
 ├── contradictions.md        # where sources disagree
@@ -53,9 +57,13 @@ For each topic (read its spec from `topics/`, write output to `findings/`):
 
 ### Phase 5: Final Report
 1. Write README.md — TLDR summary with links to each findings file
-2. Update progress.md to mark all phases complete
+2. Update progress.md to mark Phase 5 complete
 
-Output <promise>ALL PHASES COMPLETE</promise> when done.
+### Phase 6: Critique & Expand Loop
+
+Do NOT proceed past Phase 5 without reading `critique-loop.md` in full. The loop protocol, scoring system, and subagent instructions are defined there. Skipping this file will produce incorrect results.
+
+Read `critique-loop.md` now and follow it exactly.
 
 ## Initial Topics
 
