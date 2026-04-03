@@ -419,74 +419,25 @@ git commit -m "feat(offline-research): write 4 templates and calculate max-itera
 
 ---
 
-### Task 6: Update container reference templates
+### Task 6: Remove redundant container reference templates
 
-Mirror the changes to the example templates in the container directory so they stay in sync.
+The templates at `containers/offline-research/research_template/` are a redundant copy. The skill reads from `plugins/offline-research/templates/` and writes filled versions to the workspace. A second copy is just drift waiting to happen. Delete it.
 
 **Files:**
-- Modify: `containers/offline-research/research_template/prompt.md`
-- Modify: `containers/offline-research/research_template/progress.md`
-- Modify: `containers/offline-research/research_template/ralph-command.md`
-- Create: `containers/offline-research/research_template/critique-loop.md` (copy from plugin template)
-- Create: `containers/offline-research/research_template/scoring-rubric.md` (copy from plugin template)
+- Delete: `containers/offline-research/research_template/prompt.md`
+- Delete: `containers/offline-research/research_template/progress.md`
+- Delete: `containers/offline-research/research_template/ralph-command.md`
 
-- [ ] **Step 1: Update container `prompt.md`**
-
-Apply the same changes as Task 3: update workspace structure diagram, replace Phase 5 completion promise with Phase 6 hard gate.
-
-- [ ] **Step 2: Update container `progress.md`**
-
-Apply the same changes as Task 4: replace checklist with scoreboard format. Use the example topic placeholders already in the file:
-
-```markdown
-# Research Progress
-
-## Current Phase: Phase 1 — Scope Expansion
-
-## Topic Scoreboard
-| Topic | Status | Src | Depth | Action | Cohere | Confid | Total | Δ | Streak |
-|-------|--------|-----|-------|--------|--------|--------|-------|---|--------|
-| (topics will be listed here after Phase 1) | | | | | | | | | |
-
-## Phase Checklist
-- [ ] Phase 1: Scope Expansion
-- [ ] Phase 2: Survey
-- [ ] Phase 3: Deep Dive
-- [ ] Phase 4: Synthesize
-- [ ] Phase 5: Final Report
-- [ ] Phase 6: Critique & Expand
-
-## Cycle Log
-```
-
-- [ ] **Step 3: Copy new template files**
+- [ ] **Step 1: Remove the directory**
 
 ```bash
-cp plugins/offline-research/templates/critique-loop.md containers/offline-research/research_template/critique-loop.md
-cp plugins/offline-research/templates/scoring-rubric.md containers/offline-research/research_template/scoring-rubric.md
+git rm -r containers/offline-research/research_template/
 ```
 
-- [ ] **Step 4: Update `ralph-command.md`**
-
-Replace the current contents with:
-
-```markdown
-# Ralph Loop Command
-
-Copy your `prompt.md`, `progress.md`, `critique-loop.md`, and `scoring-rubric.md` to `/workspace/`, then run:
-
-```
-/ralph-loop:ralph-loop "Read /workspace/prompt.md and execute the research mission. Read /workspace/progress.md to find your current phase and next incomplete task. For deep dive topics, read the spec from /workspace/topics/ and write output to /workspace/findings/. Update progress.md after each step. Output <promise>ALL PHASES COMPLETE</promise> when every phase is done." --max-iterations <TOPIC_COUNT + 15> --completion-promise "ALL PHASES COMPLETE"
-```
-
-**Max-iterations:** Count your initial topics and add 15. Example: 8 topics → `--max-iterations 23`.
-```
-
-- [ ] **Step 5: Commit**
+- [ ] **Step 2: Commit**
 
 ```bash
-git add containers/offline-research/research_template/
-git commit -m "feat(offline-research): sync container templates with critique loop changes"
+git commit -m "chore(offline-research): remove redundant container reference templates"
 ```
 
 ---
