@@ -109,22 +109,28 @@ Determine the plugin root (two directories up from this skill file) to find temp
 
 **Calculate max-iterations:** `topics × 8 + 10`. Covers 3 rounds of research + critique & score + synthesis, plus buffer for new topics and PoC work. Example: 7 topics → `--max-iterations 66`.
 
-**Present two run options (without showing commands yet):**
+**Present three run options (without showing commands yet):**
 
 Derive `<folder-name>` from the last path segment of the user's chosen directory (e.g. `2026-04-02-llm-safety`).
 
 > **How do you want to run this research?**
-> 1. In the offline research container (Recommended)
-> 2. Locally
+> 1. In the offline research container with auto-resume (Recommended)
+> 2. In the offline research container (manual)
+> 3. Locally
 
 After the user picks, print only the selected command:
 
-- **Container command** (uses `/workspace/<folder-name>/` as the path):
+- **Auto-resume command** (option 1):
+  ```
+  ./containers/offline-research/launch.sh run /workspace/<folder-name> <TOPIC_COUNT * 8 + 10>
+  ```
+
+- **Manual container command** (option 2, uses `/workspace/<folder-name>/` as the path):
   ```
   /ralph-loop:ralph-loop "Read /workspace/<folder-name>/prompt.md for context. Read /workspace/<folder-name>/progress.md and do the next unchecked item in the Task Queue. Check it off when done. Output TASK DONE and stop." --max-iterations <TOPIC_COUNT * 8 + 10> --completion-promise "TASK DONE"
   ```
 
-- **Local command** (uses `<local-path>/` as the path):
+- **Local command** (option 3, uses `<local-path>/` as the path):
   ```
   /ralph-loop:ralph-loop "Read <local-path>/prompt.md for context. Read <local-path>/progress.md and do the next unchecked item in the Task Queue. Check it off when done. Output TASK DONE and stop." --max-iterations <TOPIC_COUNT * 8 + 10> --completion-promise "TASK DONE"
   ```
