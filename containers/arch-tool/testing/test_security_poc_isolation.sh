@@ -1,5 +1,5 @@
 #!/bin/bash
-# Test: poc user isolation — cannot access .private/ directory (integration test, requires Docker)
+# Test: poc user isolation — cannot access sensitive areas, can only write to /workspace/poc
 set -euo pipefail
 
 CONTAINER_DIR="$(cd "$(dirname "$0")/.." && pwd)"
@@ -17,6 +17,8 @@ trap 'docker rm -f "$CONTAINER" >/dev/null 2>&1 || true' EXIT
 # Start container as root so we can use runuser
 docker run -d --name "$CONTAINER" --user root --entrypoint bash "$IMAGE" -c "tail -f /dev/null" >/dev/null
 
+# --- Basic poc user checks ---
+
 # poc user exists
 docker exec "$CONTAINER" id poc >/dev/null 2>&1 || { echo "FAIL: poc user does not exist"; exit 1; }
 
@@ -24,12 +26,56 @@ docker exec "$CONTAINER" id poc >/dev/null 2>&1 || { echo "FAIL: poc user does n
 perms=$(docker exec "$CONTAINER" stat -c '%a %U' /home/node/.private)
 [[ "$perms" == "700 node" ]] || { echo "FAIL: .private/ perms should be '700 node', got '$perms'"; exit 1; }
 
-# Create dummy content inside .private/ so directory isn't empty
-docker exec "$CONTAINER" bash -c "mkdir -p /home/node/.private/test-secret"
-
-# poc user CANNOT traverse .private/
-poc_output=$(docker exec "$CONTAINER" bash -c "runuser -u poc -- ls /home/node/.private/ 2>&1" || true)
-echo "$poc_output" | grep -q "Permission denied" || { echo "FAIL: poc user should not be able to traverse .private/, got: $poc_output"; exit 1; }
-
 # node user CAN access .private/
 docker exec --user node "$CONTAINER" ls /home/node/.private/ >/dev/null 2>&1 || { echo "FAIL: node user should be able to access .private/"; exit 1; }
+
+# --- poc cannot access auth tokens ---
+
+# Simulate mounted .claude/ inside .private/
+docker exec "$CONTAINER" bash -c "mkdir -p /home/node/.private/.claude/sessions && echo 'SECRET_TOKEN' > /home/node/.private/.claude/sessions/auth.json"
+
+# poc cannot traverse .private/
+poc_output=$(docker exec "$CONTAINER" bash -c "runuser -u poc -- ls /home/node/.private/ 2>&1" || true)
+echo "$poc_output" | grep -q "Permission denied" || { echo "FAIL: poc cannot traverse .private/, got: $poc_output"; exit 1; }
+
+# poc cannot read auth tokens directly
+poc_output=$(docker exec "$CONTAINER" bash -c "runuser -u poc -- cat /home/node/.private/.claude/sessions/auth.json 2>&1" || true)
+echo "$poc_output" | grep -q "Permission denied" || { echo "FAIL: poc cannot read auth tokens, got: $poc_output"; exit 1; }
+
+# poc cannot access .claude/ via symlink (simulating entrypoint behavior)
+docker exec "$CONTAINER" bash -c "ln -sf /home/node/.private/.claude /home/node/.claude"
+poc_output=$(docker exec "$CONTAINER" bash -c "runuser -u poc -- cat /home/node/.claude/sessions/auth.json 2>&1" || true)
+echo "$poc_output" | grep -q "Permission denied" || { echo "FAIL: poc cannot follow .claude symlink to auth tokens, got: $poc_output"; exit 1; }
+
+# --- poc cannot access node user's home ---
+
+# poc cannot list node's home directory private files
+docker exec "$CONTAINER" bash -c "chmod 700 /home/node/.private"  # ensure reset
+poc_output=$(docker exec "$CONTAINER" bash -c "runuser -u poc -- ls /home/node/.private 2>&1" || true)
+echo "$poc_output" | grep -q "Permission denied" || { echo "FAIL: poc cannot access node's .private dir, got: $poc_output"; exit 1; }
+
+# --- poc cannot write to workspace seed files ---
+
+# Simulate workspace with seed files
+docker exec "$CONTAINER" bash -c "mkdir -p /workspace/test-project && echo 'seed prompt' > /workspace/test-project/prompt.md && chown -R node:node /workspace/test-project"
+
+# poc cannot overwrite prompt.md (prompt injection vector)
+poc_output=$(docker exec "$CONTAINER" bash -c "runuser -u poc -- bash -c 'echo INJECTED > /workspace/test-project/prompt.md' 2>&1" || true)
+echo "$poc_output" | grep -q "Permission denied" || { echo "FAIL: poc should not be able to overwrite seed files, got: $poc_output"; exit 1; }
+
+# poc cannot create files in workspace root (injection via new files)
+poc_output=$(docker exec "$CONTAINER" bash -c "runuser -u poc -- touch /workspace/test-project/malicious.md 2>&1" || true)
+echo "$poc_output" | grep -q "Permission denied" || { echo "FAIL: poc should not be able to create files in workspace, got: $poc_output"; exit 1; }
+
+# --- poc CAN write to /workspace/poc/ (designated sandbox) ---
+
+docker exec "$CONTAINER" bash -c "mkdir -p /workspace/poc && chown poc:poc /workspace/poc"
+docker exec "$CONTAINER" bash -c "runuser -u poc -- touch /workspace/poc/test-file.js" || { echo "FAIL: poc should be able to write to /workspace/poc/"; exit 1; }
+
+# --- poc cannot write to system paths ---
+
+poc_output=$(docker exec "$CONTAINER" bash -c "runuser -u poc -- touch /usr/local/bin/evil 2>&1" || true)
+echo "$poc_output" | grep -q "Permission denied\|Read-only\|cannot touch" || { echo "FAIL: poc should not write to /usr/local/bin/, got: $poc_output"; exit 1; }
+
+poc_output=$(docker exec "$CONTAINER" bash -c "runuser -u poc -- touch /etc/evil 2>&1" || true)
+echo "$poc_output" | grep -q "Permission denied\|Read-only\|cannot touch" || { echo "FAIL: poc should not write to /etc/, got: $poc_output"; exit 1; }
