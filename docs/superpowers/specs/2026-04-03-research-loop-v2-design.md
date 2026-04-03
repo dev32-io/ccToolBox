@@ -140,7 +140,7 @@ Same friction-based scoring with 5 dimensions (0-10 each, max 50).
 
 - Pre-populates full task queue in progress.md (not just scoreboard rows)
 - Max-iterations formula: `topics × 8 + 10`
-- Stop word changes: `--completion-promise` uses `TASK DONE` for per-item, detects `ALL PHASES COMPLETE` for final completion
+- Ralph-loop `--completion-promise "ALL PHASES COMPLETE"` unchanged — this is the final stop signal. `TASK DONE` is the agent's per-item stop word that ends the current iteration naturally; ralph-loop re-invokes automatically.
 
 ## Max-Iterations Formula
 
