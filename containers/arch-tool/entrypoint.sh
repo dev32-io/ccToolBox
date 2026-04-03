@@ -1,5 +1,7 @@
 #!/bin/bash
-# Lock down .claude/ so only the node user (Claude Code) can read it.
-# The poc user used for PoC code execution cannot access auth tokens.
-chmod 700 /home/node/.claude 2>/dev/null || true
+# Symlink ~/.claude to the mounted .private/.claude so Claude Code finds its config.
+# .private/ is 700 owned by node (set in Dockerfile), so the poc user cannot traverse
+# it and therefore cannot follow this symlink to read auth tokens.
+ln -sf /home/node/.private/.claude /home/node/.claude
+ln -sf /home/node/.private/.claude.json /home/node/.claude.json
 exec claude --dangerously-skip-permissions "$@"

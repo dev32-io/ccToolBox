@@ -64,8 +64,8 @@ ensure_container() {
             --name "$CONTAINER_NAME" \
             --memory=4g --cpus=4 --pids-limit=200 \
             -v "$WORKSPACE:/workspace" \
-            -v "${CLAUDE_PATH}:/home/node/.claude:ro" \
-            -v "${CONTAINER_HOME}/.claude.json:/home/node/.claude.json:ro" \
+            -v "${CLAUDE_PATH}:/home/node/.private/.claude:ro" \
+            -v "${CONTAINER_HOME}/.claude.json:/home/node/.private/.claude.json:ro" \
             -e "TZ=${TZ}" \
             ${GH_TOKEN:+-e GH_TOKEN="$GH_TOKEN"} \
             "$IMAGE_NAME" \
