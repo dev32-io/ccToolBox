@@ -76,7 +76,7 @@ Rules:
 
 Each ACTIVE topic gets its own Sonnet subagent (model: sonnet). The subagent receives:
 1. `scoring-rubric.md` — MUST be read before any output
-2. The topic's findings file
+2. The topic's findings file (or for PoC topics, whatever the topic produced — code, plans, diagrams, READMEs)
 
 The subagent has NO web access, NO accumulated context, NO research history. Just the rubric and the findings. This isolation is the point — if Sonnet can't understand the findings without extra context, the findings aren't good enough.
 
