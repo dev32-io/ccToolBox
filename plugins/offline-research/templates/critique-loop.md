@@ -66,9 +66,11 @@ Log the cycle in progress.md under the Cycle Log section.
 
 ### Termination
 
-- **All topics CONCLUDED →** Output `<promise>ALL PHASES COMPLETE</promise>` and stop.
+- **All topics CONCLUDED →** Output the completion promise and stop.
 - **Max iterations reached →** Do a final re-synthesis, output the completion promise, and stop.
 - **Otherwise →** Loop back to 6a.
+
+CRITICAL: When stopping, you MUST end with a plain text message containing `<promise>ALL PHASES COMPLETE</promise>`. Do NOT end on a tool call. The loop that runs you detects completion by scanning your text output — if you end on a file write without this text, the loop will keep re-invoking you.
 
 ## Topic Lifecycle
 
