@@ -11,8 +11,6 @@ IMAGE_NAME="offline-research"
 WORKSPACE="${HOME}/offline-research"
 CONTAINER_NAME="${CONTAINER_NAME:-research-sandbox}"
 TZ="${TZ:-America/Vancouver}"
-CONTAINER_HOME="${CLAUDE_CODE_RESEARCH_TOOL:?CLAUDE_CODE_RESEARCH_TOOL is not set}"
-CLAUDE_PATH="${CONTAINER_HOME}/.claude"
 
 # Colors
 DIM='\033[2m'
@@ -46,6 +44,9 @@ build_image() {
 }
 
 ensure_container() {
+    local CONTAINER_HOME="${CLAUDE_CODE_RESEARCH_TOOL:?CLAUDE_CODE_RESEARCH_TOOL is not set}"
+    local CLAUDE_PATH="${CONTAINER_HOME}/.claude"
+
     if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
         if ! docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
             docker start "$CONTAINER_NAME" >/dev/null
