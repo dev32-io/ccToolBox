@@ -1,18 +1,19 @@
 # Research Progress
 
-## Current Phase: Phase 1 — Scope Expansion
-
-## Topic Scoreboard
+## Scoreboard
 | Topic | Status | Src | Depth | Action | Cohere | Confid | Total | Δ | Streak |
 |-------|--------|-----|-------|--------|--------|--------|-------|---|--------|
 [TOPIC_SCOREBOARD]
 
-## Phase Checklist
-- [ ] Phase 1: Scope Expansion
-- [ ] Phase 2: Survey
-- [ ] Phase 3: Deep Dive
-- [ ] Phase 4: Synthesize
-- [ ] Phase 5: Final Report
-- [ ] Phase 6: Critique & Expand
+## Task Queue
 
-## Cycle Log
+> For every `Critique & Score` task: you MUST read `critique-loop.md` and `scoring-rubric.md` before starting. Do not score from memory or assumption.
+
+- [ ] Expand scope: all topics (create topic files in topics/)
+- [ ] Survey: all topics (skim sources, log in sources.md)
+[TOPIC_RESEARCH]
+- [ ] Synthesize
+- [ ] Final report
+[TOPIC_CRITIQUE]
+- [ ] Synthesize
+- [ ] Final report
