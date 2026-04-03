@@ -1,7 +1,7 @@
 {
   "name": "offline-research",
   "description": "Tools for structured offline research and architecture exploration using ralph-loop",
-  "version": "2.3.0",
+  "version": "2.3.1",
   "author": {
     "name": "dev32-io"
   }
