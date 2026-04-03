@@ -15,7 +15,7 @@
     {
       "name": "offline-research",
       "description": "Tools for structured offline research using ralph-loop",
-      "version": "2.1.0",
+      "version": "2.2.0",
       "source": "./plugins/offline-research",
       "category": "productivity"
     }
