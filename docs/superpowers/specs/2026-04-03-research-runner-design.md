@@ -103,3 +103,5 @@ Update SKILL.md to present three run options:
 3. **`containers/offline-research/launch.sh`** — Rewrite with setup/run/shell subcommands, persistent container.
 4. **`containers/offline-research/Dockerfile`** — Add `ENV TZ=America/Vancouver`.
 5. **`plugins/offline-research/skills/research-probe/SKILL.md`** — Add third run option (auto-resume script).
+6. **`plugins/offline-research/.claude-plugin/plugin.json`** — Bump version +0.1.0 (2.1.0 → 2.2.0).
+7. **`.claude-plugin/marketplace.json`** — Bump offline-research version to match.
