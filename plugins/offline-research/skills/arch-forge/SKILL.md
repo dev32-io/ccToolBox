@@ -1,6 +1,5 @@
 ---
 name: arch-forge
-version: 1.0.0
 description: >
   Refine a sketch architecture through the offline container loop.
   Use when the user says "forge this architecture", "expand this architecture",
@@ -9,7 +8,7 @@ description: >
   loop to explore decisions, build PoCs, and score alternatives.
   Do NOT trigger on: general architecture questions, code reviews,
   "brainstorm", "plan this", "implement this".
-tools: WebSearch, WebFetch, Bash, Write, Read, Glob
+allowed-tools: WebSearch, WebFetch, Bash, Write, Read, Glob
 ---
 
 # Architecture Forge

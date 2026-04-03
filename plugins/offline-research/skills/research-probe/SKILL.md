@@ -8,7 +8,7 @@ description: >
   "deep research", "do some research", "deep dive", "do a deep dive",
   "brainstorm", "investigate", "explore", "dig into",
   "what do you know about", "tell me about".
-tools: WebSearch, WebFetch, Bash, Write, Read, Glob
+allowed-tools: WebSearch, WebFetch, Bash, Write, Read, Glob
 ---
 
 # Research Probe
