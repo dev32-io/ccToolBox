@@ -1,5 +1,6 @@
 ---
 name: arch-forge
+version: 1.0.0
 description: >
   Refine a sketch architecture through the offline container loop.
   Use when the user says "forge this architecture", "expand this architecture",
