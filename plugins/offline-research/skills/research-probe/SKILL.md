@@ -74,10 +74,10 @@ Get the current date via `date +%Y-%m-%d`. Determine git root via `git rev-parse
 Determine the plugin root (two directories up from this skill file) to find templates.
 
 **Read templates:**
-- Read `<plugin-root>/templates/prompt.md`
-- Read `<plugin-root>/templates/progress.md`
-- Read `<plugin-root>/templates/critique-loop.md`
-- Read `<plugin-root>/templates/scoring-rubric.md`
+- Read `<plugin-root>/templates/research-probe/prompt.md`
+- Read `<plugin-root>/templates/research-probe/progress.md`
+- Read `<plugin-root>/templates/research-probe/critique-loop.md`
+- Read `<plugin-root>/templates/research-probe/scoring-rubric.md`
 
 **Fill prompt.md:**
 - Replace `[TOPIC]` with the research mission title
