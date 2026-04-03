@@ -30,6 +30,7 @@ RUN npm install -g @anthropic-ai/claude-code@${CLAUDE_CODE_VERSION}
 
 WORKDIR /workspace
 ENV SHELL=/bin/bash
+ENV TZ=America/Vancouver
 
 COPY entrypoint.sh /usr/local/bin/entrypoint.sh
 USER root
