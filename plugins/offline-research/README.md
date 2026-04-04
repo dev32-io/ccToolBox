@@ -33,6 +33,19 @@ The loop ends when all topics plateau or max-iterations is reached.
 
 **Max iterations:** `topics * 8 + 10`
 
+```
+Per topic (multiplier 8):
+- Research → Score → Improve → Re-score = 4 (base)
+- First plateau (streak 0) triggers one more improve cycle = +2
+- Minimum 2 approaches rule may force an alternative = +2
+
+Headroom (+10):
+- Decompose, Survey, and Synthesize steps that run once regardless of topic count
+- Buffer for the model to explore spawned sub-topics when needed
+
+Exits early when all topics plateau.
+```
+
 ---
 
 ### /arch-forge
@@ -61,6 +74,19 @@ Refines a sketch architecture through the offline container loop with PoC valida
   - Alignment < 6 -- refocus on project intent
 
 **Max iterations:** `decisions * 10 + 15`
+
+```
+Per decision (multiplier 10):
+- Explore → Score → PoC → Re-score → Alternative → Score = 6 (base)
+- Dimension-aware expansion may add Decompose/Investigate tasks = +2
+- Plateau improvement cycles before concluding = +2
+
+Headroom (+15):
+- Decompose, Survey, and multiple Synthesize steps
+- Larger buffer than research-probe — PoC builds and sub-decision spawning need room
+
+Exits early when all decisions converge.
+```
 
 ## Containers
 
