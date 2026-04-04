@@ -80,12 +80,8 @@ RUN echo 'node ALL=(poc) NOPASSWD: ALL' > /etc/sudoers.d/poc-sandbox \
 
 # --- Non-root user setup ---
 
-# .private/ is 700 owned by node — poc user cannot traverse it.
-# .claude/ is mounted inside .private/ at runtime, then symlinked from ~/.claude.
-# This ensures poc user cannot read auth tokens even if host permissions are permissive.
-RUN mkdir -p /home/node/.private /workspace && \
-  chown node:node /home/node/.private && \
-  chmod 700 /home/node/.private && \
+# .claude/ is mounted directly at runtime; entrypoint sets chmod 700 to block poc.
+RUN mkdir -p /workspace && \
   chown -R node:node /workspace
 
 USER node

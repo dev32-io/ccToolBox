@@ -6,8 +6,8 @@ CONTAINER_DIR="$(cd "$(dirname "$0")/.." && pwd)"
 
 # --- launch.sh checks ---
 
-# :ro mount for .claude
-grep -q '\.claude:ro' "$CONTAINER_DIR/launch.sh" || { echo "FAIL: launch.sh missing :ro mount for .claude"; exit 1; }
+# .claude mount exists (rw needed for token refresh; entrypoint chmod 700 blocks poc)
+grep -q '\.claude:' "$CONTAINER_DIR/launch.sh" || { echo "FAIL: launch.sh missing .claude mount"; exit 1; }
 
 # Resource limits
 grep -q '\-\-memory=' "$CONTAINER_DIR/launch.sh" || { echo "FAIL: launch.sh missing --memory= resource limit"; exit 1; }
@@ -31,4 +31,4 @@ grep -q 'node.*poc.*NOPASSWD' "$CONTAINER_DIR/Dockerfile" || { echo "FAIL: Docke
 
 # --- entrypoint.sh checks ---
 
-grep -q 'chmod 700\|\.private' "$CONTAINER_DIR/entrypoint.sh" || { echo "FAIL: entrypoint.sh missing chmod 700 or .private reference"; exit 1; }
+grep -q 'chmod 700' "$CONTAINER_DIR/entrypoint.sh" || { echo "FAIL: entrypoint.sh missing chmod 700 for auth isolation"; exit 1; }

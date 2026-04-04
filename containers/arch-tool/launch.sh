@@ -47,32 +47,28 @@ ensure_container() {
     local CONTAINER_HOME="${CLAUDE_CODE_RESEARCH_TOOL:?CLAUDE_CODE_RESEARCH_TOOL is not set}"
     local CLAUDE_PATH="${CONTAINER_HOME}/.claude"
 
+    # Always recreate from latest image — state lives on mounted volumes
     if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
-        if ! docker ps --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
-            docker start "$CONTAINER_NAME" >/dev/null
-            log_ok "Started existing container"
-        else
-            log_ok "Container already running"
-        fi
-    else
-        mkdir -p "$WORKSPACE" "$CLAUDE_PATH"
-
-        local claude_json="${CONTAINER_HOME}/.claude.json"
-        [ -f "$claude_json" ] || echo '{"hasCompletedOnboarding":true,"installMethod":"native"}' > "$claude_json"
-
-        docker run -d \
-            --name "$CONTAINER_NAME" \
-            --memory=4g --cpus=4 --pids-limit=200 \
-            -v "$WORKSPACE:/workspace" \
-            -v "${CLAUDE_PATH}:/home/node/.private/.claude:ro" \
-            -v "${CONTAINER_HOME}/.claude.json:/home/node/.private/.claude.json:ro" \
-            -e "TZ=${TZ}" \
-            ${GH_TOKEN:+-e GH_TOKEN="$GH_TOKEN"} \
-            "$IMAGE_NAME" \
-            tail -f /dev/null >/dev/null
-
-        log_ok "Created container ${DIM}${CONTAINER_NAME}${RESET}"
+        docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1
     fi
+
+    mkdir -p "$WORKSPACE" "$CLAUDE_PATH"
+
+    local claude_json="${CONTAINER_HOME}/.claude.json"
+    [ -f "$claude_json" ] || echo '{"hasCompletedOnboarding":true,"installMethod":"native"}' > "$claude_json"
+
+    docker run -d \
+        --name "$CONTAINER_NAME" \
+        --memory=4g --cpus=4 --pids-limit=200 \
+        -v "$WORKSPACE:/workspace" \
+        -v "${CLAUDE_PATH}:/home/node/.claude:rw" \
+        -v "${CONTAINER_HOME}/.claude.json:/home/node/.claude.json:rw" \
+        -e "TZ=${TZ}" \
+        ${GH_TOKEN:+-e GH_TOKEN="$GH_TOKEN"} \
+        "$IMAGE_NAME" \
+        tail -f /dev/null >/dev/null
+
+    log_ok "Created container ${DIM}${CONTAINER_NAME}${RESET}"
 }
 
 cmd_setup() {
@@ -82,7 +78,7 @@ cmd_setup() {
     echo
     log_dim "Dropping into container shell. Run 'claude login' to authenticate."
     echo
-    docker exec -it "$CONTAINER_NAME" bash
+    docker exec -it --user node "$CONTAINER_NAME" bash
 }
 
 cmd_run() {
@@ -100,7 +96,7 @@ cmd_shell() {
     printf "\n${BOLD}${CYAN}  arch-tool shell${RESET}\n\n"
     ensure_container
     echo
-    docker exec -it "$CONTAINER_NAME" bash
+    docker exec -it --user node "$CONTAINER_NAME" bash
 }
 
 cmd_help() {
