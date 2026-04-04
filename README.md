@@ -1,6 +1,6 @@
 # ccToolBox
 
-A personal Claude Code plugin marketplace. Add it once per machine, get access to all plugins.
+A personal Claude Code plugin marketplace.
 
 ## Setup
 
@@ -26,8 +26,6 @@ claude plugins list
 
 ### Updating
 
-To pull the latest plugin versions:
-
 ```bash
 claude plugins marketplace update ccToolBox
 claude plugins update daily-briefing@ccToolBox
@@ -45,9 +43,14 @@ claude plugins marketplace remove ccToolBox
 
 ## Available Plugins
 
-| Plugin | Description |
-|--------|-------------|
-| [daily-briefing](plugins/daily-briefing/) | Vintage broadsheet daily briefing with 12 sources, TTS audio, and dark/light mode |
+| Plugin | Version | Description |
+|--------|---------|-------------|
+| [daily-briefing](plugins/daily-briefing/README.md) | 1.5.1 | Vintage broadsheet daily briefing with 12 sources, TTS audio, and dark/light mode |
+| [offline-research](plugins/offline-research/README.md) | 2.3.2 | Structured offline research and architecture exploration via container-based loops |
+
+## Containers
+
+Sandboxed Docker environments for running offline research and architecture exploration. See [containers/README.md](containers/README.md).
 
 ## Adding Plugins
 
