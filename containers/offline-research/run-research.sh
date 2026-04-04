@@ -43,15 +43,16 @@ fmt_duration() {
 
 QUEUE_DONE=0
 QUEUE_TOTAL=0
+CURRENT_TASK=""
 NEXT_TASK=""
 
 read_progress() {
-    local workspace="$1"
     local content
-    content=$(docker exec --user node "$CONTAINER_NAME" cat "${workspace}/progress.md" 2>/dev/null) || return 1
+    content=$(docker exec --user node "$CONTAINER_NAME" cat "/workspace/progress.md" 2>/dev/null) || return 1
     QUEUE_DONE=$(echo "$content" | grep -c '^\- \[x\]' || true)
     QUEUE_TOTAL=$(echo "$content" | grep -c '^\- \[' || true)
-    NEXT_TASK=$(echo "$content" | grep -m1 '^\- \[ \]' | sed 's/^- \[ \] //' || true)
+    CURRENT_TASK=$(echo "$content" | grep -m1 '^\- \[ \]' | sed 's/^- \[ \] //' || true)
+    NEXT_TASK=$(echo "$content" | grep '^\- \[ \]' | sed -n '2p' | sed 's/^- \[ \] //' || true)
 }
 
 # ─── Display ───
@@ -59,18 +60,19 @@ read_progress() {
 declare -a TAIL_BUFFER=()
 
 redraw() {
-    local iter="$1" max="$2" workspace="$3" iter_start="$4"
+    local iter="$1" max="$2" iter_start="$3"
     local iter_elapsed=$((SECONDS - iter_start))
     local total_elapsed=$((SECONDS - RUN_START))
 
     printf '\033[2J\033[H'
 
-    printf "  ${BOLD}${CYAN}research-runner${RESET}  ${DIM}iter %d/%d${RESET}  %s\n" \
-        "$iter" "$max" "$workspace"
-    printf "  ${DIM}elapsed:  %s iter  |  %s total${RESET}\n" \
+    printf "  ${BOLD}${CYAN}research-runner${RESET}  ${DIM}iter %d/%d${RESET}\n" \
+        "$iter" "$max"
+    printf "  ${DIM}Elapsed:  %s iter  |  %s total${RESET}\n" \
         "$(fmt_duration $iter_elapsed)" "$(fmt_duration $total_elapsed)"
-    printf "  ${DIM}queue:    %s/%s done${RESET}\n" "$QUEUE_DONE" "$QUEUE_TOTAL"
-    printf "  ${DIM}next:     %s${RESET}\n" "$NEXT_TASK"
+    printf "  ${DIM}Queue:    %s/%s done${RESET}\n" "$QUEUE_DONE" "$QUEUE_TOTAL"
+    printf "  ${DIM}Current:  %s${RESET}\n" "$CURRENT_TASK"
+    printf "  ${DIM}Next:     %s${RESET}\n" "${NEXT_TASK:---}"
     printf "  ${DIM}─────────────────────────────────────${RESET}\n"
 
     local count=${#TAIL_BUFFER[@]}
@@ -94,15 +96,15 @@ append_tail() {
 # ─── Iteration ───
 
 run_iteration() {
-    local workspace="$1" iter="$2" max="$3"
-    local prompt="Read ${workspace}/prompt.md for context. Read ${workspace}/progress.md and do the next unchecked item in the Task Queue. Check it off when done. Output TASK DONE and stop."
+    local iter="$1" max="$2"
+    local prompt="Read /workspace/prompt.md for context. Read /workspace/progress.md and do the next unchecked item in the Task Queue. Check it off when done. Output TASK DONE and stop."
     local iter_start=$SECONDS
 
     LAST_OUTPUT="/tmp/research-runner-output.$$"
     > "$LAST_OUTPUT"
     TAIL_BUFFER=()
 
-    redraw "$iter" "$max" "$workspace" "$iter_start"
+    redraw "$iter" "$max" "$iter_start"
 
     docker exec --user node "$CONTAINER_NAME" \
         claude --dangerously-skip-permissions -p "$prompt" \
@@ -121,19 +123,21 @@ run_iteration() {
             last_line_count=$current_lines
         fi
 
-        redraw "$iter" "$max" "$workspace" "$iter_start"
+        redraw "$iter" "$max" "$iter_start"
         sleep 1
     done
 
+    set +e
     wait "$claude_pid" 2>/dev/null
     LAST_EXIT=$?
+    set -e
 
     while IFS= read -r line; do
         append_tail "$line"
     done < <(tail -n "+$((last_line_count + 1))" "$LAST_OUTPUT" 2>/dev/null)
 
-    read_progress "$workspace" || true
-    redraw "$iter" "$max" "$workspace" "$iter_start"
+    read_progress || true
+    redraw "$iter" "$max" "$iter_start"
 }
 
 # ─── Completion checks ───
@@ -182,10 +186,15 @@ in_schedule() {
 }
 
 wait_for_reset() {
+    printf "\n  ${YELLOW}Rate limited.${RESET}\n"
     if in_schedule; then
-        printf "\n  ${YELLOW}Rate limited.${RESET} Inside research window — probing every hour.\n"
+        printf "  Inside research window — probing every hour.\n"
+        printf "  ${DIM}Or type 'resume' to retry now.${RESET}\n"
         while true; do
-            sleep 3600
+            read -t 3600 -r input 2>/dev/null || true
+            if [[ "${input:-}" == "resume" ]]; then
+                return 0
+            fi
             if probe_limit; then
                 printf "  ${GREEN}Limit reset!${RESET} Resuming.\n"
                 return 0
@@ -193,13 +202,13 @@ wait_for_reset() {
             printf "  ${DIM}Still limited. Next probe in 1 hour.${RESET}\n"
         done
     else
-        printf "\n  ${YELLOW}Rate limited.${RESET} Outside research window (${RESEARCH_HOURS}).\n"
-        printf "  ${BOLD}Type 'continue' to resume:${RESET} "
+        printf "  Outside research window (${RESEARCH_HOURS}).\n"
+        printf "  ${BOLD}Type 'resume' to continue:${RESET} "
         local input
         while true; do
             read -r input
-            [[ "$input" == "continue" ]] && return 0
-            printf "  ${DIM}Type 'continue' to resume:${RESET} "
+            [[ "$input" == "resume" ]] && return 0
+            printf "  ${DIM}Type 'resume' to continue:${RESET} "
         done
     fi
 }
@@ -214,21 +223,19 @@ trap cleanup EXIT
 # ─── Main ───
 
 main() {
-    local workspace="${1:?Usage: run-research.sh <workspace-path> [max-iterations]}"
-    local max_iter="${2:-66}"
+    local max_iter="${1:-66}"
     local iter=0
     RUN_START=$SECONDS
 
     printf "\n${BOLD}${CYAN}  research-runner${RESET}\n"
-    printf "  ${DIM}workspace:  %s${RESET}\n" "$workspace"
     printf "  ${DIM}max-iter:   %d${RESET}\n" "$max_iter"
     printf "  ${DIM}schedule:   %s (%s)${RESET}\n\n" "$RESEARCH_HOURS" "$TZ"
 
     while [[ $iter -lt $max_iter ]]; do
         iter=$((iter + 1))
-        read_progress "$workspace" || true
+        read_progress || true
 
-        run_iteration "$workspace" "$iter" "$max_iter"
+        run_iteration "$iter" "$max_iter"
 
         if check_completed; then
             local total_elapsed=$((SECONDS - RUN_START))

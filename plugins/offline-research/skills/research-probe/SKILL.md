@@ -122,20 +122,20 @@ After the user picks, print only the selected command:
 
 - **Auto-resume command** (option 1):
   ```
-  ./containers/offline-research/launch.sh run /workspace/<folder-name> <TOPIC_COUNT * 8 + 10>
+  ./containers/offline-research/launch.sh run <host-path> <TOPIC_COUNT * 8 + 10>
   ```
 
-- **Manual container command** (option 2, uses `/workspace/<folder-name>/` as the path):
+- **Manual container command** (option 2):
   ```
-  /ralph-loop:ralph-loop "Read /workspace/<folder-name>/prompt.md for context. Read /workspace/<folder-name>/progress.md and do the next unchecked item in the Task Queue. Check it off when done. Output TASK DONE and stop." --max-iterations <TOPIC_COUNT * 8 + 10> --completion-promise "TASK DONE"
+  /ralph-loop:ralph-loop "Read /workspace/prompt.md for context. Read /workspace/progress.md and do the next unchecked item in the Task Queue. Check it off when done. Output TASK DONE and stop." --max-iterations <TOPIC_COUNT * 8 + 10> --completion-promise "TASK DONE"
   ```
 
-- **Local command** (option 3, uses `<local-path>/` as the path):
+- **Local command** (option 3):
   ```
   /ralph-loop:ralph-loop "Read <local-path>/prompt.md for context. Read <local-path>/progress.md and do the next unchecked item in the Task Queue. Check it off when done. Output TASK DONE and stop." --max-iterations <TOPIC_COUNT * 8 + 10> --completion-promise "TASK DONE"
   ```
 
-Replace `<folder-name>` and `<local-path>` with actual values.
+Replace `<host-path>` and `<local-path>` with the user's chosen directory path.
 
 Then ask:
 

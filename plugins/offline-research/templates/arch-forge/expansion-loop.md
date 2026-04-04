@@ -18,7 +18,9 @@ Record the scores in progress.md. Compute Δ (this score's total minus the last 
 
 ## Step 3: Expand the Task Queue
 
-Based on the score result, apply **dimension-aware expansion**. Check which dimensions scored below 6, then expand based on the weakest:
+Based on the score result, apply **dimension-aware expansion**. Check which dimensions scored below 6, then expand based on the weakest.
+
+**CRITICAL — append, don't insert:** Append new tasks to the END of the unchecked list, right BEFORE the trailing `Synthesize: update architecture.md`. Never insert tasks in the middle of existing unchecked items. The current scoring round must complete before expansion work begins.
 
 ### Expansion Rules
 
@@ -89,8 +91,8 @@ Starting state — first round of scoring underway:
 - [x] Score: gateway-runtime → 32/50 (Feasibility: 4, Maint: 7, Risk: 5, Effort: 8, Align: 8)
 - [ ] Score: client-protocol
 - [ ] Score: persona-storage
-- [ ] PoC: bun-websocket-server ← INSERTED (Feasibility < 6)
-- [ ] Investigate: gateway-runtime-risks ← INSERTED (Risk < 6)
+- [ ] PoC: bun-websocket-server ← APPENDED (Feasibility < 6)
+- [ ] Investigate: gateway-runtime-risks ← APPENDED (Risk < 6)
 - [ ] Synthesize: update architecture.md
 ```
 
@@ -103,9 +105,13 @@ Spawns Sonnet → 38/50 (Feasibility: 7, Maint: 8, Risk: 6, Effort: 9, Align: 8)
 - [ ] Score: persona-storage
 - [ ] PoC: bun-websocket-server
 - [ ] Investigate: gateway-runtime-risks
-- [ ] Explore: client-protocol-alternative ← need 2nd approach before can conclude
+- [ ] Explore: client-protocol-alternative ← APPENDED (need 2nd approach before can conclude)
 - [ ] Synthesize: update architecture.md
 ```
+
+**Agent picks: `Score: persona-storage`**
+
+Scoring round continues — all Score tasks complete before expansion work begins.
 
 **Agent picks: `PoC: bun-websocket-server`**
 
@@ -113,16 +119,17 @@ Builds minimal Bun WebSocket server (50 lines), runs basic test. Appends re-scor
 
 ```
 - [x] PoC: bun-websocket-server ✓
-- [ ] Score: gateway-runtime ← re-score after PoC
 - [ ] ...
+- [ ] Score: gateway-runtime ← APPENDED (re-score after PoC)
+- [ ] Synthesize: update architecture.md
 ```
 
 **`Score: gateway-runtime` (second time) — 41/50. Δ = +9. Gaining. Streak → 0.**
 
-Feasibility now 8/10 (PoC proved it). Only 1 approach explored. Agent adds alternative:
+Feasibility now 8/10 (PoC proved it). Only 1 approach explored. Agent appends alternative:
 
 ```
-- [ ] Explore: gateway-runtime-nodejs ← alternative approach
+- [ ] Explore: gateway-runtime-nodejs ← APPENDED (alternative approach)
 - [ ] Synthesize: update architecture.md
 ```
 
@@ -131,7 +138,8 @@ Feasibility now 8/10 (PoC proved it). Only 1 approach explored. Agent adds alter
 Two approaches now scored (Bun: 41, Node.js: 36). One more improvement attempt:
 
 ```
-- [ ] Improve: gateway-runtime (last chance: compare memory usage)
+- [ ] Improve: gateway-runtime (last chance: compare memory usage) ← APPENDED
+- [ ] Synthesize: update architecture.md
 ```
 
 **`Score: gateway-runtime` (fourth time) — 43/50. Δ = +1. Second plateau. Streak → 2. 2 approaches exist. CONCLUDED.**

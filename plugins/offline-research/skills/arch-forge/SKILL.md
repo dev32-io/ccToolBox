@@ -134,12 +134,12 @@ After the user picks, print only the selected command:
 
 - **Auto-resume command** (option 1):
   ```
-  ./containers/arch-tool/launch.sh run /workspace/<folder-name> <DECISION_COUNT * 10 + 15>
+  ./containers/arch-tool/launch.sh run <host-path> <DECISION_COUNT * 10 + 15>
   ```
 
 - **Manual container command** (option 2):
   ```
-  /ralph-loop:ralph-loop "Read /workspace/<folder-name>/prompt.md for context. Read /workspace/<folder-name>/progress.md and do the next unchecked item in the Task Queue. Check it off when done. Output TASK DONE and stop." --max-iterations <DECISION_COUNT * 10 + 15> --completion-promise "TASK DONE"
+  /ralph-loop:ralph-loop "Read /workspace/prompt.md for context. Read /workspace/progress.md and do the next unchecked item in the Task Queue. Check it off when done. Output TASK DONE and stop." --max-iterations <DECISION_COUNT * 10 + 15> --completion-promise "TASK DONE"
   ```
 
 - **Local command** (option 3):
@@ -147,7 +147,7 @@ After the user picks, print only the selected command:
   /ralph-loop:ralph-loop "Read <local-path>/prompt.md for context. Read <local-path>/progress.md and do the next unchecked item in the Task Queue. Check it off when done. Output TASK DONE and stop." --max-iterations <DECISION_COUNT * 10 + 15> --completion-promise "TASK DONE"
   ```
 
-Replace `<folder-name>` and `<local-path>` with actual values.
+Replace `<host-path>` and `<local-path>` with the user's chosen directory path.
 
 Then ask:
 

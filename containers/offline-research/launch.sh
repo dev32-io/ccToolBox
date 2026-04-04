@@ -30,17 +30,28 @@ spin() {
     done
     wait "$pid"
     local exit_code=$?
-    printf "\r  ${GREEN}ok${RESET}  %s\n" "$msg"
+    if [[ $exit_code -eq 0 ]]; then
+        printf "\r  ${GREEN}ok${RESET}  %s\n" "$msg"
+    else
+        printf "\r  ${RED}!!${RESET}  %s\n" "$msg"
+    fi
     return $exit_code
 }
 
 log_ok()   { printf "  ${GREEN}ok${RESET}  %b\n" "$1"; }
+log_err()  { printf "  ${RED}!!${RESET}  %b\n" "$1"; }
 log_warn() { printf "  ${YELLOW}--${RESET}  %b\n" "$1"; }
 log_dim()  { printf "  ${DIM}%b${RESET}\n" "$1"; }
 
 build_image() {
-    docker build -q -t "$IMAGE_NAME" "$SCRIPT_DIR" >/dev/null 2>&1 &
-    spin "Building image" $!
+    local build_log="/tmp/${IMAGE_NAME}-build-$$.log"
+    docker build -q -t "$IMAGE_NAME" "$SCRIPT_DIR" >"$build_log" 2>&1 &
+    if ! spin "Building image" $!; then
+        cat "$build_log" >&2
+        rm -f "$build_log"
+        exit 1
+    fi
+    rm -f "$build_log"
 }
 
 ensure_container() {
@@ -81,14 +92,17 @@ cmd_setup() {
 }
 
 cmd_run() {
-    local workspace="${1:?Usage: launch.sh run <workspace-path> [max-iterations]}"
+    local topic_path="${1:?Usage: launch.sh run <topic-path> [max-iterations]}"
     local max_iter="${2:-66}"
+
+    topic_path="$(cd "$topic_path" && pwd)"
 
     printf "\n${BOLD}${CYAN}  offline-research run${RESET}\n\n"
     build_image
+    WORKSPACE="$topic_path"
     ensure_container
     echo
-    exec "$SCRIPT_DIR/run-research.sh" "$workspace" "$max_iter"
+    exec "$SCRIPT_DIR/run-research.sh" "$max_iter"
 }
 
 cmd_shell() {
@@ -103,7 +117,7 @@ cmd_help() {
     printf "  ${BOLD}Usage:${RESET} launch.sh <command> [args]\n\n"
     printf "  ${BOLD}Commands:${RESET}\n"
     printf "    setup                          Create container and login\n"
-    printf "    run <workspace> [max-iter]     Start research with auto-resume\n"
+    printf "    run <topic-path> [max-iter]     Start research with auto-resume\n"
     printf "    shell                          Open container shell\n"
     echo
 }
