@@ -249,45 +249,43 @@ Write all files to the output directory:
 
 `topics x 10 + 15`. PoC-heavy exploration needs room. Example: 5 topics -> `--max-iterations 65`.
 
-**Present three run options (without showing commands yet):**
-
-Derive `<folder-name>` from the last path segment of the user's chosen directory.
+**Ask and wait for the user's choice before showing any commands:**
 
 > **How do you want to run this refactor exploration?**
 > 1. In the workshop container with auto-resume (Recommended)
 > 2. In the workshop container (manual)
 > 3. Locally
 
-For container options (1 and 2), the container only sees `/workspace`. The user must copy their codebase into the output directory so the agent can read it. Include a `cp` command before the run command:
+**STOP HERE.** Wait for the user to pick 1, 2, or 3. Do not show commands, search for tools, or take any action until they respond.
 
+**After the user responds**, print ONLY the command for their choice. All commands below are plain text for the user to copy — do NOT invoke, search for, or execute them.
+
+For container options (1 and 2), the user must copy their codebase into the output directory first. The container only sees `/workspace/`.
+
+**If user picks 1** (auto-resume), print:
+```
+cp -r <codebase-path> <host-path>/codebase
+./containers/workshop/launch.sh run --container=refactor <host-path> <TOPIC_COUNT * 10 + 15>
+```
+
+**If user picks 2** (manual container), print:
 ```
 cp -r <codebase-path> <host-path>/codebase
 ```
+Then tell them to run this inside the container:
+```
+ralph-loop "Do NOT invoke any skills or use the Skill tool. Read /workspace/prompt.md for context. Read /workspace/progress.md and do the next unchecked item in the Task Queue. Check it off when done. Output TASK DONE and stop." --max-iterations <TOPIC_COUNT * 10 + 15> --completion-promise "TASK DONE"
+```
 
-Where `<codebase-path>` is the root of the target codebase. The prompt.md already tells the agent to read the codebase — this copy makes it available inside the container at `/workspace/codebase/`.
+**If user picks 3** (local), print:
+```
+ralph-loop "Do NOT invoke any skills or use the Skill tool. Read <local-path>/prompt.md for context. Read <local-path>/progress.md and do the next unchecked item in the Task Queue. Check it off when done. Output TASK DONE and stop." --max-iterations <TOPIC_COUNT * 10 + 15> --completion-promise "TASK DONE"
+```
 
-After the user picks, print only the selected command(s):
-
-- **Auto-resume command** (option 1):
-  ```
-  cp -r <codebase-path> <host-path>/codebase
-  ./containers/workshop/launch.sh run --container=refactor <host-path> <TOPIC_COUNT * 10 + 15>
-  ```
-
-- **Manual container command** (option 2):
-  ```
-  /ralph-loop:ralph-loop "Do NOT invoke any skills or use the Skill tool. Read /workspace/prompt.md for context. Read /workspace/progress.md and do the next unchecked item in the Task Queue. Check it off when done. Output TASK DONE and stop." --max-iterations <TOPIC_COUNT * 10 + 15> --completion-promise "TASK DONE"
-  ```
-
-- **Local command** (option 3):
-  ```
-  /ralph-loop:ralph-loop "Do NOT invoke any skills or use the Skill tool. Read <local-path>/prompt.md for context. Read <local-path>/progress.md and do the next unchecked item in the Task Queue. Check it off when done. Output TASK DONE and stop." --max-iterations <TOPIC_COUNT * 10 + 15> --completion-promise "TASK DONE"
-  ```
-
-Replace `<host-path>` and `<local-path>` with the user's chosen directory path.
+Replace `<host-path>`, `<local-path>`, and `<codebase-path>` with the actual paths.
 
 Then ask:
 
 > Copy to clipboard? (y/n)
 
-If yes, copy the selected command to clipboard via `printf '%s' '<command>' | pbcopy`.
+If yes, copy the run command to clipboard via `printf '%s' '<command>' | pbcopy`.
