@@ -143,12 +143,14 @@ Present the final rubric with all dimensions, anchors, and hint tags. User signs
 
 Get the current date via `date +%Y-%m-%d`. Derive a short kebab-case title from the experiment (e.g., `auth-migration`, `build-pipeline-cleanup`).
 
-Ask:
+Ask and **wait for the user's response before proceeding**:
 
 > Where should I write the seed files?
 > 1. `~/offline-research/YYYY-MM-DD-short-title/`
 > 2. `<git-root>/offline-research/YYYY-MM-DD-short-title/` (or `./YYYY-MM-DD-short-title/` if not in a git repo)
 > 3. Type a custom path
+
+**STOP HERE.** Do not read templates, fill placeholders, or write any files until the user has confirmed the output location. Only proceed to the next section after receiving the user's choice.
 
 Get the current date via `date +%Y-%m-%d`. Determine git root via `git rev-parse --show-toplevel 2>/dev/null`.
 
