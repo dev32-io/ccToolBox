@@ -126,15 +126,15 @@ Determine the plugin root (two directories up from this skill file) to find temp
 Derive `<folder-name>` from the last path segment of the user's chosen directory.
 
 > **How do you want to run this architecture exploration?**
-> 1. In the arch-tool container with auto-resume (Recommended)
-> 2. In the arch-tool container (manual)
+> 1. In the workshop container with auto-resume (Recommended)
+> 2. In the workshop container (manual)
 > 3. Locally
 
 After the user picks, print only the selected command:
 
 - **Auto-resume command** (option 1):
   ```
-  ./containers/arch-tool/launch.sh run <host-path> <DECISION_COUNT * 10 + 15>
+  ./containers/workshop/launch.sh run --container=arch <host-path> <DECISION_COUNT * 10 + 15>
   ```
 
 - **Manual container command** (option 2):

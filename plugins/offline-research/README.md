@@ -2,7 +2,7 @@
 
 Structured offline research and architecture exploration using container-based Claude Code loops.
 
-**Version:** 2.3.2
+**Version:** 2.4.0
 
 ## Skills
 
@@ -88,16 +88,55 @@ Headroom (+15):
 Exits early when all decisions converge.
 ```
 
+---
+
+### /refactor-probe
+
+Explores codebase tech debt and refactoring ideas through collaborative rubric co-design and autonomous loop exploration with PoC building.
+
+**Trigger:** `/refactor-probe`, "refactor-probe this codebase", "launch a refactor probe"
+
+**Flow:**
+
+1. Dump your refactoring idea (freeform text)
+2. Skill scans the codebase and surveys the landscape
+3. Critical assessment with real code references, then guided refinement
+4. Rubric co-design — you define 3-7 custom scoring dimensions with expansion hint tags
+5. Generates 4 seed files (`prompt.md`, `progress.md`, `expansion-loop.md`, `scoring-rubric.md`) to your chosen directory
+6. Gives you the run command for the workshop container
+
+**How it differs from siblings:**
+
+- User-designed custom rubric (3-7 dimensions with custom anchors)
+- Dimension hint tags drive expansion: BUILD, INVESTIGATE, RETHINK, REFOCUS
+- Codebase-aware — scans real code during intake and grounds suggestions in actual patterns
+- PoCs replicate the real problem at small scale in isolated sketch projects
+
+**Max iterations:** `topics * 10 + 15`
+
+```Per topic (multiplier 10):
+- Explore → Score → PoC → Re-score → Alternative → Score = 6 (base)
+- Dimension-aware expansion may add PoC/Investigate/Rethink tasks = +2
+- Plateau improvement cycles before concluding = +2
+
+Headroom (+15):
+- Scan, Survey, and multiple Synthesize steps
+- Larger buffer — PoC builds and topic spawning need room
+
+Exits early when all topics plateau.
+```
+
 ## Containers
 
-Each skill has a dedicated container:
+All skills share the unified workshop container:
 
-| Skill | Container | Purpose |
-|-------|-----------|---------|
-| /research-probe | `containers/offline-research/` | Web research and analysis |
-| /arch-forge | `containers/arch-tool/` | Architecture exploration with PoC sandbox |
+| Skill | Profile | Purpose |
+|-------|---------|---------|
+| /research-probe | `--container=research` | Web research and analysis |
+| /arch-forge | `--container=arch` | Architecture exploration with PoC sandbox |
+| /refactor-probe | `--container=refactor` | Codebase refactoring with PoC sandbox |
 
-See [containers/README.md](../../containers/README.md) for setup and configuration.
+See [containers/workshop/](../../containers/workshop/) for setup and configuration.
 
 ## Prerequisites
 
