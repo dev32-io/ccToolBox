@@ -4,7 +4,7 @@ You have full autonomy. Do not ask questions. Use your best judgement.
 
 **Do NOT invoke any skills or use the Skill tool.** Follow ONLY the task queue in progress.md.
 
-You are in the root of the target codebase. The codebase is your primary reference — read it freely to understand patterns, find related code, and ground your explorations in reality.
+A copy of the target codebase is at `[PROBE_DIR]codebase/`. This is your primary reference — read it freely to understand patterns, find related code, and ground your explorations in reality.
 
 ## Goals
 
@@ -24,6 +24,7 @@ This is your anchor. Re-read this before every exploration decision. Every exper
 ├── progress.md              # scoreboard + task queue — your instruction sheet
 ├── expansion-loop.md        # how to handle Score tasks
 ├── scoring-rubric.md        # scoring dimensions for subagents
+├── codebase/                # READ-ONLY copy of the target codebase
 ├── synthesis.md             # LIVING DOCUMENT — update at every Synthesize step
 ├── explorations/            # research + analysis per topic
 │   ├── topic-name.md

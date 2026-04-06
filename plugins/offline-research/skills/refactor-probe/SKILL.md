@@ -256,10 +256,19 @@ Derive `<folder-name>` from the last path segment of the user's chosen directory
 > 2. In the workshop container (manual)
 > 3. Locally
 
-After the user picks, print only the selected command:
+For container options (1 and 2), the container only sees `/workspace`. The user must copy their codebase into the output directory so the agent can read it. Include a `cp` command before the run command:
+
+```
+cp -r <codebase-path> <host-path>/codebase
+```
+
+Where `<codebase-path>` is the root of the target codebase. The prompt.md already tells the agent to read the codebase — this copy makes it available inside the container at `/workspace/codebase/`.
+
+After the user picks, print only the selected command(s):
 
 - **Auto-resume command** (option 1):
   ```
+  cp -r <codebase-path> <host-path>/codebase
   ./containers/workshop/launch.sh run --container=refactor <host-path> <TOPIC_COUNT * 10 + 15>
   ```
 
