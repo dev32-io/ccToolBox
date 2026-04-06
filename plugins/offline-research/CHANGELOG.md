@@ -2,6 +2,16 @@
 
 All notable changes to the offline-research plugin.
 
+## 2.4.1
+
+### Fixed
+
+- Refactor-probe skill: add stop gates so agent waits for user input before writing files and before showing run commands
+- Refactor-probe skill: use `./launch.sh` instead of resolving absolute plugin path
+- Refactor-probe skill: restore `/ralph-loop` slash command format for manual options
+- Refactor-probe skill: add codebase copy step for container execution
+- Refactor-probe prompt template: point agent to `codebase/` directory inside workspace
+
 ## 2.4.0
 
 ### Added

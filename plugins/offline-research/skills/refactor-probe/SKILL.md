@@ -258,28 +258,28 @@ Write all files to the output directory:
 
 **STOP HERE.** Wait for the user to pick 1, 2, or 3. Do not show commands, search for tools, or take any action until they respond.
 
-**After the user responds**, print ONLY the command for their choice. All commands below are plain text for the user to copy — do NOT invoke, search for, or execute them.
+**After the user responds**, print ONLY the command for their choice. All commands below are plain text for the user to copy — do NOT invoke, search for, or execute them. Do NOT resolve or locate the actual script path — use `./launch.sh` exactly as shown.
 
 For container options (1 and 2), the user must copy their codebase into the output directory first. The container only sees `/workspace/`.
 
 **If user picks 1** (auto-resume), print:
 ```
 cp -r <codebase-path> <host-path>/codebase
-./containers/workshop/launch.sh run --container=refactor <host-path> <TOPIC_COUNT * 10 + 15>
+./launch.sh run --container=refactor <host-path> <TOPIC_COUNT * 10 + 15>
 ```
 
-**If user picks 2** (manual container), print:
+**If user picks 2** (manual container), print the cp command first:
 ```
 cp -r <codebase-path> <host-path>/codebase
 ```
-Then tell them to run this inside the container:
+Then tell them to shell into the container and type this in Claude Code (it's a slash command the user types, NOT something you invoke):
 ```
-ralph-loop "Do NOT invoke any skills or use the Skill tool. Read /workspace/prompt.md for context. Read /workspace/progress.md and do the next unchecked item in the Task Queue. Check it off when done. Output TASK DONE and stop." --max-iterations <TOPIC_COUNT * 10 + 15> --completion-promise "TASK DONE"
+/ralph-loop "Do NOT invoke any skills or use the Skill tool. Read /workspace/prompt.md for context. Read /workspace/progress.md and do the next unchecked item in the Task Queue. Check it off when done. Output TASK DONE and stop." --max-iterations <TOPIC_COUNT * 10 + 15> --completion-promise "TASK DONE"
 ```
 
-**If user picks 3** (local), print:
+**If user picks 3** (local), tell them to type this in Claude Code (it's a slash command the user types, NOT something you invoke):
 ```
-ralph-loop "Do NOT invoke any skills or use the Skill tool. Read <local-path>/prompt.md for context. Read <local-path>/progress.md and do the next unchecked item in the Task Queue. Check it off when done. Output TASK DONE and stop." --max-iterations <TOPIC_COUNT * 10 + 15> --completion-promise "TASK DONE"
+/ralph-loop "Do NOT invoke any skills or use the Skill tool. Read <local-path>/prompt.md for context. Read <local-path>/progress.md and do the next unchecked item in the Task Queue. Check it off when done. Output TASK DONE and stop." --max-iterations <TOPIC_COUNT * 10 + 15> --completion-promise "TASK DONE"
 ```
 
 Replace `<host-path>`, `<local-path>`, and `<codebase-path>` with the actual paths.

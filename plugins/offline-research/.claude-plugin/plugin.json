@@ -1,7 +1,7 @@
 {
   "name": "offline-research",
   "description": "Tools for structured offline research, architecture exploration, and codebase refactoring",
-  "version": "2.4.0",
+  "version": "2.4.1",
   "author": {
     "name": "dev32-io"
   }
