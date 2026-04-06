@@ -2,6 +2,25 @@
 
 All notable changes to the offline-research plugin.
 
+## 2.4.0
+
+### Added
+
+- `/refactor-probe` skill with rubric co-design, dimension-aware expansion, and PoC building
+- Refactor-probe templates (prompt, progress, expansion-loop, scoring-rubric-template)
+- Unified `containers/workshop/` with per-profile Dockerfiles (`--container=research|arch|refactor`)
+
+### Changed
+
+- Consolidated `containers/offline-research/` and `containers/arch-tool/` into `containers/workshop/`
+- `launch.sh` now requires `--container` flag to select profile
+- Renamed `run-arch.sh` to `run-arch-forge.sh`
+- Updated research-probe and arch-forge run commands to use workshop container
+
+### Fixed
+
+- Subagent rate-limit detection — all runners now use broad regex patterns to catch `429`, `too many requests`, `quota exceeded`, etc. (backported from source refactor-probe runner)
+
 ## 2.3.2
 
 ### Fixed

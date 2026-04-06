@@ -6,7 +6,7 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # Defaults (overridden by .env)
 RESEARCH_HOURS="${RESEARCH_HOURS:-23:00-07:00}"
 TZ="${TZ:-America/Vancouver}"
-CONTAINER_NAME="${CONTAINER_NAME:-arch-sandbox}"
+CONTAINER_NAME="${CONTAINER_NAME:-workshop-research-sandbox}"
 TAIL_LINES=10
 
 # Load .env if present
@@ -64,10 +64,9 @@ redraw() {
     local iter_elapsed=$((SECONDS - iter_start))
     local total_elapsed=$((SECONDS - RUN_START))
 
-    # Clear screen, cursor to top
     printf '\033[2J\033[H'
 
-    printf "  ${BOLD}${CYAN}arch-runner${RESET}  ${DIM}iter %d/%d${RESET}\n" \
+    printf "  ${BOLD}${CYAN}research-runner${RESET}  ${DIM}iter %d/%d${RESET}\n" \
         "$iter" "$max"
     printf "  ${DIM}Elapsed:  %s iter  |  %s total${RESET}\n" \
         "$(fmt_duration $iter_elapsed)" "$(fmt_duration $total_elapsed)"
@@ -101,22 +100,19 @@ run_iteration() {
     local prompt="Read /workspace/prompt.md for context. Read /workspace/progress.md and do the next unchecked item in the Task Queue. Check it off when done. Output TASK DONE and stop."
     local iter_start=$SECONDS
 
-    LAST_OUTPUT="/tmp/arch-runner-output.$$"
+    LAST_OUTPUT="/tmp/research-runner-output.$$"
     > "$LAST_OUTPUT"
     TAIL_BUFFER=()
 
     redraw "$iter" "$max" "$iter_start"
 
-    # Start claude in background
     docker exec --user node "$CONTAINER_NAME" \
         claude --dangerously-skip-permissions -p "$prompt" \
         > "$LAST_OUTPUT" 2>&1 &
     local claude_pid=$!
 
-    # Monitor loop: read new output lines + tick timer
     local last_line_count=0
     while kill -0 "$claude_pid" 2>/dev/null; do
-        # Read any new lines from output
         local current_lines
         current_lines=$(wc -l < "$LAST_OUTPUT" 2>/dev/null || echo 0)
         if [[ $current_lines -gt $last_line_count ]]; then
@@ -136,12 +132,10 @@ run_iteration() {
     LAST_EXIT=$?
     set -e
 
-    # Final: read any remaining output
     while IFS= read -r line; do
         append_tail "$line"
     done < <(tail -n "+$((last_line_count + 1))" "$LAST_OUTPUT" 2>/dev/null)
 
-    # Final render with updated progress
     read_progress || true
     redraw "$iter" "$max" "$iter_start"
 }
@@ -155,6 +149,8 @@ check_completed() {
 check_rate_limit() {
     [[ $LAST_EXIT -ne 0 ]] && return 0
     grep -q 'rate_limit' "$LAST_OUTPUT" 2>/dev/null && return 0
+    # Catches subagent limit errors that surface with different messages
+    grep -qiE 'rate.?limit|too many requests|429|quota exceeded|capacity|overloaded|resource_exhausted' "$LAST_OUTPUT" 2>/dev/null && return 0
     return 1
 }
 
@@ -162,7 +158,7 @@ check_rate_limit() {
 
 probe_limit() {
     printf "  ${DIM}Probing if limit has reset...${RESET}\n"
-    local probe_output="/tmp/arch-probe-output.$$"
+    local probe_output="/tmp/research-probe-output.$$"
     docker exec --user node "$CONTAINER_NAME" \
         claude --dangerously-skip-permissions -p "say hi" \
         --output-format json --max-turns 1 \
@@ -222,18 +218,18 @@ wait_for_reset() {
 # ─── Cleanup ───
 
 cleanup() {
-    rm -f "/tmp/arch-runner-output.$$" "/tmp/arch-probe-output.$$"
+    rm -f "/tmp/research-runner-output.$$" "/tmp/research-probe-output.$$"
 }
 trap cleanup EXIT
 
 # ─── Main ───
 
 main() {
-    local max_iter="${1:-75}"
+    local max_iter="${1:-66}"
     local iter=0
     RUN_START=$SECONDS
 
-    printf "\n${BOLD}${CYAN}  arch-runner${RESET}\n"
+    printf "\n${BOLD}${CYAN}  research-runner${RESET}\n"
     printf "  ${DIM}max-iter:   %d${RESET}\n" "$max_iter"
     printf "  ${DIM}schedule:   %s (%s)${RESET}\n\n" "$RESEARCH_HOURS" "$TZ"
 
@@ -245,7 +241,7 @@ main() {
 
         if check_completed; then
             local total_elapsed=$((SECONDS - RUN_START))
-            printf "\n  ${GREEN}${BOLD}Exploration complete${RESET} — %d iterations, %s\n\n" \
+            printf "\n  ${GREEN}${BOLD}Research complete${RESET} — %d iterations, %s\n\n" \
                 "$iter" "$(fmt_duration $total_elapsed)"
             break
         fi

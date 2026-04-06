@@ -6,10 +6,57 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 # Load .env if present
 [[ -f "$SCRIPT_DIR/.env" ]] && source "$SCRIPT_DIR/.env"
 
-# Defaults
-IMAGE_NAME="arch-tool"
+# ---------------------------------------------------------------------------
+# Parse --container flag from args (any position)
+# ---------------------------------------------------------------------------
+PROFILE=""
+FILTERED_ARGS=()
+for arg in "$@"; do
+    case "$arg" in
+        --container=*)
+            PROFILE="${arg#--container=}"
+            ;;
+        *)
+            FILTERED_ARGS+=("$arg")
+            ;;
+    esac
+done
+
+if [[ -z "$PROFILE" ]]; then
+    printf "\n  \033[31m!!\033[0m  Missing required flag: --container=research|arch|refactor\n\n" >&2
+    exit 1
+fi
+
+# ---------------------------------------------------------------------------
+# Route profile to image/container/runner/resource settings
+# ---------------------------------------------------------------------------
+case "$PROFILE" in
+    research)
+        IMAGE_NAME="workshop-research"
+        CONTAINER_NAME="${CONTAINER_NAME:-workshop-research-sandbox}"
+        RUNNER_SCRIPT="run-research.sh"
+        RESOURCE_LIMITS=()
+        ;;
+    arch)
+        IMAGE_NAME="workshop-arch"
+        CONTAINER_NAME="${CONTAINER_NAME:-workshop-arch-sandbox}"
+        RUNNER_SCRIPT="run-arch-forge.sh"
+        RESOURCE_LIMITS=(--memory=4g --cpus=4 --pids-limit=200)
+        ;;
+    refactor)
+        IMAGE_NAME="workshop-refactor"
+        CONTAINER_NAME="${CONTAINER_NAME:-workshop-refactor-sandbox}"
+        RUNNER_SCRIPT="run-refactor.sh"
+        RESOURCE_LIMITS=(--memory=4g --cpus=4 --pids-limit=200)
+        ;;
+    *)
+        printf "\n  \033[31m!!\033[0m  Unknown profile: %s (must be research|arch|refactor)\n\n" "$PROFILE" >&2
+        exit 1
+        ;;
+esac
+
+DOCKERFILE="$SCRIPT_DIR/dockerfiles/${PROFILE}.Dockerfile"
 WORKSPACE="${HOME}/offline-research"
-CONTAINER_NAME="${CONTAINER_NAME:-arch-sandbox}"
 TZ="${TZ:-America/Vancouver}"
 
 # Colors
@@ -18,6 +65,7 @@ BOLD='\033[1m'
 CYAN='\033[36m'
 GREEN='\033[32m'
 YELLOW='\033[33m'
+RED='\033[31m'
 RESET='\033[0m'
 FRAMES=('   ' '.  ' '.. ' '...')
 
@@ -45,7 +93,7 @@ log_dim()  { printf "  ${DIM}%b${RESET}\n" "$1"; }
 
 build_image() {
     local build_log="/tmp/${IMAGE_NAME}-build-$$.log"
-    docker build -q -t "$IMAGE_NAME" "$SCRIPT_DIR" >"$build_log" 2>&1 &
+    docker build -q -t "$IMAGE_NAME" -f "$DOCKERFILE" "$SCRIPT_DIR" >"$build_log" 2>&1 &
     if ! spin "Building image" $!; then
         cat "$build_log" >&2
         rm -f "$build_log"
@@ -70,7 +118,7 @@ ensure_container() {
 
     docker run -d \
         --name "$CONTAINER_NAME" \
-        --memory=4g --cpus=4 --pids-limit=200 \
+        "${RESOURCE_LIMITS[@]+"${RESOURCE_LIMITS[@]}"}" \
         -v "$WORKSPACE:/workspace" \
         -v "${CLAUDE_PATH}:/home/node/.claude:rw" \
         -v "${CONTAINER_HOME}/.claude.json:/home/node/.claude.json:rw" \
@@ -83,7 +131,7 @@ ensure_container() {
 }
 
 cmd_setup() {
-    printf "\n${BOLD}${CYAN}  arch-tool setup${RESET}\n\n"
+    printf "\n${BOLD}${CYAN}  workshop setup (${PROFILE})${RESET}\n\n"
     build_image
     ensure_container
     echo
@@ -93,35 +141,42 @@ cmd_setup() {
 }
 
 cmd_run() {
-    local topic_path="${1:?Usage: launch.sh run <topic-path> [max-iterations]}"
+    local topic_path="${1:?Usage: launch.sh --container=${PROFILE} run <topic-path> [max-iterations]}"
     local max_iter="${2:-75}"
 
     topic_path="$(cd "$topic_path" && pwd)"
 
-    printf "\n${BOLD}${CYAN}  arch-tool run${RESET}\n\n"
+    printf "\n${BOLD}${CYAN}  workshop run (${PROFILE})${RESET}\n\n"
     build_image
     WORKSPACE="$topic_path"
     ensure_container
     echo
-    exec "$SCRIPT_DIR/run-arch.sh" "$max_iter"
+    exec "$SCRIPT_DIR/$RUNNER_SCRIPT" "$max_iter"
 }
 
 cmd_shell() {
-    printf "\n${BOLD}${CYAN}  arch-tool shell${RESET}\n\n"
+    printf "\n${BOLD}${CYAN}  workshop shell (${PROFILE})${RESET}\n\n"
     ensure_container
     echo
     docker exec -it --user node "$CONTAINER_NAME" bash
 }
 
 cmd_help() {
-    printf "\n${BOLD}${CYAN}  arch-tool${RESET}\n\n"
-    printf "  ${BOLD}Usage:${RESET} launch.sh <command> [args]\n\n"
+    printf "\n${BOLD}${CYAN}  workshop${RESET}\n\n"
+    printf "  ${BOLD}Usage:${RESET} launch.sh --container=<profile> <command> [args]\n\n"
+    printf "  ${BOLD}Profiles:${RESET}\n"
+    printf "    research                       No resource limits\n"
+    printf "    arch                           4g memory, 4 CPUs, 200 pids\n"
+    printf "    refactor                       4g memory, 4 CPUs, 200 pids\n\n"
     printf "  ${BOLD}Commands:${RESET}\n"
     printf "    setup                          Create container and login\n"
-    printf "    run <topic-path> [max-iter]     Start architecture exploration with auto-resume\n"
+    printf "    run <topic-path> [max-iter]    Start runner with auto-resume\n"
     printf "    shell                          Open container shell\n"
     echo
 }
+
+# Restore filtered args (--container stripped out)
+set -- "${FILTERED_ARGS[@]+"${FILTERED_ARGS[@]}"}"
 
 case "${1:-help}" in
     setup) cmd_setup ;;

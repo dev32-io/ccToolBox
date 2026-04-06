@@ -41,7 +41,7 @@ WORKDIR /workspace
 ENV SHELL=/bin/bash
 ENV TZ=America/Vancouver
 
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY entrypoint-light.sh /usr/local/bin/entrypoint.sh
 USER root
 RUN chmod +x /usr/local/bin/entrypoint.sh
 USER node

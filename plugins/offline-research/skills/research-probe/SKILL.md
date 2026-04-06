@@ -114,15 +114,15 @@ Determine the plugin root (two directories up from this skill file) to find temp
 Derive `<folder-name>` from the last path segment of the user's chosen directory (e.g. `2026-04-02-llm-safety`).
 
 > **How do you want to run this research?**
-> 1. In the offline research container with auto-resume (Recommended)
-> 2. In the offline research container (manual)
+> 1. In the workshop container with auto-resume (Recommended)
+> 2. In the workshop container (manual)
 > 3. Locally
 
 After the user picks, print only the selected command:
 
 - **Auto-resume command** (option 1):
   ```
-  ./containers/offline-research/launch.sh run <host-path> <TOPIC_COUNT * 8 + 10>
+  ./containers/workshop/launch.sh run --container=research <host-path> <TOPIC_COUNT * 8 + 10>
   ```
 
 - **Manual container command** (option 2):
