@@ -154,6 +154,20 @@ check_rate_limit() {
     return 1
 }
 
+check_errors() {
+    local errors
+    errors=$(grep -iE 'error|exception|panic|fatal|crash|ENOENT|ECONNREFUSED|ETIMEDOUT|spawn.*failed|subagent.*failed|tool_use_error|APIError|internal_error' \
+        "$LAST_OUTPUT" 2>/dev/null || true)
+    if [[ -n "$errors" ]]; then
+        local ts
+        ts=$(date '+%Y-%m-%d %H:%M:%S')
+        echo "--- [$ts] iteration $iter (exit: $LAST_EXIT) ---" >> "/workspace/errors.log"
+        echo "$errors" >> "/workspace/errors.log"
+        echo "" >> "/workspace/errors.log"
+        printf "  ${YELLOW}Errors detected — see /workspace/errors.log${RESET}\n"
+    fi
+}
+
 # ─── Rate limit handling ───
 
 probe_limit() {
@@ -238,6 +252,8 @@ main() {
         read_progress || true
 
         run_iteration "$iter" "$max_iter"
+
+        check_errors
 
         if check_completed; then
             local total_elapsed=$((SECONDS - RUN_START))

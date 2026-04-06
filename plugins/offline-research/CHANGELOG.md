@@ -2,6 +2,13 @@
 
 All notable changes to the offline-research plugin.
 
+## 2.4.2
+
+### Changed
+
+- All runners: replace permission error detection with general error logging (`errors.log` in workspace)
+- Error log captures: exceptions, panics, crashes, connection failures, subagent failures, API errors
+
 ## 2.4.1
 
 ### Fixed

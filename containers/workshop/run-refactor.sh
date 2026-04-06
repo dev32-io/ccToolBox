@@ -160,17 +160,18 @@ check_rate_limit() {
     return 1
 }
 
-check_permission_errors() {
-    local perms
-    perms=$(grep -iE 'permission|not allowed|denied|requires approval|tool.*blocked' \
+check_errors() {
+    local errors
+    errors=$(grep -iE 'error|exception|panic|fatal|crash|ENOENT|ECONNREFUSED|ETIMEDOUT|spawn.*failed|subagent.*failed|tool_use_error|APIError|internal_error' \
         "$LAST_OUTPUT" 2>/dev/null || true)
-    if [[ -n "$perms" ]]; then
-        local ts
+    if [[ -n "$errors" ]]; then
+        local ts log_file
         ts=$(date '+%Y-%m-%d %H:%M:%S')
-        echo "--- [$ts] iteration $iter ---" >> "/tmp/refactor-permission-errors-$$.log"
-        echo "$perms" >> "/tmp/refactor-permission-errors-$$.log"
-        echo "" >> "/tmp/refactor-permission-errors-$$.log"
-        printf "  ${YELLOW}Permission issue detected — see log${RESET}\n"
+        log_file="${PROBE_DIR:-.}/errors.log"
+        echo "--- [$ts] iteration $iter (exit: $LAST_EXIT) ---" >> "$log_file"
+        echo "$errors" >> "$log_file"
+        echo "" >> "$log_file"
+        printf "  ${YELLOW}Errors detected — see %s${RESET}\n" "$log_file"
     fi
 }
 
@@ -259,7 +260,7 @@ main() {
 
         run_iteration "$iter" "$max_iter"
 
-        check_permission_errors
+        check_errors
 
         if check_completed; then
             local total_elapsed=$((SECONDS - RUN_START))

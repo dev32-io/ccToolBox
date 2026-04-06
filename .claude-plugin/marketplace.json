@@ -15,7 +15,7 @@
     {
       "name": "offline-research",
       "description": "Tools for structured offline research, architecture exploration, and codebase refactoring",
-      "version": "2.4.1",
+      "version": "2.4.2",
       "source": "./plugins/offline-research",
       "category": "productivity"
     }
