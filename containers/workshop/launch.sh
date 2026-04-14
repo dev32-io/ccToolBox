@@ -7,14 +7,18 @@ SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 [[ -f "$SCRIPT_DIR/.env" ]] && source "$SCRIPT_DIR/.env"
 
 # ---------------------------------------------------------------------------
-# Parse --container flag from args (any position)
+# Parse --container and --agent flags from args (any position)
 # ---------------------------------------------------------------------------
 PROFILE=""
+AGENT="claude"  # default for backward compatibility
 FILTERED_ARGS=()
 for arg in "$@"; do
     case "$arg" in
         --container=*)
             PROFILE="${arg#--container=}"
+            ;;
+        --agent=*)
+            AGENT="${arg#--agent=}"
             ;;
         *)
             FILTERED_ARGS+=("$arg")
@@ -55,7 +59,13 @@ case "$PROFILE" in
         ;;
 esac
 
-DOCKERFILE="$SCRIPT_DIR/dockerfiles/${PROFILE}.Dockerfile"
+# Agent-specific overrides
+if [[ "$AGENT" == "opencode" ]]; then
+    IMAGE_NAME="${IMAGE_NAME}-opencode"
+    CONTAINER_NAME="${CONTAINER_NAME}-opencode"
+fi
+
+DOCKERFILE="$SCRIPT_DIR/dockerfiles/${PROFILE}-${AGENT}.Dockerfile"
 WORKSPACE="${HOME}/offline-research"
 TZ="${TZ:-America/Vancouver}"
 
@@ -103,29 +113,48 @@ build_image() {
 }
 
 ensure_container() {
-    local CONTAINER_HOME="${CLAUDE_CODE_RESEARCH_TOOL:?CLAUDE_CODE_RESEARCH_TOOL is not set}"
-    local CLAUDE_PATH="${CONTAINER_HOME}/.claude"
+    local CONTAINER_HOME
+    local AGENT_CONFIG_PATH
+
+    if [[ "$AGENT" == "opencode" ]]; then
+        CONTAINER_HOME="${OPENCODE_AUTH_DIR:?OPENCODE_AUTH_DIR is not set for opencode agent}"
+        AGENT_CONFIG_PATH="${CONTAINER_HOME}/.config/opencode"
+    else
+        CONTAINER_HOME="${CLAUDE_CODE_RESEARCH_TOOL:?CLAUDE_CODE_RESEARCH_TOOL is not set for claude agent}"
+        AGENT_CONFIG_PATH="${CONTAINER_HOME}/.claude"
+    fi
 
     # Always recreate from latest image — state lives on mounted volumes
     if docker ps -a --format '{{.Names}}' | grep -q "^${CONTAINER_NAME}$"; then
         docker rm -f "$CONTAINER_NAME" >/dev/null 2>&1
     fi
 
-    mkdir -p "$WORKSPACE" "$CLAUDE_PATH"
+    mkdir -p "$WORKSPACE" "$AGENT_CONFIG_PATH"
 
-    local claude_json="${CONTAINER_HOME}/.claude.json"
-    [ -f "$claude_json" ] || echo '{"hasCompletedOnboarding":true,"installMethod":"native"}' > "$claude_json"
+    # Initialize agent config files if needed
+    if [[ "$AGENT" == "claude" ]]; then
+        local claude_json="${CONTAINER_HOME}/.claude.json"
+        [ -f "$claude_json" ] || echo '{"hasCompletedOnboarding":true,"installMethod":"native"}' > "$claude_json"
+    fi
 
-    docker run -d \
-        --name "$CONTAINER_NAME" \
-        "${RESOURCE_LIMITS[@]+"${RESOURCE_LIMITS[@]}"}" \
-        -v "$WORKSPACE:/workspace" \
-        -v "${CLAUDE_PATH}:/home/node/.claude:rw" \
-        -v "${CONTAINER_HOME}/.claude.json:/home/node/.claude.json:rw" \
-        -e "TZ=${TZ}" \
-        ${GH_TOKEN:+-e GH_TOKEN="$GH_TOKEN"} \
-        "$IMAGE_NAME" \
-        tail -f /dev/null >/dev/null
+    # Build docker run command with agent-specific mounts
+    local RUN_CMD=(docker run -d --name "$CONTAINER_NAME")
+    RUN_CMD+=("${RESOURCE_LIMITS[@]+"${RESOURCE_LIMITS[@]}"}")
+    RUN_CMD+=(-v "$WORKSPACE:/workspace")
+
+    if [[ "$AGENT" == "claude" ]]; then
+        RUN_CMD+=(-v "${AGENT_CONFIG_PATH}:/home/node/.claude:rw")
+        RUN_CMD+=(-v "${CONTAINER_HOME}/.claude.json:/home/node/.claude.json:rw")
+    else
+        RUN_CMD+=(-v "${AGENT_CONFIG_PATH}:/home/node/.config/opencode:rw")
+        RUN_CMD+=(-v "${CONTAINER_HOME}/.local/share/opencode:/home/node/.local/share/opencode:rw")
+    fi
+
+    RUN_CMD+=(-e "TZ=${TZ}")
+    [[ -n "${GH_TOKEN:-}" ]] && RUN_CMD+=(-e GH_TOKEN="$GH_TOKEN")
+    RUN_CMD+=("$IMAGE_NAME" tail -f /dev/null)
+
+    "${RUN_CMD[@]}" >/dev/null
 
     log_ok "Created container ${DIM}${CONTAINER_NAME}${RESET}"
 }
