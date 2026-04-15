@@ -6,7 +6,7 @@ Generates a personalized daily briefing as a vintage broadsheet newspaper-styled
 
 - `skills/daily-briefing/SKILL.md` — main skill definition (invoked via `/daily-briefing` or "good morning")
 - `scripts/tts.sh` — TTS generation using Docker (openai-edge-tts)
-- `settings.default.md` — versioned default settings template
+- `skills/daily-briefing/settings.default.json` — versioned default settings template
 
 ## Dependencies
 
@@ -31,10 +31,10 @@ Generates a personalized daily briefing as a vintage broadsheet newspaper-styled
 
 ## Settings
 
-- Default settings ship in `settings.default.md` with `version: N` frontmatter
-- User settings live at `~/.config/ccToolBox/daily-briefing/settings.md`
+- Default settings ship in `settings.default.json` with a `version` key
+- User settings live at `~/.config/ccToolBox/daily-briefing/settings.json`
 - The skill handles first-run copy and version migration automatically
-- **When changing the settings structure, bump the `version` integer in `settings.default.md`**
+- **When changing the settings structure, bump the `version` integer in `settings.default.json`**
 
 ## Testing Locally
 
