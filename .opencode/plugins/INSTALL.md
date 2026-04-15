@@ -49,23 +49,19 @@ The daily briefing generates a newspaper-styled HTML page with news, tech update
 #### 2.1 Create Output Directory
 
 ```bash
-mkdir -p ~/.config/ccToolBox/daily-briefing/output
+mkdir -p ~/.ccToolBox/daily-briefing/output
 ```
 
 This is where your generated briefings will be saved (HTML + MP3 files).
 
 #### 2.2 Copy the Plugin Files
 
-```bash
-cp -r ccToolBox/plugins/daily-briefing/skills ~/.config/opencode/skills/
-cp -r ccToolBox/plugins/daily-briefing/agents ~/.config/opencode/agents/
-cp ccToolBox/plugins/daily-briefing/scripts/tts.sh ~/.config/ccToolBox/daily-briefing/
-```
-
-#### 2.3 Set Execute Permission on TTS Script
+The OpenCode-targeted plugin lives at `plugins/daily-briefing-opencode/`. Copy the skill directory and make scripts executable:
 
 ```bash
-chmod +x ~/.config/ccToolBox/daily-briefing/tts.sh
+cp -r ccToolBox/plugins/daily-briefing-opencode/skills/daily-briefing ~/.config/opencode/skills/
+chmod +x ~/.config/opencode/skills/daily-briefing/scripts/*.py
+chmod +x ~/.config/opencode/skills/daily-briefing/scripts/*.sh
 ```
 
 ---
@@ -114,7 +110,7 @@ Invoke with:
 
 Or say: "get my daily briefing"
 
-**First run:** Default settings are created at `~/.config/ccToolBox/daily-briefing/settings.md`. Edit this file to customize voice, location, and content sources.
+**First run:** Default settings are created at `~/.ccToolBox/daily-briefing/settings.json`. Edit this file to customize voice, location, and content sources.
 
 ### Offline Research Skills
 
@@ -139,12 +135,12 @@ Invoke with:
 docker ps
 
 # Test tts.sh manually
-~/.config/ccToolBox/daily-briefing/tts.sh <test-text-file> /tmp/test.mp3
+~/.config/opencode/skills/daily-briefing/scripts/tts.sh <test-text-file> /tmp/test.mp3
 ```
 
 **Solutions:**
 1. Start Docker Desktop if not running
-2. Verify `tts.sh` is executable: `ls -la ~/.config/ccToolBox/daily-briefing/tts.sh`
+2. Verify `tts.sh` is executable: `ls -la ~/.config/opencode/skills/daily-briefing/scripts/tts.sh`
 3. Check that the container image pulls successfully (first run may take time)
 
 ### Skills Not Discovered
@@ -165,7 +161,7 @@ docker ps
 
 **Solution:** Delete the corrupted settings and let it regenerate:
 ```bash
-rm ~/.config/ccToolBox/daily-briefing/settings.md
+rm ~/.ccToolBox/daily-briefing/settings.json
 # Then re-run /daily-briefing
 ```
 
@@ -180,15 +176,16 @@ cd ccToolBox
 git pull
 
 # Re-copy updated files
-cp -r plugins/daily-briefing/skills/* ~/.config/opencode/skills/
+cp -r plugins/daily-briefing-opencode/skills/daily-briefing ~/.config/opencode/skills/
 cp -r plugins/offline-research/skills/* ~/.config/opencode/skills/
 ```
 
 ### Update Scripts
 
 ```bash
-cp ccToolBox/plugins/daily-briefing/scripts/tts.sh ~/.config/ccToolBox/daily-briefing/
-chmod +x ~/.config/ccToolBox/daily-briefing/tts.sh
+cp -r ccToolBox/plugins/daily-briefing-opencode/skills/daily-briefing/scripts/* ~/.config/opencode/skills/daily-briefing/scripts/
+chmod +x ~/.config/opencode/skills/daily-briefing/scripts/*.py
+chmod +x ~/.config/opencode/skills/daily-briefing/scripts/*.sh
 ```
 
 ---
@@ -209,10 +206,9 @@ The manual copy method ensures these requirements are met without complex plugin
 | Item | Location |
 |------|----------|
 | Skills | `~/.config/opencode/skills/` |
-| Agents | `~/.config/opencode/agents/` |
-| TTS Script | `~/.config/ccToolBox/daily-briefing/tts.sh` |
-| Briefing Output | `~/.config/ccToolBox/daily-briefing/output/` |
-| Settings | `~/.config/ccToolBox/daily-briefing/settings.md` |
+| Scripts (bundled with skill) | `~/.config/opencode/skills/daily-briefing/scripts/` |
+| Settings | `~/.ccToolBox/daily-briefing/settings.json` |
+| Briefing output | `~/.ccToolBox/daily-briefing/output/` |
 
 ---
 

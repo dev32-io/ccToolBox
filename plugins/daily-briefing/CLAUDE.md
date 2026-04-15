@@ -32,7 +32,7 @@ Generates a personalized daily briefing as a vintage broadsheet newspaper-styled
 ## Settings
 
 - Default settings ship in `settings.default.json` with a `version` key
-- User settings live at `~/.config/ccToolBox/daily-briefing/settings.json`
+- User settings live at `~/.ccToolBox/daily-briefing/settings.json`
 - The skill handles first-run copy and version migration automatically
 - **When changing the settings structure, bump the `version` integer in `settings.default.json`**
 

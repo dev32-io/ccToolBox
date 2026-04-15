@@ -13,8 +13,8 @@ ccToolBox/
 │   └── <plugin-name>/
 │       ├── .claude-plugin/plugin.json
 │       ├── skills/
-│       ├── scripts/
-│       ├── settings.default.md
+│       ├── scripts/                  # optional — plugins may also place scripts inside skills/<name>/scripts/
+│       ├── settings.default.json     # or settings.default.md (legacy)
 │       └── README.md
 ```
 
@@ -28,10 +28,10 @@ ccToolBox/
 ## Settings Convention
 
 Plugins with user settings follow this pattern:
-- Ship `settings.default.md` with `version: N` frontmatter in the plugin root
-- User settings live at `~/.config/ccToolBox/<plugin-name>/settings.md`
-- Skills handle first-run copy, version migration, and malformed settings recovery
-- **When bumping a plugin version with settings changes, always bump the settings version integer in the same commit**
+- Ship a versioned settings default in the plugin's skill directory (e.g., `settings.default.json` with integer `version`). Older plugins may still use `settings.default.md` with YAML frontmatter.
+- User settings live at `~/.ccToolBox/<plugin-name>/settings.{json,md}`.
+- Skills handle first-run copy, version migration, and malformed settings recovery — preferably via a dedicated script (see `daily-briefing` as reference).
+- **When bumping a plugin version with settings changes, always bump the settings version integer in the same commit.**
 
 ## Remotes
 

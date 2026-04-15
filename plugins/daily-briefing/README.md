@@ -2,7 +2,7 @@
 
 Vintage broadsheet daily briefing with 12 content sources, TTS audio narration, and dark/light mode.
 
-**Version:** 1.5.1
+**Version:** 2.0.0
 
 ## Skills
 
@@ -48,7 +48,7 @@ Vintage broadsheet daily briefing with 12 content sources, TTS audio narration, 
 
 ### Architecture
 
-Thin skill trigger dispatches to a Sonnet orchestrator agent, which spawns Haiku fetch subagents in parallel for each source. TTS generation runs in parallel with HTML generation.
+SKILL.md dispatches parallel fetch subagents (Haiku), performs inline lead-story selection, fetches a lead image (Haiku), then runs TTS (Sonnet) and HTML-render (Haiku, script-only) subagents in parallel. Settings migration lives in `scripts/init_settings.py`; HTML rendering lives in `scripts/render_html.py`. All scripts sit inside the skill directory and self-locate via Python `__file__`.
 
 ## Prerequisites
 
@@ -63,38 +63,22 @@ claude plugins install daily-briefing@ccToolBox
 
 ## Settings
 
-Settings are stored at `~/.config/ccToolBox/daily-briefing/settings.md`. On first run, defaults are copied there automatically. Version migration is handled by the skill.
+Settings are stored at `~/.ccToolBox/daily-briefing/settings.json`. On first run, defaults are copied there automatically. Version migration is handled by the skill.
 
-```markdown
----
-version: 1.4.0
----
-# Daily Briefing Settings
-
-## General
-- voice: en-US-AvaMultilingualNeural
-- location: Burnaby, BC, Canada
-
-## Sources (in order of appearance)
-- weather: short summary for {location}
-- tech-hn: 2-5 items from Hacker News (AI, CS, tech)
-- tech-devto: 2-5 items from Dev.to (AI, CS, tech)
-- tech-github: 3-5 trending repositories from GitHub
-- tech-tc: 2-3 top TechCrunch headlines
-- reddit-claudeai: 2-5 hot new posts from r/ClaudeAI
-- ai-ml: 2-3 items from arXiv AI + The Batch
-- space-science: 1-2 items from NASA, SpaceX, space news
-- gaming: 2-3 items from r/gaming, game releases
-- maker-hobby: 1-2 items from Instructables, r/3Dprinting
-- news-ap: 2-5 very short headlines from AP News
-- extra: (add your own sections here)
-
-## Retention
-- days: 14
-
-## Closing Section
-- today-in-history: true
-- inspiration-quote: true
+```json
+{
+  "version": 2,
+  "voice": "en-US-AvaMultilingualNeural",
+  "location": "Burnaby, BC, Canada",
+  "sources": [
+    {"key": "weather",         "description": "short summary for {location}"},
+    {"key": "tech-hn",         "description": "2-5 items from Hacker News (AI, CS, tech)"},
+    {"key": "tech-devto",      "description": "2-5 items from Dev.to (AI, CS, tech)"}
+  ],
+  "retention_days": 14,
+  "today_in_history": true,
+  "inspiration_quote": true
+}
 ```
 
 - **voice** -- any Azure TTS voice identifier
