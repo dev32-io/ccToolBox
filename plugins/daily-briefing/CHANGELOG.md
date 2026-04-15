@@ -2,6 +2,29 @@
 
 All notable changes to the daily-briefing plugin.
 
+## 2.0.0
+
+### Changed (breaking)
+
+- Flattened architecture: orchestrator agent removed, skill itself dispatches fetch and generation subagents.
+- Settings format: `settings.default.md` (markdown frontmatter) → `settings.default.json` (pure JSON). Old user settings at `~/.ccToolBox/daily-briefing/settings.md` are NOT migrated — users will see a fresh default on first run.
+- Settings version: integer (2) instead of semver string.
+- Storage path canonicalized to `~/.ccToolBox/daily-briefing/`. The `~/.config/ccToolBox/daily-briefing/` path referenced in some v1 docs is no longer used.
+- All assets (`scripts/tts.sh`, new `scripts/init_settings.py`, new `scripts/render_html.py`, `settings.default.json`) moved INSIDE the skill dir for self-containment and reliable path discovery via `${CLAUDE_SKILL_DIR}`.
+
+### Added
+
+- `scripts/init_settings.py` — deterministic first-run, malformed-reset, version migration, and retention cleanup. Replaces prose-driven logic in the old orchestrator.
+- `scripts/render_html.py` — renders the newspaper HTML from structured JSON. Eliminates inline CSS/layout spec in the skill prompt.
+- Black-box test suite (`tests/test_init_settings.py`, `tests/test_render_html.py`) using stdlib `unittest`.
+- Sibling `plugins/daily-briefing-opencode` plugin for OpenCode users (not registered in the CC marketplace).
+
+### Removed
+
+- `agents/daily-briefing-agent.md` orchestrator (~332 lines).
+- `settings.default.md` (replaced by JSON).
+- `docs/simplified-instructions.md` (stale auto-generated content).
+
 ## 1.5.1
 
 ### Fixed
