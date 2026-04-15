@@ -7,6 +7,7 @@ import os
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 from pathlib import Path
 
@@ -137,9 +138,6 @@ class TestVersionMigration(unittest.TestCase):
             self.assertIn("Settings OK", result.stderr)
 
 
-import time
-
-
 class TestRetentionCleanup(unittest.TestCase):
     def test_old_output_files_deleted_after_retention_days(self):
         with tempfile.TemporaryDirectory() as tmp:
@@ -159,6 +157,22 @@ class TestRetentionCleanup(unittest.TestCase):
             self.assertEqual(result.returncode, 0, msg=result.stderr)
             self.assertFalse(old_file.exists(), "old file should be deleted")
             self.assertTrue(fresh_file.exists(), "fresh file should survive")
+
+
+class TestFatalErrors(unittest.TestCase):
+    def test_settings_path_is_directory_returns_clean_error(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp)
+            settings_dir = home / ".ccToolBox" / "daily-briefing"
+            settings_dir.mkdir(parents=True)
+            # Create a DIRECTORY where settings.json should be a file
+            (settings_dir / "settings.json").mkdir()
+
+            result = run_script(home)
+            self.assertEqual(result.returncode, 1)
+            self.assertIn("not a regular file", result.stderr)
+            # No traceback
+            self.assertNotIn("Traceback", result.stderr)
 
 
 if __name__ == "__main__":

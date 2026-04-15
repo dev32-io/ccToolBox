@@ -116,7 +116,7 @@ def retention_cleanup(output_dir: Path, retention_days: int) -> None:
         pass
 
 
-def main() -> int:
+def _main() -> int:
     default = load_default()
     root = user_root()
     user_path = root / "settings.json"
@@ -125,6 +125,9 @@ def main() -> int:
 
     if not user_path.exists():
         merged = first_run(user_path, default)
+    elif not user_path.is_file():
+        log(f"ERROR: {user_path} exists but is not a regular file. Remove it and retry.")
+        return 1
     else:
         try:
             with open(user_path) as f:
@@ -145,6 +148,14 @@ def main() -> int:
     retention_cleanup(output_dir, int(merged.get("retention_days", 14)))
     print(json.dumps(merged))
     return 0
+
+
+def main() -> int:
+    try:
+        return _main()
+    except OSError as exc:
+        log(f"ERROR: {exc}")
+        return 1
 
 
 if __name__ == "__main__":
