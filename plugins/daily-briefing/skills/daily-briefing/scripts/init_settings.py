@@ -1,5 +1,21 @@
 #!/usr/bin/env python3
-"""Initialize daily-briefing settings. Prints merged settings as JSON on stdout.
+"""Initialize daily-briefing settings. Prints structured JSON on stdout.
+
+Output schema:
+  {
+    "settings": { ...merged settings... },
+    "paths": {
+      "staging_dir": "<abs>",
+      "out_txt":     "<abs>",
+      "out_mp3":     "<abs>",
+      "out_json":    "<abs>",
+      "out_html":    "<abs>"
+    },
+    "date": {
+      "iso":   "YYYY-MM-DD",
+      "human": "Wednesday, April 15, 2026"
+    }
+  }
 
 Branches handled (in order):
   1. First run (user file missing) — copy default
@@ -15,11 +31,13 @@ Self-locates settings.default.json via __file__. User storage is at
 """
 from __future__ import annotations
 
+import argparse
 import json
 import os
 import shutil
 import subprocess
 import sys
+from datetime import date, datetime
 from pathlib import Path
 
 
@@ -116,7 +134,41 @@ def retention_cleanup(output_dir: Path, retention_days: int) -> None:
         pass
 
 
+def build_paths(date_iso: str) -> dict:
+    root = user_root()
+    output_dir = root / "output"
+    return {
+        "staging_dir": str(output_dir / f"staging-{date_iso}"),
+        "out_txt":     str(output_dir / f"daily-briefing-{date_iso}.txt"),
+        "out_mp3":     str(output_dir / f"daily-briefing-{date_iso}.mp3"),
+        "out_json":    str(output_dir / f"daily-briefing-{date_iso}.json"),
+        "out_html":    str(output_dir / f"daily-briefing-{date_iso}.html"),
+    }
+
+
 def _main() -> int:
+    parser = argparse.ArgumentParser(description="Initialize daily-briefing settings.")
+    parser.add_argument(
+        "--date",
+        metavar="YYYY-MM-DD",
+        default=None,
+        help="Date to use for output paths (default: today)",
+    )
+    args = parser.parse_args()
+
+    if args.date is not None:
+        try:
+            parsed_date = datetime.strptime(args.date, "%Y-%m-%d").date()
+        except ValueError:
+            log(f"ERROR: --date must be in YYYY-MM-DD format, got: {args.date!r}")
+            return 1
+        date_iso = parsed_date.isoformat()
+    else:
+        parsed_date = date.today()
+        date_iso = parsed_date.isoformat()
+
+    date_human = parsed_date.strftime("%A, %B %-d, %Y")
+
     default = load_default()
     root = user_root()
     user_path = root / "settings.json"
@@ -146,7 +198,20 @@ def _main() -> int:
                 merged = user
 
     retention_cleanup(output_dir, int(merged.get("retention_days", 14)))
-    print(json.dumps(merged))
+
+    paths = build_paths(date_iso)
+    Path(paths["staging_dir"]).mkdir(parents=True, exist_ok=True)
+
+    log(f"Paths computed for {date_iso}.")
+
+    print(json.dumps({
+        "settings": merged,
+        "paths": paths,
+        "date": {
+            "iso": date_iso,
+            "human": date_human,
+        },
+    }))
     return 0
 
 

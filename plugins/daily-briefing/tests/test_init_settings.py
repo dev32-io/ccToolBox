@@ -9,6 +9,7 @@ import sys
 import tempfile
 import time
 import unittest
+from datetime import date
 from pathlib import Path
 
 
@@ -18,12 +19,12 @@ SCRIPT_PATH = (
 )
 
 
-def run_script(home: Path) -> subprocess.CompletedProcess:
+def run_script(home: Path, args: list[str] | None = None) -> subprocess.CompletedProcess:
     """Run init_settings.py with HOME overridden. Returns CompletedProcess."""
     env = os.environ.copy()
     env["HOME"] = str(home)
     return subprocess.run(
-        [sys.executable, str(SCRIPT_PATH)],
+        [sys.executable, str(SCRIPT_PATH)] + (args or []),
         env=env,
         capture_output=True,
         text=True,
@@ -49,7 +50,7 @@ class TestFirstRun(unittest.TestCase):
             self.assertEqual(user["voice"], "en-US-AvaMultilingualNeural")
 
             stdout = json.loads(result.stdout)
-            self.assertEqual(stdout["version"], 2)
+            self.assertEqual(stdout["settings"]["version"], 2)
             self.assertIn("Created default settings", result.stderr)
 
 
@@ -116,8 +117,8 @@ class TestVersionMigration(unittest.TestCase):
             result = run_script(home)
             self.assertEqual(result.returncode, 0, msg=result.stderr)
             stdout = json.loads(result.stdout)
-            self.assertEqual(stdout["version"], 99)
-            self.assertEqual(stdout["voice"], "future-voice")
+            self.assertEqual(stdout["settings"]["version"], 99)
+            self.assertEqual(stdout["settings"]["voice"], "future-voice")
             self.assertIn("newer", result.stderr.lower())
 
     def test_matching_version_no_op(self):
@@ -134,7 +135,7 @@ class TestVersionMigration(unittest.TestCase):
             result = run_script(home)
             self.assertEqual(result.returncode, 0, msg=result.stderr)
             stdout = json.loads(result.stdout)
-            self.assertEqual(stdout["voice"], "user-chosen-voice")
+            self.assertEqual(stdout["settings"]["voice"], "user-chosen-voice")
             self.assertIn("Settings OK", result.stderr)
 
 
@@ -173,6 +174,46 @@ class TestFatalErrors(unittest.TestCase):
             self.assertIn("not a regular file", result.stderr)
             # No traceback
             self.assertNotIn("Traceback", result.stderr)
+
+
+class TestPathsOutput(unittest.TestCase):
+    def test_paths_block_present_with_absolute_paths(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp)
+            result = run_script(home, args=["--date", "2026-04-15"])
+            self.assertEqual(result.returncode, 0, msg=result.stderr)
+            stdout = json.loads(result.stdout)
+            self.assertIn("paths", stdout)
+            paths = stdout["paths"]
+            for key in ("staging_dir", "out_txt", "out_mp3", "out_json", "out_html"):
+                self.assertIn(key, paths)
+                self.assertTrue(paths[key].startswith(str(home)))
+                self.assertIn("2026-04-15", paths[key])
+            # Staging dir is created
+            self.assertTrue(Path(paths["staging_dir"]).is_dir())
+
+    def test_date_block_has_iso_and_human(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp)
+            result = run_script(home, args=["--date", "2026-04-15"])
+            stdout = json.loads(result.stdout)
+            self.assertEqual(stdout["date"]["iso"], "2026-04-15")
+            # Human format starts with day-of-week
+            self.assertTrue(stdout["date"]["human"].startswith("Wednesday"))
+            self.assertIn("2026", stdout["date"]["human"])
+
+    def test_default_date_is_today(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp)
+            result = run_script(home)
+            stdout = json.loads(result.stdout)
+            self.assertEqual(stdout["date"]["iso"], date.today().isoformat())
+
+    def test_invalid_date_arg_exits_nonzero(self):
+        with tempfile.TemporaryDirectory() as tmp:
+            home = Path(tmp)
+            result = run_script(home, args=["--date", "not-a-date"])
+            self.assertNotEqual(result.returncode, 0)
 
 
 if __name__ == "__main__":
