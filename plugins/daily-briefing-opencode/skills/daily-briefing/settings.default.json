@@ -1,0 +1,22 @@
+{
+  "version": 2,
+  "voice": "en-US-AvaMultilingualNeural",
+  "location": "Burnaby, BC, Canada",
+  "sources": [
+    {"key": "weather",         "description": "short summary for {location}"},
+    {"key": "tech-hn",         "description": "2-5 items from Hacker News (AI, CS, tech)"},
+    {"key": "tech-devto",      "description": "2-5 items from Dev.to (AI, CS, tech)"},
+    {"key": "tech-github",     "description": "3-5 trending repositories from GitHub"},
+    {"key": "tech-tc",         "description": "2-3 top TechCrunch headlines"},
+    {"key": "reddit-claudeai", "description": "2-5 hot new posts from r/ClaudeAI"},
+    {"key": "ai-ml",           "description": "2-3 items from arXiv AI + The Batch"},
+    {"key": "space-science",   "description": "1-2 items from NASA, SpaceX, space news"},
+    {"key": "gaming",          "description": "2-3 items from r/gaming, game releases"},
+    {"key": "maker-hobby",     "description": "1-2 items from Instructables, r/3Dprinting"},
+    {"key": "news-ap",         "description": "2-5 very short headlines from AP News"},
+    {"key": "extra",           "description": "(add your own sections here)"}
+  ],
+  "retention_days": 14,
+  "today_in_history": true,
+  "inspiration_quote": true
+}

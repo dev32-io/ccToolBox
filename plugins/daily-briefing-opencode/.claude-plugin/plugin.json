@@ -1,0 +1,8 @@
+{
+  "name": "daily-briefing-opencode",
+  "description": "OpenCode-targeted daily briefing skill (not a Claude Code plugin — install via copy, see README)",
+  "version": "1.0.0",
+  "author": {
+    "name": "dev32-io"
+  }
+}
