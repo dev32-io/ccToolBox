@@ -117,7 +117,7 @@ class TestBottomRow(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             result, html_out = render(data, Path(tmp))
             self.assertEqual(result.returncode, 0, msg=result.stderr)
-            self.assertIn("row-bottom-4", html_out)
+            self.assertIn('class="row row-bottom row-bottom-4"', html_out)
             self.assertIn("APOD today", html_out)
             self.assertIn("Game release", html_out)
             self.assertIn("Maker project", html_out)
@@ -129,8 +129,8 @@ class TestBottomRow(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             result, html_out = render(data, Path(tmp))
             self.assertEqual(result.returncode, 0, msg=result.stderr)
-            self.assertIn("row-bottom-3", html_out)
-            self.assertNotIn("row-bottom-4", html_out)
+            self.assertIn('class="row row-bottom row-bottom-3"', html_out)
+            self.assertNotIn('class="row row-bottom row-bottom-4"', html_out)
 
     def test_apod_image_rendered_when_present(self):
         data = sample_input()

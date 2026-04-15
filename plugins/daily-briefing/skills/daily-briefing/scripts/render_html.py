@@ -89,10 +89,10 @@ body {
 @media (max-width: 900px) {
   .row-top { grid-template-columns: 1fr 1fr; }
   .row-top .col:first-child { grid-column: 1 / 3; }
-  .row-bottom { grid-template-columns: 1fr 1fr; }
+  .row-bottom-4, .row-bottom-3 { grid-template-columns: 1fr 1fr !important; }
 }
 @media (max-width: 600px) {
-  .row-top, .row-bottom { grid-template-columns: 1fr; }
+  .row-top, .row-bottom-4, .row-bottom-3 { grid-template-columns: 1fr !important; }
   .row-top .col:first-child { grid-column: 1; }
   .col { border-right: none !important; padding: 0 !important; border-bottom: 1px solid var(--border-light); padding-bottom: 10px !important; margin-bottom: 10px; }
 }
