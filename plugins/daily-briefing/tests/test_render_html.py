@@ -161,7 +161,7 @@ class TestClosingSection(unittest.TestCase):
         data["closing"] = {}
         with tempfile.TemporaryDirectory() as tmp:
             _, html_out = render(data, Path(tmp))
-            self.assertNotIn("closing-section", html_out)
+            self.assertNotIn('class="closing-section"', html_out)
             self.assertNotIn("ON THIS DAY", html_out)
 
     def test_quote_only(self):
@@ -219,6 +219,50 @@ class TestUrlAndEscaping(unittest.TestCase):
             result = run_script(in_path, out_path)
             self.assertNotEqual(result.returncode, 0)
             self.assertIn("Missing required field", result.stderr)
+
+
+class TestTopRowDividers(unittest.TestCase):
+    def test_dividers_placed_between_stacked_items_not_after(self):
+        data = sample_input()
+        # Three top sources: i=0 goes mid, i=1 goes right, i=2 goes mid
+        data["top_row_sources"].append({
+            "key": "tech-github",
+            "label": "GITHUB",
+            "items": [{"title": "Repo Z", "url": "https://github.com/user/repo", "summary": "Z."}],
+        })
+        with tempfile.TemporaryDirectory() as tmp:
+            _, html_out = render(data, Path(tmp))
+            # mid column should contain HACKER NEWS ... <hr> ... GITHUB
+            # Find the mid column boundaries
+            hn_idx = html_out.find("HACKER NEWS")
+            gh_idx = html_out.find("GITHUB")
+            self.assertGreater(gh_idx, hn_idx, "GITHUB should come after HACKER NEWS in mid col")
+            between = html_out[hn_idx:gh_idx]
+            self.assertIn("col-divider", between, "Divider should be between HN and GH, not after GH")
+
+
+class TestUrlProtocolGuard(unittest.TestCase):
+    def test_javascript_url_rejected(self):
+        data = sample_input()
+        data["lead"]["url"] = "javascript:alert(1)"
+        with tempfile.TemporaryDirectory() as tmp:
+            _, html_out = render(data, Path(tmp))
+            self.assertNotIn('href="javascript:', html_out)
+
+    def test_devto_article_url_kept(self):
+        data = sample_input()
+        # Regression: article URLs on dev.to must survive (previously denied by substring match)
+        data["top_row_sources"][1]["items"][0]["url"] = "https://dev.to/author/my-post"
+        with tempfile.TemporaryDirectory() as tmp:
+            _, html_out = render(data, Path(tmp))
+            self.assertIn('href="https://dev.to/author/my-post"', html_out)
+
+    def test_devto_homepage_url_dropped(self):
+        data = sample_input()
+        data["top_row_sources"][1]["items"][0]["url"] = "https://dev.to/"
+        with tempfile.TemporaryDirectory() as tmp:
+            _, html_out = render(data, Path(tmp))
+            self.assertNotIn('href="https://dev.to/"', html_out)
 
 
 if __name__ == "__main__":

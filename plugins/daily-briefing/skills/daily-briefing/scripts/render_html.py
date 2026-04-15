@@ -67,7 +67,8 @@ body {
 .weather-bar { text-align: center; padding: 6px 0 10px; font-size: 11px; color: var(--text-muted); font-style: italic; border-bottom: 1.5px solid var(--border-heavy); }
 .row { display: grid; gap: 16px; padding: 14px 0; }
 .row-top { grid-template-columns: 2fr 1fr 1fr; border-bottom: 1.5px solid var(--border-heavy); }
-/* bottom row grid injected dynamically */
+.row-bottom-4 { grid-template-columns: 1fr 1fr 1.2fr 1fr; }
+.row-bottom-3 { grid-template-columns: 1fr 1fr 1fr; }
 .col { padding: 0 12px; border-right: 1px solid var(--border-light); }
 .col:first-child { padding-left: 0; }
 .col:last-child { padding-right: 0; border-right: none; }
@@ -84,15 +85,16 @@ body {
 .body-text a:hover, .header-big a:hover, .header-medium a:hover, .header-small a:hover { border-bottom-color: var(--border-heavy); }
 .lead-image, .section-image { width: 100%; object-fit: cover; border: 1px solid var(--border-light); margin: 4px 0 6px; }
 .lead-image { max-height: 150px; }
+.closing-section { border-top: 1px solid var(--border-light); text-align: center; padding: 12px 0 4px; }
 .closing-history { font-size: 11px; color: var(--text-body); }
 .closing-quote { font-size: 11px; color: var(--text-muted); font-style: italic; margin-top: 6px; }
 @media (max-width: 900px) {
   .row-top { grid-template-columns: 1fr 1fr; }
   .row-top .col:first-child { grid-column: 1 / 3; }
-  .row-bottom-4, .row-bottom-3 { grid-template-columns: 1fr 1fr !important; }
+  .row-bottom-4, .row-bottom-3 { grid-template-columns: 1fr 1fr; }
 }
 @media (max-width: 600px) {
-  .row-top, .row-bottom-4, .row-bottom-3 { grid-template-columns: 1fr !important; }
+  .row-top, .row-bottom-4, .row-bottom-3 { grid-template-columns: 1fr; }
   .row-top .col:first-child { grid-column: 1; }
   .col { border-right: none !important; padding: 0 !important; border-bottom: 1px solid var(--border-light); padding-bottom: 10px !important; margin-bottom: 10px; }
 }
@@ -127,9 +129,8 @@ PLAYER_JS = """
 """
 
 
-URL_DENYLIST = (
+HOMEPAGE_DENYLIST = (
     "news.ycombinator.com/news",
-    "dev.to/",
     "github.com/trending",
 )
 
@@ -138,18 +139,34 @@ def esc(s: str) -> str:
     return html.escape(s or "", quote=True)
 
 
+def is_homepage_only(url: str) -> bool:
+    """True if the URL is a homepage/listing page rather than a specific item."""
+    # Homepage substrings (generic listings)
+    if any(bad in url for bad in HOMEPAGE_DENYLIST):
+        return True
+    # dev.to root (no author/post path)
+    stripped = url.rstrip("/")
+    if stripped in ("https://dev.to", "http://dev.to"):
+        return True
+    return False
+
+
 def is_real_url(url: str | None) -> bool:
     if not url:
         return False
-    if any(bad in url for bad in URL_DENYLIST):
+    if not (url.startswith("https://") or url.startswith("http://")):
+        return False
+    if is_homepage_only(url):
         return False
     return True
 
 
 def linked_title(title: str, url: str | None, cls: str) -> str:
     if is_real_url(url):
-        return f'<{cls}><a href="{esc(url)}" target="_blank" rel="noopener">{esc(title)}</a></{cls}>'
-    return f"<{cls}>{esc(title)}</{cls}>"
+        return (f'<div class="{cls}">'
+                f'<a href="{esc(url)}" target="_blank" rel="noopener">{esc(title)}</a>'
+                f'</div>')
+    return f'<div class="{cls}">{esc(title)}</div>'
 
 
 def render_stacked_items(source: dict) -> str:
@@ -198,10 +215,12 @@ def render_top_row(data: dict) -> str:
     right_col = ""
     for i, src in enumerate(sides):
         block = render_stacked_items(src)
+        if not block:
+            continue
         if i % 2 == 0:
-            mid_col += block + ('<hr class="col-divider">' if mid_col and block else "")
+            mid_col = mid_col + '<hr class="col-divider">' + block if mid_col else block
         else:
-            right_col += block + ('<hr class="col-divider">' if right_col and block else "")
+            right_col = right_col + '<hr class="col-divider">' + block if right_col else block
 
     return f"""
       <div class="row row-top">
@@ -271,13 +290,11 @@ def render_bottom_row(data: dict) -> str:
     ]
     if extra:
         cols.append(f'<div class="col">{extra}</div>')
-        grid_css = "grid-template-columns: 1fr 1fr 1.2fr 1fr"
         grid_cls = "row-bottom-4"
     else:
-        grid_css = "grid-template-columns: 1fr 1fr 1fr"
         grid_cls = "row-bottom-3"
 
-    return f'<div class="row row-bottom {grid_cls}" style="{grid_css}">{"".join(cols)}</div>'
+    return f'<div class="row row-bottom {grid_cls}">{"".join(cols)}</div>'
 
 
 def render_closing(data: dict) -> str:
@@ -286,7 +303,7 @@ def render_closing(data: dict) -> str:
     quote = closing.get("quote")
     if not hist and not quote:
         return ""
-    parts = ['<div class="closing-section" style="border-top: 1px solid var(--border-light); text-align: center; padding: 12px 0 4px;">']
+    parts = ['<div class="closing-section">']
     if hist:
         holidays = esc(hist.get("holidays", ""))
         events = esc(hist.get("events", ""))
@@ -363,7 +380,7 @@ def main(argv: list[str]) -> int:
             print(f"Missing required field: {required}", file=sys.stderr)
             return 1
     try:
-        Path(argv[2]).write_text(render(data))
+        Path(argv[2]).write_text(render(data), encoding="utf-8")
     except OSError as exc:
         print(f"Error writing output: {exc}", file=sys.stderr)
         return 1
