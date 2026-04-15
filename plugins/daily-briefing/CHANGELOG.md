@@ -2,6 +2,22 @@
 
 All notable changes to the daily-briefing plugin.
 
+## 2.1.0
+
+### Changed
+
+- `scripts/init_settings.py` now prints a structured envelope `{settings, paths, date}`. `paths` contains pre-computed absolute paths (`staging_dir`, `out_txt`, `out_mp3`, `out_json`, `out_html`). `date` contains `iso` and `human` fields. Accepts an optional `--date YYYY-MM-DD` arg. Creates the staging subdirectory.
+- `SKILL.md` rewritten to use the literal absolute paths from `init_settings.py` — no more shell-style `$OUT_JSON` variables. Fetch agents now write directly to staging files instead of returning content.
+
+### Added
+
+- `scripts/build_data_json.py` — assembles the nested briefing JSON (the input to `render_html.py`) from per-source staging files. Moves the schema-assembly cognition out of the model so small local models (e.g., Qwen3 Coder 30B via LM Studio) can execute the skill reliably.
+- `tests/test_build_data_json.py` with 10 black-box tests.
+
+### Fixed
+
+- Small local models (Qwen3 Coder 30B) could not execute v2.0.0's SKILL.md because it relied on the model mentally substituting shell variables across tool calls, and required the model to hand-compose a 5-key nested JSON object. The v2.1.0 changes remove both cognitive loads entirely.
+
 ## 2.0.0
 
 ### Changed (breaking)

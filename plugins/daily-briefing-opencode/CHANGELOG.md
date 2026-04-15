@@ -2,6 +2,16 @@
 
 All notable changes to the daily-briefing-opencode plugin.
 
+## 1.1.0
+
+### Changed
+
+- Mirrors daily-briefing (Claude Code) v2.1.0: structured `init_settings.py` output with absolute paths and date, new `build_data_json.py` assembler, flat SKILL.md flow with literal paths and staging-file writes.
+
+### Fixed
+
+- Small local models via LM Studio (e.g., Qwen3 Coder 30B) were producing `undefined` bash tool calls and malformed nested JSON in v1.0.0. The v1.1.0 scripts eliminate the shell-variable substitution and JSON-assembly cognition required of the model.
+
 ## 1.0.0
 
 ### Added
