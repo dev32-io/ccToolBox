@@ -13,20 +13,19 @@ tools: Agent, Bash, Write
 
 Generate a personalized daily briefing as a newspaper-styled HTML page with TTS audio.
 
-**Maximize parallelism. Batch tool calls. Always use system date from Bash.**
+**Maximize parallelism. Batch tool calls.**
 
-## Fetch rules (used in Step 3)
+## Fetch rules (used in Step 2)
 
 - URLs must link to specific articles/posts/repos, never homepages. Bad: `news.ycombinator.com/news`, `dev.to/`, `github.com/trending`, bare subreddit roots.
-- No URL available? Omit the `url` field.
+- No URL available? Omit the `url` field from that item.
 - Write dense summaries with context and analysis.
 - Use only sources and closing toggles from settings. Do not invent ad-hoc sections.
 - If a source returns no items, the section disappears entirely (no empty columns).
-- Pass the system date (from Step 1) to every fetch prompt — never the session date.
-- Fetch agents use only `WebSearch` and `WebFetch`; they do NOT write files.
+- Fetch agents use only `WebSearch` and `WebFetch`; they do NOT write files other than their assigned staging file.
 - Be terse in status output. Only speak up on failures; suggest a retry or a fix.
 
-## TTS narration rules (used in Step 6)
+## TTS narration rules (used in Step 5)
 
 - Start with a short, creative greeting tied to the day/weather/holidays. Avoid "Good morning" / "Hello".
 - Lead story is narrated FIRST, regardless of settings order: "Our top story today..."
@@ -36,180 +35,209 @@ Generate a personalized daily briefing as a newspaper-styled HTML page with TTS 
 - Never read URLs aloud.
 - Closing: if `today_in_history` is enabled, narrate it; then `inspiration_quote` if enabled. End: "That's your briefing. Have a great day."
 
-## Step 1 — Initialize settings and get the system date
+## Step 1 — Initialize
 
-Run the bootstrap script. Its stdout is JSON; capture and parse it.
+Run the bootstrap script. Parse its stdout — it is a single JSON object with three top-level keys: `settings`, `paths`, `date`.
 
 ```bash
 python3 "${CLAUDE_SKILL_DIR}/scripts/init_settings.py"
-date +%Y-%m-%d
-date '+%A, %B %d, %Y'
 ```
 
-From the JSON, extract: `voice`, `location`, `sources[]`, `today_in_history`, `inspiration_quote`.
-From the `date` outputs, record: `DATE_ISO` (e.g., `2026-04-15`) and `DATE_HUMAN` (e.g., `Wednesday, April 15, 2026`).
+From the output, record these exact literal values (copy the strings verbatim from the script's stdout — do NOT use shell-style placeholders, do NOT substitute `$HOME` yourself):
 
-## Step 2 — Compute output paths and clear today's files
+- `VOICE`              = `settings.voice`
+- `LOCATION`           = `settings.location`
+- `SOURCES`            = `settings.sources` (array)
+- `TODAY_IN_HISTORY`   = `settings.today_in_history` (boolean)
+- `INSPIRATION_QUOTE`  = `settings.inspiration_quote` (boolean)
+- `STAGING_DIR`        = `paths.staging_dir` (absolute path, already created)
+- `OUT_TXT`            = `paths.out_txt` (absolute path)
+- `OUT_MP3`            = `paths.out_mp3` (absolute path)
+- `OUT_JSON`           = `paths.out_json` (absolute path)
+- `OUT_HTML`           = `paths.out_html` (absolute path)
+- `DATE_ISO`           = `date.iso` (e.g., `2026-04-15`)
+- `DATE_HUMAN`         = `date.human` (e.g., `Wednesday, April 15, 2026`)
 
-Compute once using `DATE_ISO`:
-
-- `OUT_DIR  = ~/.ccToolBox/daily-briefing/output`
-- `OUT_TXT  = $OUT_DIR/daily-briefing-$DATE_ISO.txt`
-- `OUT_MP3  = $OUT_DIR/daily-briefing-$DATE_ISO.mp3`
-- `OUT_JSON = $OUT_DIR/daily-briefing-$DATE_ISO.json`
-- `OUT_HTML = $OUT_DIR/daily-briefing-$DATE_ISO.html`
-
-Remove any existing files at these paths (enables re-runs):
+Clear any existing files at the output paths (enables re-runs). Use the literal paths you just captured, not variables:
 
 ```bash
-rm -f "$OUT_TXT" "$OUT_MP3" "$OUT_JSON" "$OUT_HTML"
+rm -f "<OUT_TXT literal path>" "<OUT_MP3 literal path>" "<OUT_JSON literal path>" "<OUT_HTML literal path>"
 ```
 
-Record the absolute MP3 path (with `$HOME` expanded) — it is needed for the HTML audio `<audio src>`.
+## Step 2 — Fetch sources in parallel
 
-## Step 3 — Fetch sources in parallel
-
-Dispatch ONE message containing ALL fetch agents (and the today-in-history agent if enabled).
+Dispatch ONE message containing ALL fetch agents (and the today-in-history + quote agents if enabled). Each agent writes its result directly to a known file inside `STAGING_DIR`, so the main skill never holds per-source data in its context.
 
 Each fetch agent uses:
 - `model: haiku`
-- `tools: [WebSearch, WebFetch]`
+- `tools: [WebSearch, WebFetch, Write]`
 - `description`: short (e.g., "Fetch HN stories")
-- `prompt`: copy the template below, substituting `{DATE_ISO}`, `{SOURCE_KEY}`, and `{QUERY}`.
+- `prompt`: the template below, substituting `{SOURCE_KEY}`, `{QUERY}`, `{DATE_ISO}`, and `{STAGING_DIR}` with their literal values.
 
-### Fetch agent prompt template
+### Generic fetch agent prompt template
 
 ```
 You are the {SOURCE_KEY} fetch agent. Today's date: {DATE_ISO}.
 
 Search: {QUERY}
 
-Return ONLY a JSON array of items: [{"title": "...", "url": "...", "summary": "..."}]
+Write your result to: {STAGING_DIR}/{SOURCE_KEY}.json
+
+The file MUST be a JSON array of items: [{"title": "...", "url": "...", "summary": "..."}]
 - url must point to a specific article/post/repo. Never homepages.
 - If no URL available, omit the url field.
-- Include 1-2 sentence summary giving context and analysis.
+- Include a 1-2 sentence summary with context and analysis.
 - No commentary outside the JSON array.
+
+Use the write tool to create the file. Return "done" after writing.
+```
+
+### Weather agent prompt
+
+Weather is a special case — it's plain text, not an item array:
+
+```
+You are the weather agent. Today's date: {DATE_ISO}.
+
+Search: {LOCATION} weather today {DATE_ISO}
+
+Write a 1-2 sentence summary (temperature, conditions, high/low, wind) to:
+{STAGING_DIR}/weather.txt
+
+Plain text only. No JSON, no Markdown. Use the write tool.
+```
+
+### Space-science agent — additional field
+
+Instruct the space-science agent to include an `image_url` field on any item that has an associated image (like the NASA APOD image):
+
+```
+... [same as generic template, PLUS this line:]
+For the NASA APOD item (if any), include an "image_url" field on that item with the direct image URL.
 ```
 
 ### Per-source queries (preserved from v1.5.1)
 
-| Source key       | Query hint                                                                      |
-|------------------|---------------------------------------------------------------------------------|
-| weather          | `{location} weather today {DATE_ISO}` — return 1-2 sentence summary (temp/conditions/high-low/wind) |
-| tech-hn          | `Hacker News top stories today {DATE_ISO}` — 2-5 items                          |
-| tech-devto       | `Dev.to top posts today {DATE_ISO} AI programming` — 2-5 items                  |
-| tech-github      | `GitHub trending repositories today {DATE_ISO}` — 3-5 items (repo, stars, lang) |
-| tech-tc          | `TechCrunch top stories today {DATE_ISO}` — 2-3 items                           |
-| reddit-claudeai  | `reddit r/ClaudeAI hot posts {DATE_ISO}` — 2-5 items                            |
-| ai-ml            | `arXiv AI machine learning papers today {DATE_ISO}` AND `Andrew Ng The Batch newsletter {DATE_ISO}` — 2-3 items |
-| space-science    | `NASA astronomy picture of the day {DATE_ISO}` AND `space science news today {DATE_ISO}` — 1-2 items. **Also return the NASA APOD image URL if found (field: `apod_image_url`).** |
-| gaming           | `reddit r/gaming hot posts {DATE_ISO}` AND `video game news today {DATE_ISO}` — 2-3 items |
-| maker-hobby      | `Instructables featured projects {DATE_ISO}` AND `reddit r/3Dprinting hot posts {DATE_ISO}` — 1-2 items |
-| news-ap          | `AP News top headlines today {DATE_ISO}` — 2-5 short headlines                  |
-| extra            | (only if user customized the description — skip if it still says `(add your own sections here)`). Search based on the user's description text. 1-3 items. |
+| Source key       | Query hint                                                                                                                        |
+|------------------|-----------------------------------------------------------------------------------------------------------------------------------|
+| weather          | `{LOCATION} weather today {DATE_ISO}` — 1-2 sentence summary to `weather.txt`                                                    |
+| tech-hn          | `Hacker News top stories today {DATE_ISO}` — 2-5 items                                                                            |
+| tech-devto       | `Dev.to top posts today {DATE_ISO} AI programming` — 2-5 items                                                                    |
+| tech-github      | `GitHub trending repositories today {DATE_ISO}` — 3-5 items (repo, stars, language in summary)                                    |
+| tech-tc          | `TechCrunch top stories today {DATE_ISO}` — 2-3 items                                                                              |
+| reddit-claudeai  | `reddit r/ClaudeAI hot posts {DATE_ISO}` — 2-5 items                                                                               |
+| ai-ml            | `arXiv AI machine learning papers today {DATE_ISO}` AND `Andrew Ng The Batch newsletter {DATE_ISO}` — 2-3 items                    |
+| space-science    | `NASA astronomy picture of the day {DATE_ISO}` AND `space science news today {DATE_ISO}` — 1-2 items. **Include `image_url` on the APOD item.** |
+| gaming           | `reddit r/gaming hot posts {DATE_ISO}` AND `video game news today {DATE_ISO}` — 2-3 items                                          |
+| maker-hobby      | `Instructables featured projects {DATE_ISO}` AND `reddit r/3Dprinting hot posts {DATE_ISO}` — 1-2 items                            |
+| news-ap          | `AP News top headlines today {DATE_ISO}` — 2-5 short headlines                                                                     |
+| extra            | (only if user customized the description — skip if it still says `(add your own sections here)`). Search based on the description. 1-3 items. |
 
-If `today_in_history` is enabled, also dispatch:
+If `TODAY_IN_HISTORY` is true, ALSO dispatch:
 
-| Agent key         | Query                                                                           |
-|-------------------|---------------------------------------------------------------------------------|
-| today_in_history  | `this day in history {month} {day}` AND `[month] [day] famous events` AND `[month] [day] holidays observances` — return `{holidays, events}` object |
+```
+You are the today-in-history agent. Today's date: {DATE_ISO}.
 
-Collect each agent's returned JSON.
+Search: this day in history {month} {day} famous events AND {month} {day} holidays observances
 
-## Step 4 — Select the lead story and fetch its image
+Write JSON to: {STAGING_DIR}/today_in_history.json
+Shape: {"holidays": "...", "events": "..."}
+- holidays: any holidays/observances for today (e.g., "Pi Day · International Day of Mathematics"). Empty string if none.
+- events: 2-3 notable historical events, each with year (e.g., "1879 — Einstein born · 2005 — First YouTube video"). Use · or | as separators.
+Prioritize science, tech, and culturally significant events. Use the write tool.
+```
 
-From the collected tech results (HN, Dev.to, GitHub, TechCrunch, r/ClaudeAI, AI/ML), pick the single most impactful item:
-- Broad significance (affects many developers/users)
-- Novelty (breaking news over ongoing stories)
-- Engagement (high vote/comment/star count)
+If `INSPIRATION_QUOTE` is true, after all fetches complete you (the main skill) will author a quote thematically connected to today's content. Do not dispatch a quote agent — you will write `quote.json` yourself in Step 3.
 
-Dispatch one more Agent (`model: haiku`, `tools: [WebSearch, WebFetch]`) with a short prompt:
+## Step 3 — Select lead, fetch lead image, write lead+quote files
+
+After all fetch agents return:
+
+1. **Read the fetched source files** you care about (HN, Dev.to, GitHub, TechCrunch, r/ClaudeAI, AI/ML) to pick the single most impactful item. Criteria:
+   - Broad significance (affects many developers/users)
+   - Novelty (breaking news over ongoing stories)
+   - Engagement (high vote/comment/star counts in the summary)
+
+2. **Dispatch one more Agent** (`model: haiku`, `tools: [WebSearch, WebFetch]`) to find a lead image URL. This agent returns a plain-text URL — NOT a file write:
 
 ```
 Find one direct image URL (.jpg/.png/.webp) relevant to: "{LEAD_TITLE}".
-Return the URL as plain text, or the literal string NONE if nothing suitable.
+Return ONLY the URL as plain text, or the literal string NONE if nothing suitable.
 ```
 
-Record `LEAD_IMAGE_URL` (or `null` if NONE).
-
-## Step 5 — Build the data JSON and write it to disk
-
-Assemble a JSON object with this exact shape (see `scripts/render_html.py` for the contract):
+3. **Write `lead.json` to STAGING_DIR** using the Write tool. Shape:
 
 ```json
 {
-  "date_iso": "...",
-  "date_human": "...",
-  "audio_path_absolute": "/absolute/path/to/daily-briefing-YYYY-MM-DD.mp3",
-  "weather": "...",
-  "lead": { "source_label": "...", "title": "...", "url": "...", "image_url": "...", "summary_paragraphs": ["...", "..."] },
-  "top_row_sources": [
-    { "key": "tech-hn", "label": "HACKER NEWS", "items": [{"title","url","summary"}] }
-  ],
-  "bottom_row_sources": {
-    "space_science": { "items": [...], "apod_image_url": "..." },
-    "gaming":        { "items": [...] },
-    "maker_hobby":   { "items": [...] },
-    "news_ap":       { "items": [...] },
-    "extra":         { "items": [...] }
-  },
-  "closing": {
-    "today_in_history": { "holidays": "...", "events": "..." },
-    "quote":            { "text": "...", "author": "..." }
-  }
+  "source_key": "tech-hn",
+  "title": "<exact title of the chosen item>",
+  "url": "<exact url>",
+  "image_url": "<the URL from step 2, or null>",
+  "summary_paragraphs": [
+    "<paragraph 1 — richer than the single-sentence fetch summary>",
+    "<paragraph 2 — add context, stakes, implications>"
+  ]
 }
 ```
 
-Rules:
-- `lead` holds the story selected in Step 4. The lead's original source still appears in `top_row_sources`, but WITHOUT the promoted item (avoid duplication).
-- `top_row_sources` contains the non-weather tech sources (HN, Dev.to, GitHub, TechCrunch, r/ClaudeAI, AI/ML), each minus the promoted lead item if it came from that source.
-- `bottom_row_sources` contains the non-tech sources. Omit any key whose items list is empty.
-- If `extra` was not customized by the user, omit the `extra` key entirely.
-- If `today_in_history` or `inspiration_quote` is disabled in settings, omit those subkeys. If both are disabled, you may omit `closing` entirely.
-- For the `quote`, pick one thematically connected to something in today's briefing.
+The `source_key` must match one of the source keys in SOURCES. The `title` must match a title in that source's staging file exactly (so `build_data_json.py` can strip it).
 
-Write the JSON to `$OUT_JSON` using the Write tool.
+4. **If `INSPIRATION_QUOTE` is true**, write `quote.json` to STAGING_DIR:
 
-## Step 6 — Generate TTS + audio + HTML in parallel
-
-Dispatch TWO agents in a SINGLE message:
-
-### Agent A — TTS + audio (`model: sonnet`)
-
-Prompt summary (fill in with actual data):
-
-```
-Write the briefing narration to $OUT_TXT, following the TTS narration rules at the top of SKILL.md.
-Then run: bash "${CLAUDE_SKILL_DIR}/scripts/tts.sh" "$OUT_TXT" "$OUT_MP3" "{voice}"
-
-IMPORTANT: Run tts.sh as a foreground Bash command. NEVER use run_in_background.
+```json
+{ "text": "<quote text>", "author": "<attributed author>" }
 ```
 
-Pass the fully-built data from Step 5 (the JSON already on disk at `$OUT_JSON`) in the prompt so the agent can compose narration without re-fetching.
+Pick a quote thematically connected to something in today's briefing (e.g., lead topic).
 
-### Agent B — HTML rendering (`model: haiku` — script-only)
+## Step 4 — Build the briefing data JSON
 
-Prompt:
-
-```
-Run:
-bash -c 'python3 "${CLAUDE_SKILL_DIR}/scripts/render_html.py" "$OUT_JSON" "$OUT_HTML"'
-
-Do NOT edit HTML. Do NOT open the file. Just run the script and report success or the script's stderr.
-```
-
-## Step 7 — Verify audio and open the page
-
-After both Step 6 agents return:
+Run the assembler. Use the literal `DATE_ISO` value:
 
 ```bash
-test -s "$OUT_MP3" && echo "Audio ready" || echo "Audio missing"
+python3 "${CLAUDE_SKILL_DIR}/scripts/build_data_json.py" <DATE_ISO literal>
 ```
 
-If audio is ready:
+The script writes `OUT_JSON`. On success, stdout is the path of the written file. On failure, stderr has a single-line error. If it fails, report the error to the user and stop — do not proceed to Step 5.
+
+## Step 5 — Generate TTS audio + HTML in parallel
+
+Dispatch TWO Agents in ONE message:
+
+### Agent A — TTS narration + audio (`model: sonnet`)
+
+Pass the `OUT_JSON` path and the `VOICE` literal in the prompt. Agent A reads the JSON, writes narration text, and runs `tts.sh`.
+
+```
+You are the TTS agent.
+
+1. Read the briefing data from: <OUT_JSON literal path>
+2. Write speech-optimized narration to: <OUT_TXT literal path>
+   Follow the TTS narration rules at the top of the parent skill.
+3. Run (foreground, NEVER run_in_background):
+   bash "${CLAUDE_SKILL_DIR}/scripts/tts.sh" "<OUT_TXT literal>" "<OUT_MP3 literal>" "<VOICE literal>"
+4. Report "done" or the script's stderr.
+```
+
+### Agent B — HTML render (`model: haiku`, script-only)
+
+```
+Run this single command and report stdout/stderr:
+python3 "${CLAUDE_SKILL_DIR}/scripts/render_html.py" "<OUT_JSON literal>" "<OUT_HTML literal>"
+```
+
+Do NOT write HTML directly. Only invoke the script.
+
+## Step 6 — Verify and open
 
 ```bash
-open "$OUT_HTML"
+test -s "<OUT_MP3 literal>" && echo "Audio ready" || echo "Audio missing"
 ```
 
-If audio is missing, report the TTS failure to the user and suggest re-running the skill. Do not open the HTML.
+If ready:
+
+```bash
+open "<OUT_HTML literal>"
+```
+
+If missing, report the TTS failure and suggest re-running the skill.
