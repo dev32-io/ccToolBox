@@ -8,7 +8,7 @@
     {
       "name": "daily-briefing",
       "description": "Generate a personalized daily news/tech/weather briefing with TTS audio",
-      "version": "2.1.0",
+      "version": "2.1.1",
       "source": "./plugins/daily-briefing",
       "category": "productivity"
     },
