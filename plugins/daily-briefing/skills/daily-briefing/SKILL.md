@@ -6,6 +6,7 @@ description: >
   "give me my daily", "show me what's happening today", "what's the news today",
   or invokes /daily-briefing.
   Do NOT trigger on casual greetings like "good morning" or "hello".
+model: sonnet
 tools: Agent, Bash, Write
 ---
 
