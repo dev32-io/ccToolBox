@@ -38,7 +38,7 @@ body {
 .newspaper {
   max-width: 960px; margin: 0 auto;
   background: linear-gradient(180deg, var(--bg-paper), var(--bg-paper-mid), var(--bg-paper-end));
-  padding: 24px; box-shadow: 0 2px 16px var(--shadow);
+  padding: 24px; box-shadow: 0 2px 16px var(--shadow); border-radius: 8px;
 }
 .audio-bar {
   display: flex; align-items: center; gap: 12px; padding: 10px 0 16px;
@@ -47,11 +47,11 @@ body {
 .play-btn {
   background: var(--btn-bg); color: var(--btn-text);
   border: none; padding: 8px 14px; font-family: inherit; font-size: 12px;
-  letter-spacing: 1px; cursor: pointer; text-transform: uppercase;
+  letter-spacing: 1px; cursor: pointer; text-transform: uppercase; border-radius: 6px;
 }
 .play-btn:hover { background: var(--btn-hover); }
-.audio-track { flex: 1; height: 3px; background: var(--border-light); position: relative; }
-.audio-track::after { content: ''; position: absolute; left:0; top:0; bottom:0; width: var(--progress, 0%); background: var(--border-heavy); }
+.audio-track { flex: 1; height: 3px; background: var(--border-light); position: relative; border-radius: 2px; cursor: pointer; }
+.audio-track::after { content: ''; position: absolute; left:0; top:0; bottom:0; width: var(--progress, 0%); background: var(--border-heavy); border-radius: 2px; }
 .audio-time { font-size: 10px; color: var(--text-muted); font-variant-numeric: tabular-nums; }
 .theme-toggle {
   position: fixed; top: 16px; right: 16px; z-index: 10;
@@ -112,12 +112,23 @@ PLAYER_JS = """
     if (audio.paused) { audio.play(); btn.textContent = '⏸ Pause'; }
     else { audio.pause(); btn.textContent = '▶ Play Briefing'; }
   });
-  audio.addEventListener('timeupdate', () => {
+  function fmt(sec) {
+    const m = Math.floor(sec / 60);
+    const s = Math.floor(sec % 60).toString().padStart(2, '0');
+    return `${m}:${s}`;
+  }
+  function updateTime() {
     const pct = audio.duration ? (audio.currentTime / audio.duration) * 100 : 0;
     track.style.setProperty('--progress', pct + '%');
-    const m = Math.floor(audio.currentTime / 60);
-    const s = Math.floor(audio.currentTime % 60).toString().padStart(2, '0');
-    time.textContent = `${m}:${s}`;
+    const dur = audio.duration && isFinite(audio.duration) ? ' / ' + fmt(audio.duration) : '';
+    time.textContent = fmt(audio.currentTime) + dur;
+  }
+  audio.addEventListener('timeupdate', updateTime);
+  audio.addEventListener('loadedmetadata', updateTime);
+  track.addEventListener('click', (e) => {
+    if (!audio.duration || !isFinite(audio.duration)) return;
+    const rect = track.getBoundingClientRect();
+    audio.currentTime = ((e.clientX - rect.left) / rect.width) * audio.duration;
   });
   const toggle = document.getElementById('theme-toggle');
   toggle.addEventListener('click', () => {

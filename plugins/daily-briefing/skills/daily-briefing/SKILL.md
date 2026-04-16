@@ -23,7 +23,7 @@ Generate a personalized daily briefing as a newspaper-styled HTML page with TTS 
 - Write dense summaries with context and analysis.
 - Use only sources and closing toggles from settings. Do not invent ad-hoc sections.
 - If a source returns no items, the section disappears entirely (no empty columns).
-- Fetch agents use only `WebSearch` and `WebFetch`; they do NOT write files other than their assigned staging file.
+- Fetch agents use only `WebSearch`, `WebFetch`, and `Write`; they do NOT write files other than their assigned staging file.
 - Be terse in status output. Only speak up on failures; suggest a retry or a fix.
 
 ## TTS narration rules (used in Step 5)
@@ -81,11 +81,13 @@ Each fetch agent uses:
 You are the {SOURCE_KEY} fetch agent.
 
 ALLOWED TOOLS — the ONLY tools you may call: WebSearch, WebFetch, Write.
-FORBIDDEN — do NOT call any of these: skills (any skill, including dispatching-parallel-agents), MCP resources or tools (no listMcpResources, no MCP calls), Bash, Read, Glob, Grep, other Agents/Tasks, sub-agent dispatch. Do NOT explore the toolbox looking for something that fits.
-ON FAILURE — if WebSearch/WebFetch fails or returns nothing useful, write an empty JSON array `[]` to the target file with the Write tool, then stop. Do not retry. Do not switch tools.
+FORBIDDEN — do NOT call any of these: skills, MCP resources or tools, Bash, Read, Glob, Grep, other Agents/Tasks, sub-agent dispatch.
+Write whatever items you can find. Only write `[]` if you truly found nothing after 2 search attempts with different queries.
 
 Today's date: {DATE_ISO}.
-Search: {QUERY}
+Topic: {SOURCE_DESCRIPTION}
+
+Start with WebSearch. Form 1-2 good search queries from the topic above. Include related community names, subreddits, and synonyms to broaden coverage (e.g. "3D printing" → "3D printing news, r/3Dprinting, 3D printing community"). Add the current date or month to bias toward recent results. Optionally use WebFetch on promising URLs from the search results to get richer context — but if WebFetch fails on a domain, just use the WebSearch summary instead.
 
 Write your result to: {STAGING_DIR}/{SOURCE_KEY}.json
 
@@ -106,8 +108,8 @@ Weather is a special case — it's plain text, not an item array:
 You are the weather agent.
 
 ALLOWED TOOLS — the ONLY tools you may call: WebSearch, WebFetch, Write.
-FORBIDDEN — do NOT call any of these: skills, MCP resources or tools, Bash, Read, Glob, Grep, other Agents/Tasks, sub-agent dispatch. Do NOT explore the toolbox.
-ON FAILURE — if WebSearch/WebFetch fails, write an empty file with the Write tool and stop. Do not retry. Do not switch tools.
+FORBIDDEN — do NOT call any of these: skills, MCP resources or tools, Bash, Read, Glob, Grep, other Agents/Tasks, sub-agent dispatch.
+Write whatever you can find. If nothing, write an empty file and stop.
 
 Today's date: {DATE_ISO}.
 Search: {LOCATION} weather today {DATE_ISO}
@@ -118,31 +120,13 @@ Write a 1-2 sentence summary (temperature, conditions, high/low, wind) to:
 Plain text only. No JSON, no Markdown. Use the Write tool.
 ```
 
-### Space-science agent — additional field
+### Per-source notes
 
-Instruct the space-science agent to include an `image_url` field on any item that has an associated image (like the NASA APOD image):
+- **weather**: use the weather agent prompt (above), not the generic template.
+- **space-science**: add this line to the generic prompt: "For any item with an associated image (e.g. NASA APOD), include an `image_url` field with the direct image URL."
+- **extra**: skip if the description still says `(add your own sections here)`.
 
-```
-... [same as generic template, PLUS this line:]
-For the NASA APOD item (if any), include an "image_url" field on that item with the direct image URL.
-```
-
-### Per-source queries (preserved from v1.5.1)
-
-| Source key       | Query hint                                                                                                                        |
-|------------------|-----------------------------------------------------------------------------------------------------------------------------------|
-| weather          | `{LOCATION} weather today {DATE_ISO}` — 1-2 sentence summary to `weather.txt`                                                    |
-| tech-hn          | `Hacker News top stories today {DATE_ISO}` — 2-5 items                                                                            |
-| tech-devto       | `Dev.to top posts today {DATE_ISO} AI programming` — 2-5 items                                                                    |
-| tech-github      | `GitHub trending repositories today {DATE_ISO}` — 3-5 items (repo, stars, language in summary)                                    |
-| tech-tc          | `TechCrunch top stories today {DATE_ISO}` — 2-3 items                                                                              |
-| reddit-claudeai  | `reddit r/ClaudeAI hot posts {DATE_ISO}` — 2-5 items                                                                               |
-| ai-ml            | `arXiv AI machine learning papers today {DATE_ISO}` AND `Andrew Ng The Batch newsletter {DATE_ISO}` — 2-3 items                    |
-| space-science    | `NASA astronomy picture of the day {DATE_ISO}` AND `space science news today {DATE_ISO}` — 1-2 items. **Include `image_url` on the APOD item.** |
-| gaming           | `reddit r/gaming hot posts {DATE_ISO}` AND `video game news today {DATE_ISO}` — 2-3 items                                          |
-| maker-hobby      | `Instructables featured projects {DATE_ISO}` AND `reddit r/3Dprinting hot posts {DATE_ISO}` — 1-2 items                            |
-| news-ap          | `AP News top headlines today {DATE_ISO}` — 2-5 short headlines                                                                     |
-| extra            | (only if user customized the description — skip if it still says `(add your own sections here)`). Search based on the description. 1-3 items. |
+The agent forms its own search queries from each source's `description` field — no hardcoded queries.
 
 If `TODAY_IN_HISTORY` is true, ALSO dispatch:
 
@@ -150,8 +134,8 @@ If `TODAY_IN_HISTORY` is true, ALSO dispatch:
 You are the today-in-history agent.
 
 ALLOWED TOOLS — the ONLY tools you may call: WebSearch, WebFetch, Write.
-FORBIDDEN — do NOT call any of these: skills, MCP resources or tools, Bash, Read, Glob, Grep, other Agents/Tasks, sub-agent dispatch. Do NOT explore the toolbox.
-ON FAILURE — if WebSearch/WebFetch fails, write `{"holidays": "", "events": ""}` to the file and stop. Do not retry. Do not switch tools.
+FORBIDDEN — do NOT call any of these: skills, MCP resources or tools, Bash, Read, Glob, Grep, other Agents/Tasks, sub-agent dispatch.
+Write whatever you can find. If nothing, write `{"holidays": "", "events": ""}` and stop.
 
 Today's date: {DATE_ISO}.
 Search: this day in history {month} {day} famous events AND {month} {day} holidays observances
@@ -182,6 +166,7 @@ Find one direct image URL (.jpg/.png/.webp) relevant to: "{LEAD_TITLE}".
 ALLOWED TOOLS — the ONLY tools you may call: WebSearch, WebFetch.
 FORBIDDEN — do NOT call Write, Bash, Read, skills, MCP resources, Agents/Tasks, or anything else.
 
+Use WebSearch to find candidates, then WebFetch to verify the image URL if needed.
 Return ONLY the URL as plain text, or the literal string NONE if nothing suitable.
 ```
 
