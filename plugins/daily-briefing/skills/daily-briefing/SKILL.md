@@ -77,8 +77,13 @@ Each fetch agent uses:
 ### Generic fetch agent prompt template
 
 ```
-You are the {SOURCE_KEY} fetch agent. Today's date: {DATE_ISO}.
+You are the {SOURCE_KEY} fetch agent.
 
+ALLOWED TOOLS — the ONLY tools you may call: WebSearch, WebFetch, Write.
+FORBIDDEN — do NOT call any of these: skills (any skill, including dispatching-parallel-agents), MCP resources or tools (no listMcpResources, no MCP calls), Bash, Read, Glob, Grep, other Agents/Tasks, sub-agent dispatch. Do NOT explore the toolbox looking for something that fits.
+ON FAILURE — if WebSearch/WebFetch fails or returns nothing useful, write an empty JSON array `[]` to the target file with the Write tool, then stop. Do not retry. Do not switch tools.
+
+Today's date: {DATE_ISO}.
 Search: {QUERY}
 
 Write your result to: {STAGING_DIR}/{SOURCE_KEY}.json
@@ -89,7 +94,7 @@ The file MUST be a JSON array of items: [{"title": "...", "url": "...", "summary
 - Include a 1-2 sentence summary with context and analysis.
 - No commentary outside the JSON array.
 
-Use the write tool to create the file. Return "done" after writing.
+Use the Write tool to create the file. Return "done" after writing.
 ```
 
 ### Weather agent prompt
@@ -97,14 +102,19 @@ Use the write tool to create the file. Return "done" after writing.
 Weather is a special case — it's plain text, not an item array:
 
 ```
-You are the weather agent. Today's date: {DATE_ISO}.
+You are the weather agent.
 
+ALLOWED TOOLS — the ONLY tools you may call: WebSearch, WebFetch, Write.
+FORBIDDEN — do NOT call any of these: skills, MCP resources or tools, Bash, Read, Glob, Grep, other Agents/Tasks, sub-agent dispatch. Do NOT explore the toolbox.
+ON FAILURE — if WebSearch/WebFetch fails, write an empty file with the Write tool and stop. Do not retry. Do not switch tools.
+
+Today's date: {DATE_ISO}.
 Search: {LOCATION} weather today {DATE_ISO}
 
 Write a 1-2 sentence summary (temperature, conditions, high/low, wind) to:
 {STAGING_DIR}/weather.txt
 
-Plain text only. No JSON, no Markdown. Use the write tool.
+Plain text only. No JSON, no Markdown. Use the Write tool.
 ```
 
 ### Space-science agent — additional field
@@ -136,15 +146,20 @@ For the NASA APOD item (if any), include an "image_url" field on that item with 
 If `TODAY_IN_HISTORY` is true, ALSO dispatch:
 
 ```
-You are the today-in-history agent. Today's date: {DATE_ISO}.
+You are the today-in-history agent.
 
+ALLOWED TOOLS — the ONLY tools you may call: WebSearch, WebFetch, Write.
+FORBIDDEN — do NOT call any of these: skills, MCP resources or tools, Bash, Read, Glob, Grep, other Agents/Tasks, sub-agent dispatch. Do NOT explore the toolbox.
+ON FAILURE — if WebSearch/WebFetch fails, write `{"holidays": "", "events": ""}` to the file and stop. Do not retry. Do not switch tools.
+
+Today's date: {DATE_ISO}.
 Search: this day in history {month} {day} famous events AND {month} {day} holidays observances
 
 Write JSON to: {STAGING_DIR}/today_in_history.json
 Shape: {"holidays": "...", "events": "..."}
 - holidays: any holidays/observances for today (e.g., "Pi Day · International Day of Mathematics"). Empty string if none.
 - events: 2-3 notable historical events, each with year (e.g., "1879 — Einstein born · 2005 — First YouTube video"). Use · or | as separators.
-Prioritize science, tech, and culturally significant events. Use the write tool.
+Prioritize science, tech, and culturally significant events. Use the Write tool.
 ```
 
 If `INSPIRATION_QUOTE` is true, after all fetches complete you (the main skill) will author a quote thematically connected to today's content. Do not dispatch a quote agent — you will write `quote.json` yourself in Step 3.
@@ -162,6 +177,10 @@ After all fetch agents return:
 
 ```
 Find one direct image URL (.jpg/.png/.webp) relevant to: "{LEAD_TITLE}".
+
+ALLOWED TOOLS — the ONLY tools you may call: WebSearch, WebFetch.
+FORBIDDEN — do NOT call Write, Bash, Read, skills, MCP resources, Agents/Tasks, or anything else.
+
 Return ONLY the URL as plain text, or the literal string NONE if nothing suitable.
 ```
 

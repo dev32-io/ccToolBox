@@ -64,8 +64,13 @@ In OpenCode, `task` subagents inherit the primary model and tools. See the READM
 ### Generic fetch task prompt
 
 ```
-You are the {SOURCE_KEY} fetch agent. Today's date: {DATE_ISO}.
+You are the {SOURCE_KEY} fetch agent.
 
+ALLOWED TOOLS — the ONLY tools you may call: WebSearch, WebFetch, Write (or your platform's equivalents: webfetch, write).
+FORBIDDEN — do NOT call any of these: skills (any skill, including dispatching-parallel-agents), MCP resources or tools, Bash, Read, Glob, Grep, other Agents/Tasks, sub-agent dispatch. Do NOT explore the toolbox looking for something that fits.
+ON FAILURE — if search fails or returns nothing useful, write an empty JSON array `[]` to the target file with the write tool, then stop. Do not retry. Do not switch tools.
+
+Today's date: {DATE_ISO}.
 Search: {QUERY}
 
 Write your result to: {STAGING_DIR}/{SOURCE_KEY}.json
@@ -76,14 +81,19 @@ The file MUST be a JSON array of items: [{"title": "...", "url": "...", "summary
 - Include a 1-2 sentence summary with context and analysis.
 - No commentary outside the JSON array.
 
-Use the write tool. Return "done" after writing.
+Use the write tool to create the file. Return "done" after writing.
 ```
 
 ### Weather task
 
 ```
-You are the weather agent. Today's date: {DATE_ISO}.
+You are the weather agent.
 
+ALLOWED TOOLS — the ONLY tools you may call: WebSearch, WebFetch, Write (or your platform's equivalents).
+FORBIDDEN — do NOT call skills, MCP resources or tools, Bash, Read, Glob, Grep, other Agents/Tasks. Do NOT explore the toolbox.
+ON FAILURE — if search fails, write an empty file and stop. Do not retry. Do not switch tools.
+
+Today's date: {DATE_ISO}.
 Search: {LOCATION} weather today {DATE_ISO}
 
 Write a 1-2 sentence summary (temperature, conditions, high/low, wind) to:
@@ -116,8 +126,13 @@ Add to the space-science prompt: `For the NASA APOD item, include an "image_url"
 If `TODAY_IN_HISTORY` is true, also dispatch a today-in-history task:
 
 ```
-You are the today-in-history agent. Today's date: {DATE_ISO}.
+You are the today-in-history agent.
 
+ALLOWED TOOLS — the ONLY tools you may call: WebSearch, WebFetch, Write (or your platform's equivalents).
+FORBIDDEN — do NOT call skills, MCP resources or tools, Bash, Read, Glob, Grep, other Agents/Tasks. Do NOT explore the toolbox.
+ON FAILURE — if search fails, write `{"holidays": "", "events": ""}` to the file and stop. Do not retry. Do not switch tools.
+
+Today's date: {DATE_ISO}.
 Search: this day in history {month} {day} famous events AND {month} {day} holidays observances
 
 Write JSON to: {STAGING_DIR}/today_in_history.json
@@ -137,6 +152,10 @@ Inspiration quote is authored by the main skill (not a task) — see Step 3.
 
 ```
 Find one direct image URL (.jpg/.png/.webp) relevant to: "{LEAD_TITLE}".
+
+ALLOWED TOOLS — the ONLY tools you may call: WebSearch, WebFetch (or your platform's equivalents).
+FORBIDDEN — do NOT call Write, Bash, Read, skills, MCP resources, Agents/Tasks, or anything else.
+
 Return ONLY the URL as plain text, or the literal string NONE if nothing suitable.
 ```
 
