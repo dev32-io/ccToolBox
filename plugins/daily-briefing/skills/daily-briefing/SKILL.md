@@ -7,7 +7,7 @@ description: >
   or invokes /daily-briefing.
   Do NOT trigger on casual greetings like "good morning" or "hello".
 model: sonnet
-tools: Agent, Bash, Write
+tools: Agent, AskUserQuestion, Bash, Write
 ---
 
 # Daily Briefing
@@ -250,14 +250,22 @@ Do NOT write HTML directly. Only invoke the script.
 
 ## Step 6 — Verify and open
 
+Wait for BOTH Step 5 agents to finish. Do NOT proceed until both have returned.
+
 ```bash
 test -s "<OUT_MP3 literal>" && echo "Audio ready" || echo "Audio missing"
 ```
 
-If ready:
+**If "Audio ready":**
 
 ```bash
 open "<OUT_HTML literal>"
 ```
 
-If missing, report the TTS failure and suggest re-running the skill.
+**If "Audio missing":** use `AskUserQuestion` to let the user choose:
+
+- **Retry TTS** (description: "Re-run TTS and wait for it to finish before opening the briefing")
+- **Open without audio** (description: "Open the briefing now — audio won't work")
+
+If they choose retry: re-run `tts.sh` in the **foreground** (never `run_in_background`), re-check the file, then open. If retry also fails, report the error.
+If they choose open without audio: open the HTML immediately.

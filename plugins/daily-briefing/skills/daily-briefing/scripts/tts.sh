@@ -50,22 +50,37 @@ until curl -s -o /dev/null -w '' "http://localhost:$PORT" 2>/dev/null; do
 done
 echo "TTS service ready." >&2
 
-# Generate speech
-echo "Generating audio..." >&2
-HTTP_CODE=$(curl -s -X POST "http://localhost:$PORT/v1/audio/speech" \
-    -H "Content-Type: application/json" \
-    -d "$(jq -n --arg text "$TEXT_CONTENT" --arg voice "$VOICE" '{
-        input: $text,
-        voice: $voice,
-        model: "tts-1",
-        response_format: "mp3"
-    }')" \
-    -o "$OUTPUT_PATH" \
-    -w "%{http_code}")
+# Generate speech (retry up to 2 times on 5xx errors)
+MAX_RETRIES=2
+ATTEMPT=0
+while true; do
+    ATTEMPT=$((ATTEMPT + 1))
+    echo "Generating audio (attempt $ATTEMPT)..." >&2
+    HTTP_CODE=$(curl -s -X POST "http://localhost:$PORT/v1/audio/speech" \
+        -H "Content-Type: application/json" \
+        -d "$(jq -n --arg text "$TEXT_CONTENT" --arg voice "$VOICE" '{
+            input: $text,
+            voice: $voice,
+            model: "tts-1",
+            response_format: "mp3"
+        }')" \
+        -o "$OUTPUT_PATH" \
+        -w "%{http_code}")
 
-if [ "$HTTP_CODE" -ne 200 ]; then
+    if [ "$HTTP_CODE" -eq 200 ]; then
+        break
+    fi
+
+    if [ "$HTTP_CODE" -ge 500 ] && [ "$ATTEMPT" -le "$MAX_RETRIES" ]; then
+        echo "Warning: TTS returned HTTP $HTTP_CODE, retrying in 3s..." >&2
+        rm -f "$OUTPUT_PATH"
+        sleep 3
+        continue
+    fi
+
     echo "Error: TTS request failed with HTTP $HTTP_CODE" >&2
+    rm -f "$OUTPUT_PATH"
     exit 1
-fi
+done
 
 echo "Audio saved to $OUTPUT_PATH" >&2
