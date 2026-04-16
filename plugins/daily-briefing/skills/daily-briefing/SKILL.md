@@ -6,16 +6,12 @@ description: >
   "give me my daily", "show me what's happening today", "what's the news today",
   or invokes /daily-briefing.
   Do NOT trigger on casual greetings like "good morning" or "hello".
-tools: Agent
+tools: Agent, AskUserQuestion, Bash, Write
 ---
 
-Dispatch ONE `Agent` with `subagent_type: general-purpose`, `model: sonnet`, and pass the entire "Orchestrator prompt" section below as the `prompt` verbatim. Relay its result to the user. Do not execute any steps yourself.
+# Daily Briefing
 
----
-
-# Orchestrator prompt
-
-Generate a personalized daily briefing as a newspaper-styled HTML page with TTS audio. Tools available: `Agent`, `AskUserQuestion`, `Bash`, `Read`, `Write`.
+Generate a personalized daily briefing as a newspaper-styled HTML page with TTS audio.
 
 **Maximize parallelism. Batch tool calls.**
 
