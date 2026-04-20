@@ -90,4 +90,44 @@ setup_repo
 out="$(bash "$SCRIPT")"
 assert_contains "$out" '"merge_base":' "T6 merge_base resolved via fallback"
 
+# Test 7: parent branch is `develop`, not main — detection should pick develop.
+# Setup: main @ base → develop @ base+d1 → feat/x @ d1+f1. Parent is develop.
+setup_repo   # leaves us on feat/xyz with main as base; reset to just main first.
+git checkout -q main
+git branch -D feat/xyz
+# Advance main by one commit so the merge-base against develop is newer than
+# the merge-base against main.
+echo "post-base" > main_extra.txt
+git add main_extra.txt; git commit -qm "main extra"
+git checkout -q -b develop
+echo "d1" > d1.txt; git add d1.txt; git commit -qm "d1 on develop"
+git checkout -q -b feat/x
+echo "f1" > f1.txt; git add f1.txt; git commit -qm "f1"
+out="$(bash "$SCRIPT")"
+assert_contains "$out" '"merge_base_ref": "develop"' "T7 parent is develop, not main"
+
+# Test 8: parent branch is another feature branch — heuristic should pick it.
+# Setup: main → feat/a → feat/b. Parent of feat/b is feat/a.
+setup_repo
+git checkout -q main
+git branch -D feat/xyz
+git checkout -q -b feat/a
+echo "a1" > a1.txt; git add a1.txt; git commit -qm "a1"
+git checkout -q -b feat/b
+echo "b1" > b1.txt; git add b1.txt; git commit -qm "b1"
+out="$(bash "$SCRIPT")"
+assert_contains "$out" '"merge_base_ref": "feat/a"' "T8 parent is sibling feature branch"
+
+# Test 9: `retro.baseBranch` config override wins over auto-detection.
+setup_repo
+git checkout -q main
+git branch -D feat/xyz
+git checkout -q -b develop
+echo "d" > d.txt; git add d.txt; git commit -qm "d on develop"
+git checkout -q -b feat/z
+echo "z" > z.txt; git add z.txt; git commit -qm "z"
+git config retro.baseBranch main
+out="$(bash "$SCRIPT")"
+assert_contains "$out" '"merge_base_ref": "main"' "T9 config override uses main over develop"
+
 summary

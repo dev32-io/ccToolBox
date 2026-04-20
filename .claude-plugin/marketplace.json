@@ -22,7 +22,7 @@
     {
       "name": "devTools",
       "description": "Developer productivity skills: retrospective learning, and more to come",
-      "version": "1.0.0",
+      "version": "1.1.0",
       "source": "./plugins/devTools",
       "category": "productivity"
     }
