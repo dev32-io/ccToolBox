@@ -91,6 +91,7 @@ Start with WebSearch. Form 1-2 good search queries from the topic above. Include
 Write your result to: {STAGING_DIR}/{SOURCE_KEY}.json
 
 The file MUST be a JSON array of items: [{"title": "...", "url": "...", "summary": "..."}]
+- Limit to 3-5 items — pick the most impactful/interesting ones using your best judgment. Quality over quantity.
 - url must point to a specific article/post/repo. Never homepages.
 - If no URL available, omit the url field.
 - Include a 1-2 sentence summary with context and analysis.

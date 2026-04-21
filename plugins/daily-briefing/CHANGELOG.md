@@ -2,6 +2,12 @@
 
 All notable changes to the daily-briefing plugin.
 
+## 2.3.2
+
+### Changed
+
+- Fetch agents now limit each source to 3-5 items, using subagent judgment to pick the most impactful ones. Reduces briefing length and improves signal-to-noise.
+
 ## 2.1.0
 
 ### Changed
