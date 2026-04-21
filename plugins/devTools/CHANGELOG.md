@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.2.0 — 2026-04-20
+
+- `retro`: prefer `develop` (or `origin/develop`) as the default parent
+  branch in auto-detection when it exists. Previously the heuristic picked
+  the ref with the newest merge-base, which could select a sibling feature
+  branch over `develop` — wrong for the common "branch off develop" flow.
+  Scan-based detection is retained as a fallback when develop is absent.
+
 ## 1.1.0 — 2026-04-19
 
 - `retro`: detect the actual parent branch instead of assuming `main`.

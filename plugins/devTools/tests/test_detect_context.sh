@@ -118,7 +118,21 @@ echo "b1" > b1.txt; git add b1.txt; git commit -qm "b1"
 out="$(bash "$SCRIPT")"
 assert_contains "$out" '"merge_base_ref": "feat/a"' "T8 parent is sibling feature branch"
 
-# Test 9: `retro.baseBranch` config override wins over auto-detection.
+# Test 9a: when `develop` exists AND a sibling feature branch also exists,
+# develop wins over the sibling (develop is the preferred default).
+setup_repo
+git checkout -q main
+git branch -D feat/xyz
+git checkout -q -b develop
+echo "d1" > d1.txt; git add d1.txt; git commit -qm "d1"
+git checkout -q -b feat/a
+echo "a1" > a1.txt; git add a1.txt; git commit -qm "a1"
+git checkout -q -b feat/b
+echo "b1" > b1.txt; git add b1.txt; git commit -qm "b1"
+out="$(bash "$SCRIPT")"
+assert_contains "$out" '"merge_base_ref": "develop"' "T9a develop preferred over sibling"
+
+# Test 9b: `retro.baseBranch` config override wins over auto-detection.
 setup_repo
 git checkout -q main
 git branch -D feat/xyz

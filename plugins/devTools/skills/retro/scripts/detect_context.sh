@@ -25,43 +25,53 @@ BRANCH="$(git rev-parse --abbrev-ref HEAD)"
 #
 # Strategy, in order:
 #   1. If `git config retro.baseBranch` is set to a resolvable ref, use it.
-#   2. Scan all local and remote-tracking branch refs, exclude the current
+#   2. Prefer `develop` (local) or `origin/develop` when it exists — it is
+#      the default integration branch in this workflow.
+#   3. Scan all local and remote-tracking branch refs, exclude the current
 #      branch and symbolic HEAD aliases, compute `git merge-base` against HEAD,
 #      and pick the ref whose merge-base commit has the latest committer
-#      timestamp. Newest merge-base = most recent fork point = most likely
-#      parent branch. Works for non-main parents (e.g. develop, trunk, or
-#      another feature branch).
-#   3. Fallback chain for empty-history repos with no other branches:
-#      origin/HEAD → main → master → develop.
+#      timestamp. Covers sibling feature branches and projects without develop.
+#   4. Fallback chain for edge cases: origin/HEAD → main → master → develop.
 resolve_merge_base() {
-  local head_branch override ref mb ts head_sha
+  local head_branch override ref mb ts head_sha sha
   local best_ref="" best_sha="" best_ts=0
   head_branch="$(git rev-parse --abbrev-ref HEAD 2>/dev/null || echo)"
   head_sha="$(git rev-parse HEAD 2>/dev/null || echo)"
 
+  # Try a single ref; echo "ref sha" and return 0 on success.
+  try_ref() {
+    local r="$1" s
+    [[ -z "$r" ]] && return 1
+    [[ "$r" == "$head_branch" ]] && return 1
+    git rev-parse --verify --quiet "$r" >/dev/null || return 1
+    s="$(git merge-base HEAD "$r" 2>/dev/null)" || return 1
+    [[ -z "$s" ]] && return 1
+    [[ "$s" == "$head_sha" ]] && return 1
+    echo "$r $s"
+    return 0
+  }
+
   # (1) Manual override via git config.
   override="$(git config --get retro.baseBranch 2>/dev/null || true)"
-  if [[ -n "$override" ]] && git rev-parse --verify --quiet "$override" >/dev/null; then
-    local sha
-    if sha="$(git merge-base HEAD "$override" 2>/dev/null)"; then
-      echo "$override $sha"
-      return 0
-    fi
+  if [[ -n "$override" ]]; then
+    try_ref "$override" && return 0
   fi
 
-  # (2) Scan all branches and pick the newest merge-base.
+  # (2) Prefer `develop` as the default parent when available.
+  for ref in develop origin/develop; do
+    try_ref "$ref" && return 0
+  done
+
+  # (3) Scan all branches for newest merge-base (sibling branches, etc.).
   while IFS= read -r ref; do
     [[ -z "$ref" ]] && continue
     [[ "$ref" == "$head_branch" ]] && continue
     [[ "$ref" == "HEAD" ]] && continue
     [[ "$ref" == */HEAD ]] && continue
-    # Skip the remote-tracking ref for the current branch itself.
     [[ "$ref" == */"$head_branch" ]] && continue
 
     mb="$(git merge-base HEAD "$ref" 2>/dev/null || true)"
     [[ -z "$mb" ]] && continue
-    # A ref that is an ancestor of HEAD has merge-base == that ref's tip;
-    # a ref that IS HEAD has merge-base == HEAD — ignore that case.
     [[ "$mb" == "$head_sha" ]] && continue
 
     ts="$(git log -1 --format=%ct "$mb" 2>/dev/null || echo 0)"
@@ -77,23 +87,11 @@ resolve_merge_base() {
     return 0
   fi
 
-  # (3) Fallback for repos with only HEAD's branch.
-  local fallback
-  local fallbacks=()
+  # (4) Fallback chain for edge cases.
   local origin_head
   origin_head="$(git symbolic-ref -q refs/remotes/origin/HEAD 2>/dev/null | sed 's|refs/remotes/||' || true)"
-  [[ -n "$origin_head" ]] && fallbacks+=("$origin_head")
-  fallbacks+=(main master develop)
-
-  for fallback in "${fallbacks[@]}"; do
-    [[ "$fallback" == "$head_branch" ]] && continue
-    if git rev-parse --verify --quiet "$fallback" >/dev/null; then
-      local sha
-      if sha="$(git merge-base HEAD "$fallback" 2>/dev/null)"; then
-        echo "$fallback $sha"
-        return 0
-      fi
-    fi
+  for ref in "$origin_head" main master develop; do
+    try_ref "$ref" && return 0
   done
   return 1
 }
