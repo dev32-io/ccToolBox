@@ -144,14 +144,18 @@ section headings. If either is absent, ask one y/n via `AskUserQuestion`:
 > Retrofit the structure now? Existing content will be preserved verbatim
 > under a `## Legacy` section. (y/n)
 
-On `y`: rewrite the file with this layout, preserving the existing header
-comment + `# Testing Knowledge` title + intro paragraph (if present):
+On `y`: rewrite the file with this layout. Refresh the `last-distilled`
+header to today's date + current branch. Keep the `# Testing Knowledge`
+title verbatim. Keep the existing intro paragraph if present; if absent,
+use the default intro `Manual/integration test procedures not covered by
+the code test suite.`. All file content that was below the intro paragraph
+moves verbatim under `## Legacy`.
 
 ```
 <!-- last-distilled: [TODAY_ISO] branch: [BRANCH] -->
 # Testing Knowledge
 
-<existing intro paragraph, or the default one>
+[EXISTING_OR_DEFAULT_INTRO]
 
 ## Methods
 
@@ -165,7 +169,7 @@ One `###` subsection per case.
 
 ## Legacy
 
-<all content that was below the intro paragraph>
+[EXISTING_BODY_BELOW_INTRO]
 ```
 
 On `n`: proceed. New candidates will create the sections on first append.
