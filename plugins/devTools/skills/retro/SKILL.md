@@ -377,10 +377,17 @@ Process approved candidates in this order (within a single pass):
    <content>
    ```
 4. **`new-section`** — append `\n\n## <heading>\n\n<content>\n` to the
-   destination file. For `type=test`, the heading comes from the `section`
-   field.
-5. **`append`** — append `<content>\n` to the destination file (or to the
-   named section for `type=test`).
+   destination file. Used by rule / details / learnings types when the
+   heading is absent. Testing types never use `new-section`.
+5. **`append`** —
+   - For `type=test-method` and `type=test-case`: append `\n\n<content>\n`
+     *inside* the named section (`## Methods` or `## Cases`) in
+     `agent/docs/testing-knowledge.md`. Insert immediately before the next
+     `##` heading (or at EOF if the section is last). If the named section
+     is absent, create it with a leading `\n\n<section>\n\n` block, then
+     append `<content>\n`.
+   - For all other types: append `<content>\n` to the destination file, or
+     to the named section if `section` is set.
 
 **100-line cap enforcement** (rule files only, before each write):
 
@@ -399,8 +406,10 @@ If `projected_lines > 100`:
   update the `last-distilled` header, move on.
 
 **`last-distilled` header** is rewritten on any successful write to a rule
-file or to `testing-knowledge.md`. `learnings.md` and details files have no
-header. Details files have no line cap.
+file or to `testing-knowledge.md` (whether the write touched `## Methods`,
+`## Cases`, or either section body). `learnings.md` and details files have
+no header. Details files have no line cap. `testing-knowledge.md` has no
+line cap.
 
 **Per-candidate failures are isolated** — log, continue, report in the final
 summary.
@@ -434,7 +443,8 @@ About to stage these X files and commit with:
     -<stale count> removed stale (<ids>)
   Details: +<count> (<ids>)
   Learnings: +<count>
-  Tests: +<count> (<ids>)
+  Test methods: +<count> (<ids>)
+  Test cases:   +<count> (<ids>)
 
   🤖 Generated with Claude Code — retro skill
 
