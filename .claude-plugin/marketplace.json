@@ -21,8 +21,8 @@
     },
     {
       "name": "devTools",
-      "description": "Developer productivity skills: retrospective learning, and more to come",
-      "version": "1.2.0",
+      "description": "Developer productivity skills: retrospective distillation and testing-knowledge recall",
+      "version": "1.3.0",
       "source": "./plugins/devTools",
       "category": "productivity"
     }
