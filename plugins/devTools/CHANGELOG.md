@@ -1,5 +1,26 @@
 # Changelog
 
+## 1.3.0 — 2026-04-22
+
+- `retro`: add a dedicated testing-extraction pass to the analysis
+  subagent. New candidate types `test-method` and `test-case` enforce a
+  strict template (Tool / When / Why this tool / How for methods;
+  Scenario / Why added / Steps / Expected for cases). Weak candidates
+  route to `learnings` instead of bloating `testing-knowledge.md`.
+- `retro`: bootstrap now scaffolds `## Methods` and `## Cases` sections
+  in `testing-knowledge.md`. Existing files without those sections prompt
+  a one-time migration (legacy content preserved under `## Legacy`).
+- `retro`: apply logic routes `test-method` / `test-case` candidates
+  into their named section. `last-distilled` header refreshes on any
+  write to `testing-knowledge.md`.
+- `recall-test-knowledge`: new skill. Auto-loads relevant entries from
+  `testing-knowledge.md` and testing-related `.claude/rules/*.md` into
+  the current session. Fires on testing-related user intent
+  ("how do we test X", "add a smoke test", etc.). Parses the file via a
+  deterministic script, dispatches an Explore subagent for relevance
+  ranking, confirms the candidate set with the user, then injects
+  approved entries verbatim. Read-only; never writes.
+
 ## 1.2.0 — 2026-04-20
 
 - `retro`: prefer `develop` (or `origin/develop`) as the default parent
