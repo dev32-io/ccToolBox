@@ -101,4 +101,26 @@ set -e
 assert_exit_code "0" "$bad_rc" "malformed stdin -> exit 0"
 assert_eq "" "$bad_out" "malformed stdin -> silent"
 
+# --- Sibling import failure -> silent exit 0, no crash ---
+# Simulate by pointing FRUSTRATION_CHECK_HOME at a valid home, but breaking patterns.py
+# in an isolated copy of the scripts dir.
+ISO_SCRIPTS="$TMPDIR/scripts-broken"
+mkdir -p "$ISO_SCRIPTS"
+cp "$here/../skills/frustration-check/scripts/"*.py "$ISO_SCRIPTS/"
+cp "$here/../skills/frustration-check/settings.default.json" "$TMPDIR/settings.default.json"
+# Corrupt patterns.py with a syntax error
+echo "this is not valid python <<<" > "$ISO_SCRIPTS/patterns.py"
+
+home="$(fresh_home)"
+set +e
+broken_out="$(FRUSTRATION_CHECK_HOME="$home/.ccToolBox/frustration-check" \
+  python3 "$ISO_SCRIPTS/detect_frustration.py" <<EOF 2>/dev/null
+{"session_id":"s10","prompt":"i already told you wtf","hook_event_name":"UserPromptSubmit"}
+EOF
+)"
+broken_rc=$?
+set -e
+assert_exit_code "0" "$broken_rc" "broken sibling import -> exit 0"
+assert_eq "" "$broken_out" "broken sibling import -> silent stdout"
+
 summary
