@@ -1,0 +1,13 @@
+{
+  "version": 1,
+  "enabled": true,
+  "threshold": 5,
+  "decay": 0.5,
+  "state_ttl_days": 7,
+  "custom_patterns": {
+    "t1": [],
+    "t2": [],
+    "t3": [],
+    "t4": []
+  }
+}
