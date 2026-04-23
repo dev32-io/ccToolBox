@@ -103,6 +103,16 @@ Skeleton for `agent/docs/testing-knowledge.md`:
 
 Manual/integration test procedures not covered by the code test suite.
 
+## Methods
+
+Tools and techniques this project uses to verify changes on each surface,
+and why those tools were chosen. One `###` subsection per surface.
+
+## Cases
+
+Reusable test scenarios. Each case has explicit steps and expected outcome.
+One `###` subsection per case.
+
 ```
 
 After scaffolding, if `CLAUDE.md` exists at repo root, ask one more y/n:
