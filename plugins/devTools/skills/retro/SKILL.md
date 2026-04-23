@@ -135,6 +135,41 @@ If no `CLAUDE.md`, skip silently.
 If the user declines the initial bootstrap, stop the retro — the skill cannot
 route candidates without the destination structure.
 
+**Legacy `testing-knowledge.md` migration.** After bootstrap (or if bootstrap
+is skipped because paths already exist), check whether
+`agent/docs/testing-knowledge.md` contains both `## Methods` and `## Cases`
+section headings. If either is absent, ask one y/n via `AskUserQuestion`:
+
+> Existing `testing-knowledge.md` lacks `## Methods` and `## Cases` sections.
+> Retrofit the structure now? Existing content will be preserved verbatim
+> under a `## Legacy` section. (y/n)
+
+On `y`: rewrite the file with this layout, preserving the existing header
+comment + `# Testing Knowledge` title + intro paragraph (if present):
+
+```
+<!-- last-distilled: [TODAY_ISO] branch: [BRANCH] -->
+# Testing Knowledge
+
+<existing intro paragraph, or the default one>
+
+## Methods
+
+Tools and techniques this project uses to verify changes on each surface,
+and why those tools were chosen. One `###` subsection per surface.
+
+## Cases
+
+Reusable test scenarios. Each case has explicit steps and expected outcome.
+One `###` subsection per case.
+
+## Legacy
+
+<all content that was below the intro paragraph>
+```
+
+On `n`: proceed. New candidates will create the sections on first append.
+
 ## Step 3 — Dispatch the analysis subagent
 
 Use the `Agent` tool with `subagent_type: "Explore"`. The subagent is single
