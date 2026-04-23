@@ -211,7 +211,55 @@ Use the `Agent` tool with `subagent_type: "Explore"`. The subagent is single
 > - `type: rule` → `.claude/rules/<topic>.md`
 > - `type: details` → `agent/docs/<topic>-details.md` (paired with rule filename)
 > - `type: learnings` → `agent/docs/learnings.md`
-> - `type: test` → `agent/docs/testing-knowledge.md`
+> - `type: test-method` → `agent/docs/testing-knowledge.md` (section `## Methods`)
+> - `type: test-case`   → `agent/docs/testing-knowledge.md` (section `## Cases`)
+>
+> **Testing extraction (dedicated second pass).**
+>
+> Scan the diff and transcript a second time specifically for testing
+> signal. Route to `type: test-method` or `type: test-case` only when the
+> respective filter passes. Weak candidates → `learnings`, not
+> `testing-knowledge.md`.
+>
+> **`test-method` filter (ALL must hold):**
+> 1. A testing TOOL or TECHNIQUE was used or adopted during this branch.
+> 2. It is NEW to the project for this surface — check
+>    `testing-knowledge.md` `## Methods` first; if the surface is already
+>    covered with this tool, skip.
+> 3. You can state, in one line each: *when to use it* and *why this tool
+>    over alternatives*.
+>
+> `content` for a `test-method` candidate MUST use this template verbatim:
+> ```
+> ### <Surface>
+> **Tool:** <tool or technique>
+> **When:** <one line>
+> **Why this tool:** <one line rationale>
+> **How:** <one-line invocation hint or example>
+> ```
+>
+> **`test-case` filter (ALL must hold):**
+> 1. A concrete scenario was added, run, or manually verified during this
+>    branch.
+> 2. The scenario is reusable — re-running it in a future session would
+>    meaningfully verify behavior still holds.
+> 3. You can state `scenario`, `why added`, `steps`, `expected` — if any
+>    is vague, DROP the candidate. Do not invent missing fields.
+>
+> `content` for a `test-case` candidate MUST use this template verbatim:
+> ```
+> ### <Case name>
+> **Scenario:** <one line>
+> **Why added:** <one line — bug? new feature? regression?>
+> **Steps:**
+> 1. <step>
+> 2. <step>
+> **Expected:** <assertion>
+> ```
+>
+> Both testing types use verdict `append` with `section` set to either
+> `"## Methods"` or `"## Cases"`. Never emit verdict `new-section` for
+> testing types — the sections are created by bootstrap / migration.
 >
 > **Line budget:** rule files cap at 100 lines total. If adding a new rule
 > would exceed the cap, also emit a paired `remove-stale` verdict for a rule
@@ -232,7 +280,7 @@ Use the `Agent` tool with `subagent_type: "Explore"`. The subagent is single
 >   "candidates": [
 >     {
 >       "id": "kebab-case-stable-id",
->       "type": "rule|details|learnings|test",
+>       "type": "rule|details|learnings|test-method|test-case",
 >       "verdict": "new-file|new-section|append|revise|remove-stale",
 >       "destination": "repo-root-relative path",
 >       "alt_destinations": ["..."],
