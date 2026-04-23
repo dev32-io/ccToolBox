@@ -1,5 +1,22 @@
 # Changelog
 
+## 1.4.0 — 2026-04-23
+
+- `frustration-check`: new skill with auto-triggering `UserPromptSubmit`
+  hook. Detects drift/frustration via tiered regex (T1 constraint
+  repetition, T2 rage, T3 contradiction) with decay-based scoring across
+  turns, plus T4 self-realization phrases for a lighter "assist mode"
+  trigger. When fired, runs a consent-gated intervention: step-back one-
+  liner → recent-turn reflection → offered drift scan / knowledge-gap
+  websearch / push-on → intent re-confirmation. Calibrated against real
+  session data: profanity alone (default threshold 5) does NOT fire;
+  constraint repetition is the dominant signal.
+- `frustration-check`: opt-out via `enabled: false` in
+  `~/.ccToolBox/frustration-check/settings.json` or by including the
+  substring `skip frustration-check` in a prompt. Settings ship at
+  `version: 1` with threshold, decay, TTL, and user-extensible custom
+  patterns per tier.
+
 ## 1.3.0 — 2026-04-22
 
 - `retro`: add a dedicated testing-extraction pass to the analysis
