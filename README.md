@@ -47,7 +47,7 @@ claude plugins marketplace remove ccToolBox
 |--------|---------|-------------|
 | [daily-briefing](plugins/daily-briefing/README.md) | 2.3.2 | Vintage broadsheet daily briefing with 12 sources, TTS audio, and dark/light mode |
 | [offline-research](plugins/offline-research/README.md) | 2.4.2 | Structured offline research and architecture exploration via container-based loops |
-| [devTools](plugins/devTools/README.md) | 1.4.0 | Developer productivity skills: branch retros, testing-knowledge recall, and frustration-check intervention |
+| [devTools](plugins/devTools/README.md) | 1.4.1 | Developer productivity skills: branch retros, testing-knowledge recall, and frustration-check intervention |
 
 ## Containers
 

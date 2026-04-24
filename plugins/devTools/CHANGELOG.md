@@ -1,5 +1,15 @@
 # Changelog
 
+## 1.4.1 — 2026-04-23
+
+- `frustration-check`: register a `SessionStart` hook that runs
+  `init_settings.py` on every session start. Previously the user settings
+  file at `~/.ccToolBox/frustration-check/settings.json` was only created
+  when someone explicitly ran the init script, so users who never tripped
+  the frustration threshold had no visible file to customize. The init is
+  idempotent (first-run creates, same-version no-ops, older-version
+  migrates) and silent on stdout, so it adds no context overhead.
+
 ## 1.4.0 — 2026-04-23
 
 - `frustration-check`: new skill with auto-triggering `UserPromptSubmit`
