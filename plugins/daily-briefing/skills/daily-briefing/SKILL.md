@@ -31,7 +31,7 @@ Generate a personalized daily briefing as a newspaper-styled HTML page with TTS 
 - Lead story is narrated FIRST, regardless of settings order: "Our top story today..."
 - Then remaining sources in settings order with natural transitions ("Next, in tech news from Dev.to...", "Moving to space and science...").
 - GitHub repos: narrate the description, not the "user/repo" path.
-- Expand abbreviations (`S&P 500` → "S and P 500"). Keep `AI` as "AI".
+- Expand abbreviations (`S&P 500` → "S and P 500"). Keep `AI` as "AI". Read `°C` as "degrees Celsius", `km/h` as "kilometers per hour", `mm` as "millimeters".
 - Never read URLs aloud.
 - Closing: if `today_in_history` is enabled, narrate it; then `inspiration_quote` if enabled. End: "That's your briefing. Have a great day."
 
@@ -112,10 +112,12 @@ FORBIDDEN — do NOT call any of these: skills, MCP resources or tools, Bash, Re
 Write whatever you can find. If nothing, write an empty file and stop.
 
 Today's date: {DATE_ISO}.
-Search: {LOCATION} weather today {DATE_ISO}
+Search: {LOCATION} weather today {DATE_ISO} celsius
 
 Write a 1-2 sentence summary (temperature, conditions, high/low, wind) to:
 {STAGING_DIR}/weather.txt
+
+ALL units MUST be metric: temperatures in °C, wind in km/h, precipitation in mm. If a source reports Fahrenheit / mph / inches, convert to metric before writing. Never include imperial units, not even in parentheses.
 
 Plain text only. No JSON, no Markdown. Use the Write tool.
 ```

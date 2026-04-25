@@ -2,6 +2,12 @@
 
 All notable changes to the daily-briefing plugin.
 
+## 2.3.3
+
+### Changed
+
+- Weather agent now forces metric units (°C, km/h, mm) regardless of the source's native units; converts before writing. TTS narration expands `°C` / `km/h` / `mm` for natural speech.
+
 ## 2.3.2
 
 ### Changed
