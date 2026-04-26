@@ -1,5 +1,13 @@
 # Changelog
 
+## 1.4.2 — 2026-04-26
+
+- `retro` / `recall-test-knowledge`: fix path typo `agent/docs/` →
+  `agents/docs/` across skill instructions, helper scripts, tests, and
+  README. Scripts that scaffold and read knowledge dirs (`detect_context.sh`,
+  `probe_context.sh`) now use the correct plural path, matching the
+  intended convention.
+
 ## 1.4.1 — 2026-04-23
 
 - `frustration-check`: register a `SessionStart` hook that runs

@@ -125,9 +125,9 @@ if [[ -d "$TRANSCRIPT_DIR" ]]; then
 fi
 
 RULES_DIR=".claude/rules"
-DETAILS_DIR="agent/docs"
-LEARNINGS_FILE="agent/docs/learnings.md"
-TESTING_FILE="agent/docs/testing-knowledge.md"
+DETAILS_DIR="agents/docs"
+LEARNINGS_FILE="agents/docs/learnings.md"
+TESTING_FILE="agents/docs/testing-knowledge.md"
 
 # Collect existing files (bash 3.2 compatible — no mapfile).
 RULES_FILES=()
@@ -152,10 +152,10 @@ MISSING=()
 [[ -f "$TESTING_FILE" ]]  || MISSING+=("$TESTING_FILE")
 
 # Dirty-tree classification.
-#   Retro-related paths = anything under .claude/rules/ or agent/docs/.
+#   Retro-related paths = anything under .claude/rules/ or agents/docs/.
 is_retro_path() {
   case "$1" in
-    .claude/rules/*|agent/docs/*) return 0 ;;
+    .claude/rules/*|agents/docs/*) return 0 ;;
     *) return 1 ;;
   esac
 }

@@ -51,11 +51,11 @@ assert_not_contains "$out" 'details_files' "T2 no details_files key"
 
 # Test 3: with testing-knowledge.md present, path is reported.
 setup_repo
-mkdir -p agent/docs
-echo "# Testing Knowledge" > agent/docs/testing-knowledge.md
+mkdir -p agents/docs
+echo "# Testing Knowledge" > agents/docs/testing-knowledge.md
 git add -A; git commit -qm "testing"
 out="$(bash "$SCRIPT")"
-assert_contains "$out" '"testing_file": "agent/docs/testing-knowledge.md"' "T3 testing file reported"
+assert_contains "$out" '"testing_file": "agents/docs/testing-knowledge.md"' "T3 testing file reported"
 
 # Test 4: with rule files present, they are listed.
 setup_repo

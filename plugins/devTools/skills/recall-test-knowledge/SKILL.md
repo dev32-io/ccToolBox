@@ -2,7 +2,7 @@
 name: recall-test-knowledge
 description: >
   Auto-load relevant distilled testing knowledge (methods and cases from
-  `agent/docs/testing-knowledge.md` plus testing-related rule files)
+  `agents/docs/testing-knowledge.md` plus testing-related rule files)
   into the current session. Use when the user asks to write a test, add
   a test case, design a test plan, smoke-test a feature, verify
   behavior, or otherwise work on testing — e.g. "how do we test X",
@@ -14,7 +14,7 @@ tools: Agent, AskUserQuestion, Bash, Read, Grep, Glob
 
 # recall-test-knowledge — Load Distilled Testing Knowledge
 
-Read-only consumer of `agent/docs/testing-knowledge.md` (produced by the
+Read-only consumer of `agents/docs/testing-knowledge.md` (produced by the
 `retro` skill) and testing-related `.claude/rules/*.md`. Dispatches a
 subagent to find relevant entries, confirms the candidate set with the
 user, then injects approved entries verbatim into the session.
@@ -62,7 +62,7 @@ Parse the JSON. Record: `REPO_ROOT`, `BRANCH`, `DIFF_PATH`, `TESTING_FILE`,
 If `TESTING_FILE` is empty (not yet created in this project), stop with:
 
 ```
-No agent/docs/testing-knowledge.md yet. Run /retro after your next
+No agents/docs/testing-knowledge.md yet. Run /retro after your next
 feature branch to start distilling testing knowledge.
 ```
 

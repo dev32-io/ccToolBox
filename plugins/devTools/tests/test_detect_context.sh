@@ -42,25 +42,25 @@ out="$(bash "$SCRIPT")"
 assert_contains "$out" '"branch": "feat/xyz"' "T1 branch reported"
 assert_contains "$out" '"merge_base":' "T1 merge_base present"
 assert_contains "$out" '"rules_dir": ".claude/rules"' "T1 rules_dir path"
-assert_contains "$out" '"details_dir": "agent/docs"' "T1 details_dir path"
-assert_contains "$out" '"learnings_file": "agent/docs/learnings.md"' "T1 learnings path"
-assert_contains "$out" '"testing_file": "agent/docs/testing-knowledge.md"' "T1 testing path"
+assert_contains "$out" '"details_dir": "agents/docs"' "T1 details_dir path"
+assert_contains "$out" '"learnings_file": "agents/docs/learnings.md"' "T1 learnings path"
+assert_contains "$out" '"testing_file": "agents/docs/testing-knowledge.md"' "T1 testing path"
 assert_contains "$out" '.claude/rules' "T1 missing contains rules dir"
-assert_contains "$out" 'agent/docs/learnings.md' "T1 missing contains learnings"
+assert_contains "$out" 'agents/docs/learnings.md' "T1 missing contains learnings"
 assert_contains "$out" '"unrelated_unstaged": []' "T1 clean tree"
 
 # Test 2: with scaffolded rule/details/learnings/testing paths → empty missing
 setup_repo
-mkdir -p .claude/rules agent/docs
+mkdir -p .claude/rules agents/docs
 echo "# rules" > .claude/rules/auth.md
-echo "# details" > agent/docs/auth-details.md
-echo "# Learnings" > agent/docs/learnings.md
-echo "# Testing Knowledge" > agent/docs/testing-knowledge.md
+echo "# details" > agents/docs/auth-details.md
+echo "# Learnings" > agents/docs/learnings.md
+echo "# Testing Knowledge" > agents/docs/testing-knowledge.md
 git add -A; git commit -qm "scaffold"
 out="$(bash "$SCRIPT")"
 assert_contains "$out" '"missing": []' "T2 nothing missing"
 assert_contains "$out" '.claude/rules/auth.md' "T2 rule file listed"
-assert_contains "$out" 'agent/docs/auth-details.md' "T2 details file listed"
+assert_contains "$out" 'agents/docs/auth-details.md' "T2 details file listed"
 
 # Test 3: dirty tree with unrelated file → reported in unrelated_unstaged
 setup_repo

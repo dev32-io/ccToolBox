@@ -85,7 +85,7 @@ else
   : > "$DIFF_PATH"
 fi
 
-TESTING_FILE="agent/docs/testing-knowledge.md"
+TESTING_FILE="agents/docs/testing-knowledge.md"
 [[ -f "$TESTING_FILE" ]] || TESTING_FILE=""
 
 RULE_FILES=()

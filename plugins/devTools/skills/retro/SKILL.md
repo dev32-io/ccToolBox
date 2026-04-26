@@ -86,7 +86,7 @@ If `MISSING` is non-empty, ask one question (use `AskUserQuestion`):
 On `y`, create the missing artifacts using the **exact** templates below.
 Do NOT scaffold any rule files — those emerge per-candidate from the analysis.
 
-Skeleton for `agent/docs/learnings.md`:
+Skeleton for `agents/docs/learnings.md`:
 
 ```
 # Learnings
@@ -95,7 +95,7 @@ Short, dated observations that haven't earned a topical rule yet.
 
 ```
 
-Skeleton for `agent/docs/testing-knowledge.md`:
+Skeleton for `agents/docs/testing-knowledge.md`:
 
 ```
 <!-- last-distilled: [TODAY_ISO] branch: [BRANCH] -->
@@ -125,9 +125,9 @@ On `y`, append this block (with a leading blank line):
 ```
 ## Learning artifacts
 - Topical rules: `.claude/rules/*.md` (instructions only, ≤100 lines each)
-- Topic details: `agent/docs/<topic>-details.md` (examples, gotchas)
-- Active learnings: `agent/docs/learnings.md` — read this for recent discoveries
-- Test procedures: `agent/docs/testing-knowledge.md`
+- Topic details: `agents/docs/<topic>-details.md` (examples, gotchas)
+- Active learnings: `agents/docs/learnings.md` — read this for recent discoveries
+- Test procedures: `agents/docs/testing-knowledge.md`
 ```
 
 If no `CLAUDE.md`, skip silently.
@@ -137,7 +137,7 @@ route candidates without the destination structure.
 
 **Legacy `testing-knowledge.md` migration.** After bootstrap (or if bootstrap
 is skipped because paths already exist), check whether
-`agent/docs/testing-knowledge.md` contains both `## Methods` and `## Cases`
+`agents/docs/testing-knowledge.md` contains both `## Methods` and `## Cases`
 section headings. If either is absent, ask one y/n via `AskUserQuestion`:
 
 > Existing `testing-knowledge.md` lacks `## Methods` and `## Cases` sections.
@@ -209,10 +209,10 @@ Use the `Agent` tool with `subagent_type: "Explore"`. The subagent is single
 >
 > **Routing:**
 > - `type: rule` → `.claude/rules/<topic>.md`
-> - `type: details` → `agent/docs/<topic>-details.md` (paired with rule filename)
-> - `type: learnings` → `agent/docs/learnings.md`
-> - `type: test-method` → `agent/docs/testing-knowledge.md` (section `## Methods`)
-> - `type: test-case`   → `agent/docs/testing-knowledge.md` (section `## Cases`)
+> - `type: details` → `agents/docs/<topic>-details.md` (paired with rule filename)
+> - `type: learnings` → `agents/docs/learnings.md`
+> - `type: test-method` → `agents/docs/testing-knowledge.md` (section `## Methods`)
+> - `type: test-case`   → `agents/docs/testing-knowledge.md` (section `## Cases`)
 >
 > **Testing extraction (dedicated second pass).**
 >
@@ -382,7 +382,7 @@ Process approved candidates in this order (within a single pass):
 5. **`append`** —
    - For `type=test-method` and `type=test-case`: append `\n\n<content>\n`
      *inside* the named section (`## Methods` or `## Cases`) in
-     `agent/docs/testing-knowledge.md`. Insert immediately before the next
+     `agents/docs/testing-knowledge.md`. Insert immediately before the next
      `##` heading (or at EOF if the section is last). If the named section
      is absent, create it with a leading `\n\n<section>\n\n` block, then
      append `<content>\n`.

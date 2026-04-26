@@ -16,12 +16,12 @@ changes are committed in a single `chore(retro): …` commit in the target proje
 
 **Output artifacts in the target project:**
 - `.claude/rules/<topic>.md` — topical instruction-only rule files (≤100 lines)
-- `agent/docs/<topic>-details.md` — paired details/examples/gotchas
-- `agent/docs/learnings.md` — flat dated observations awaiting promotion
-- `agent/docs/testing-knowledge.md` — manual/integration test procedures
+- `agents/docs/<topic>-details.md` — paired details/examples/gotchas
+- `agents/docs/learnings.md` — flat dated observations awaiting promotion
+- `agents/docs/testing-knowledge.md` — manual/integration test procedures
 
 **First-run bootstrap:** if the target project lacks `.claude/rules/` or
-`agent/docs/`, the skill asks once whether to scaffold them before proceeding.
+`agents/docs/`, the skill asks once whether to scaffold them before proceeding.
 
 **Requires:** `git`, `jq`, `bash` 3.2+.
 
@@ -29,7 +29,7 @@ changes are committed in a single `chore(retro): …` commit in the target proje
 
 Fires on testing-related intent ("write a test for X", "how do we test Y",
 "add a smoke test", "what's the test plan"). Reads
-`agent/docs/testing-knowledge.md` (produced by `retro`) plus testing-related
+`agents/docs/testing-knowledge.md` (produced by `retro`) plus testing-related
 `.claude/rules/*.md`, dispatches a subagent to rank relevance against the
 current session context, confirms the candidate set via an approval table,
 then injects approved entries verbatim into the session.
