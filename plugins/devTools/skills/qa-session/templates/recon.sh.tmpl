@@ -1,0 +1,48 @@
+#!/usr/bin/env bash
+# recon.sh — host-supplied route discovery for this platform.
+#
+# Called by the qa-session orchestrator BEFORE the Planner runs. Emits
+# a JSON object to stdout describing routes/pages discovered in the
+# current codebase. The Planner reads this alongside the diff to
+# decide which charters touch changed code.
+#
+# This is a TEMPLATE. Edit it to match your project's router.
+#
+# Output schema (strict):
+#   {
+#     "routes": [
+#       { "path": "/login",    "component": "src/components/auth/login-screen.tsx" },
+#       { "path": "/chat",     "component": "src/components/chat/chat-view.tsx" },
+#       { "path": "/settings", "component": "src/components/settings/settings-screen.tsx" }
+#     ],
+#     "framework": "preact|react|vue|svelte|other",
+#     "notes": "free text about discovery method"
+#   }
+#
+# Empty `routes` is acceptable for SPAs without explicit routing — the
+# Planner will fall back to charter frontmatter for area mapping.
+set -euo pipefail
+
+command -v jq >/dev/null || { echo '{"routes": [], "framework": "unknown", "notes": "jq missing"}'; exit 0; }
+
+# ---------------------------------------------------------------------------
+# Example: Preact app with route components in src/components/<area>/
+# Replace this with your own discovery. Common shapes below — uncomment
+# and adapt the one that matches.
+# ---------------------------------------------------------------------------
+
+# Vite + Preact (component-named-by-screen):
+#   find webapp/src/components -name '*-screen.tsx' \
+#     | jq -R . | jq -s 'map({path: ("/" + (split("/")|last|sub("-screen.tsx";""))), component: .})'
+
+# Next.js app router:
+#   find app -name 'page.tsx' -o -name 'page.ts' \
+#     | sed 's|app||; s|/page\.[jt]sx\?$||; s|^$|/|' \
+#     | jq -R . | jq -s '{routes: map({path: .})}'
+
+# Generic fallback — emit empty.
+jq -n '{
+  routes: [],
+  framework: "unknown",
+  notes: "edit qa/<platform>/recon.sh to discover this project'"'"'s routes"
+}'

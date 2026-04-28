@@ -4,6 +4,83 @@ Developer productivity skills for software engineering workflows.
 
 ## Skills
 
+### `qa-session` — generalized session-based QA agent
+
+Invoke with `/qa-session [platform] [charter-id?]` (or phrases like "run
+qa", "smoke test the app", "find bugs and bad UX") to drive a real
+browser through risk-ranked exploratory charters and surface both
+confirmed bugs and "weird, not sure yet" issues.
+
+The skill is built on James Bach's Session-Based Test Management:
+
+- **Charters** are one-paragraph missions (`qa/<platform>/charters/*.md`).
+- **Explorer subagent** drives the browser via the Playwright MCP and
+  takes free-form Markdown session notes — RST session-sheet style
+  with inline `!` (setup), `?` (open question), `#` (tag) markers. It
+  does not classify findings during the session.
+- **Reporter subagent** runs a PROOF debrief (Past / Results /
+  Outlook / Obstacles / Feelings) over all session logs and lifts
+  items into either confirmed `bugs` (RIMGEA-formatted, deduped
+  against the corpus) or `issues` (the "weird, not sure yet" pile —
+  this is where bad UX, design oversights, and perceptual hunches
+  live).
+
+**Per-platform isolation in the target project:**
+
+```
+qa/web/
+├── config.yml                  # base_url, stack lifecycle, risk weights
+├── charters/                   # one .md per mission
+├── findings/
+│   ├── bugs/<id>.json          # one file per confirmed bug; auto-closes after N misses
+│   └── issues.md               # running pile of pre-bug observations
+├── index.json                  # script-regenerated; Planner reads
+├── oracles.md                  # which built-in oracles + project-specific extras
+├── recon.sh                    # host-supplied route discovery (template provided)
+└── sessions/<run-id>/          # gitignored per-run artifacts
+    ├── plan.json
+    ├── logs/<charter>.md       # Explorer's free-form session log
+    ├── screenshots/
+    ├── reporter-output.json
+    └── session-sheet.md
+```
+
+Adding mobile or backend platforms = create another `qa/<platform>/`
+directory with the matching `recon.sh` / `oracles.md` — no skill
+changes required.
+
+**First-run flow:** if `qa/<platform>/` doesn't exist, the skill
+scaffolds it from `templates/` (config, login charter, smoke charter,
+oracles declaration, recon.sh) and asks you to fill in the base URL
+and stack bringup commands before the first real run.
+
+**Self-improvement:** every run appends to the bugs corpus and the
+issues file; next run's Planner reads `index.json` to risk-bias toward
+areas with recurring bugs and high issue counts. The skill never
+rewrites itself — distillation of recurring issues into new oracles
+or charters is a separate `/retro` activity.
+
+**What ships in the skill (vs in your project):**
+
+| In the skill | In your `qa/<platform>/` |
+|--------------|--------------------------|
+| Planner / Explorer / Reporter subagent prompts (inline in SKILL.md) | `config.yml`, `charters/*.md`, `findings/*`, `oracles.md` |
+| Orchestrator + scaffold/recon/commit scripts | `recon.sh` (host-supplied) |
+| Canonical oracle library (`oracles/{shared,web}.md`) | Per-platform `oracles.md` declaration + project-specific oracles |
+| Templates (config / charters / oracles / recon) | — |
+
+**Requires:** `git`, `jq`, `bash` 3.2+, and the Playwright MCP plugin
+(`@playwright/mcp` via the Claude Code marketplace).
+
+**Limitations in v1:**
+- Charters run serially. Concurrency-key parallelism lands in v1.1.
+- Stack bringup via `config.yml stack.setup` is declarative; an
+  optional first-run scaffolder that drafts the block from the
+  codebase is planned for v1.1.
+- Web platform only. The shape works for any platform — adding mobile
+  is "write `oracles/mobile.md` and use an Appium-equivalent MCP" —
+  but no other platform ships out of the box yet.
+
 ### `retro` — run a retrospective on a completed feature branch
 
 Invoke with `/retro` (or phrases like "run a retro on this branch") when a

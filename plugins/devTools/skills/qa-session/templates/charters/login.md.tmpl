@@ -1,0 +1,73 @@
+---
+id: login
+area: auth
+auth: fresh
+concurrency_key: auth-state
+risk_hint: high
+oracles:
+  - shared.console-error-free
+  - shared.network-no-5xx
+  - shared.few-hiccupps.user-expectations
+  - web.aria-required-fields
+role: default   # which auth profile this charter produces a seed for
+---
+
+# Charter: login
+
+**Mission:** Exercise the login UI from a fresh browser context. Confirm
+that a real user can authenticate, that the app lands on its post-login
+view, and that no oracle fires during the flow.
+
+## Why this charter exists
+
+A login charter is the only charter that runs with `auth: fresh` (no
+saved storage state). It validates the login UI for its own sake AND
+produces the saved auth profile (`.playwright/profiles/<role>.json`)
+that all other `auth: seeded` charters consume. If this charter fails,
+all seeded charters in the run will fall back to manual seeding.
+
+## Preconditions
+
+- Stack is up at the configured `base_url`.
+- At least one valid user account exists in the app's user table.
+- The login credentials are available — either in the invocation
+  context, or via a manual prompt during the session. **Do not** read
+  credentials from `.env`, `~/.zshrc`, or any file the agent shouldn't
+  open. Ask the user if missing.
+
+## Suggested steps
+
+These are guidance for the Explorer, not a rigid script. Deviate if
+the rendered UI suggests a better path.
+
+1. Open `[base_url]` in a fresh browser context (no storage state).
+2. Confirm the unauthenticated landing screen renders without console
+   errors and without 5xx network responses.
+3. Initiate the login flow (click avatar, "Sign in" button, etc.).
+4. Enter valid credentials; submit.
+5. Confirm the post-login view loads and at least one
+   user-identifying element is visible (avatar, name, "Hello, X").
+6. Save the resulting browser storage state to
+   `qa/<platform>/.playwright/profiles/<role>.json`.
+7. Optionally exercise one negative path (wrong PIN, wrong password)
+   in a second fresh context — confirm the error message is human-
+   readable and the app does NOT navigate to the post-login view.
+
+## Things to actively look for
+
+- Console errors during any step — fire `console-error-free`.
+- 5xx HTTP responses — fire `network-no-5xx`.
+- Required form fields without `aria-required` — fire
+  `aria-required-fields`.
+- "Loading..." that never resolves; spinners that disappear without
+  the page actually changing.
+- Error messages that are missing, blank, or in technical jargon
+  ("ECONNREFUSED" should never reach the user).
+- Any UI text that contradicts itself across the screen (e.g., "Logged
+  in" header above a "Sign in" button).
+
+## Notes for the Reporter
+
+Bugs from this charter are usually high-priority because they block all
+other seeded charters. UX issues (small font, awkward focus order, slow
+spinner) belong in `issues`, not `bugs`, unless they're blocking.

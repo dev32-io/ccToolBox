@@ -1,0 +1,67 @@
+# qa-session config — web platform.
+#
+# Edit this file before the first /qa-session run. Required fields are
+# marked REQUIRED. Defaults apply where unset.
+
+# Base URL for the running app. The Explorer's first browser_navigate
+# call goes here. Use https:// even for localhost if the app uses TLS.
+base_url: https://localhost:8888  # REQUIRED — replace
+
+# Stack lifecycle. The orchestrator runs `setup` commands in order,
+# polls the healthcheck until 200, runs charters, then runs `teardown`
+# per the `when:` policy.
+stack:
+  setup:
+    # Each command runs in order. Non-zero exit prompts the user
+    # (retry / assume-running / abort).
+    - command: echo "TODO: replace with your stack bringup command"
+      cwd: "."  # repo-root-relative
+    # Examples:
+    # - command: docker compose -f deploy/docker/docker-compose.yml up -d gateway
+    #   cwd: "."
+    # - command: pnpm dev:server
+    #   cwd: webapp
+  health_check:
+    url: https://localhost:8888/healthz
+    timeout_s: 60
+    insecure: true   # accept self-signed certs on localhost
+  teardown:
+    - command: echo "TODO: replace with your teardown (or leave empty to keep stack up)"
+      cwd: "."
+    when: always   # always | on_failure | never
+
+# Browser session budget per charter. Soft cap is the polite stop
+# point; hard cap aborts. Tune up if Explorers are stopping too early
+# on complex flows; tune down if they're spinning.
+session_budget:
+  tool_calls: 100
+  max_tool_calls: 200
+
+# Risk-ranking formula weights. The Planner subagent computes a
+# baseline score per charter using:
+#   risk = lines_changed_in_charter_areas * lines_changed
+#        + recent_recurrence_count        * recent_recurrence
+#        + recent_issue_count             * recent_issues
+#        + days_since_last_run            * days_since
+risk_weights:
+  lines_changed: 1.0
+  recent_recurrence: 2.0
+  recent_issues: 0.5
+  days_since: 0.1
+
+# Findings lifecycle.
+auto_close_after_misses: 3   # bug auto-closes after N consecutive runs not seeing it
+
+# Auth seeds.
+auth:
+  profile_max_age_hours: 24  # treat saved Playwright storage as stale beyond this
+
+# Override parent branch detection. When unset, the orchestrator tries
+# git config qa-session.baseBranch, then `develop`, then a scan-based
+# heuristic (see scripts/detect_context.sh).
+parent_branch_override: ""
+
+# Parallelism (v1.1+). Charters with the same `concurrency_key` run
+# serially; charters with no key run parallel up to this limit. v1
+# ignores this and runs everything serially.
+parallelism: 3

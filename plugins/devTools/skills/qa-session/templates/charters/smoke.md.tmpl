@@ -1,0 +1,67 @@
+---
+id: smoke
+area: '*'
+auth: seeded
+concurrency_key: null
+risk_hint: medium
+oracles:
+  - shared.console-error-free
+  - shared.network-no-5xx
+  - shared.few-hiccupps.product-consistency
+  - shared.few-hiccupps.history
+  - web.no-blank-render-after-3s
+  - web.no-broken-images
+---
+
+# Charter: smoke
+
+**Mission:** Walk the application's most-used user paths end-to-end in
+under 90 seconds. Confirm the happy path works on every touched
+surface; surface anything that looks visually off or behaves
+unexpectedly along the way.
+
+## Why this charter exists
+
+Smoke is the always-run charter — it runs every QA session regardless
+of diff content, and it's intentionally broad. The Planner ranks it at
+or near the top whenever any non-trivial diff exists. A failing smoke
+is a hard signal not to merge.
+
+## Preconditions
+
+- Stack is up at the configured `base_url`.
+- A fresh `qa/<platform>/.playwright/profiles/default.json` exists (the
+  login charter will run first if not).
+
+## Suggested touchpoints
+
+Edit this list for your app. The Explorer should hit each touchpoint,
+inspect it briefly, and move on. Deep exploration is what other
+charters are for.
+
+1. Authenticated landing view — does it render? are core widgets present?
+2. Primary navigation — can you reach the top 3 sections?
+3. The most common user action (send a message, save a note, place an
+   order, etc.) — execute it once with valid input.
+4. The most common read action (view a list, open a detail view) —
+   exercise it once.
+5. Sign-out (if applicable) — confirm the app returns to the
+   unauthenticated state cleanly.
+
+## Things to actively look for
+
+- Anything from the platform's enabled oracles list.
+- Console errors or 5xx responses on any touchpoint.
+- Visual jank: layout shift after load, broken images, overlapping
+  text, off-canvas content.
+- Buttons that don't respond, or respond after a noticeable delay
+  (>1 s without feedback).
+- Any "stuck" state — spinners that never resolve, modals that won't
+  close, focus traps.
+
+## Notes for the Reporter
+
+Smoke is broad-and-shallow by design. Most findings from smoke will be
+issues, not bugs. A confirmed bug here usually means the build itself
+is broken — flag it as severity:critical and surface in the
+`needs_fixer_agent` handoff.

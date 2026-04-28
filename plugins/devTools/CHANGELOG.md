@@ -1,5 +1,54 @@
 # Changelog
 
+## 1.5.0 — 2026-04-27
+
+- `qa-session`: new skill. Generalized session-based QA agent that
+  catches functional bugs *and* bad UX (visual issues, weird
+  behaviors, design oversights) by running risk-ranked exploratory
+  charters through a Planner / Explorer / Reporter subagent split.
+  Methodology is James Bach's Session-Based Test Management: a
+  charter is a one-paragraph mission, the Explorer takes free-form
+  Markdown notes during a real browser session (RST session-sheet
+  style with inline `!` `?` `#` tags — no pre-classification), and
+  the Reporter does a PROOF-style debrief (Past, Results, Outlook,
+  Obstacles, Feelings) that lifts items into either confirmed
+  `bugs` (RIMGEA-formatted JSON) or `issues` (the "weird, not sure
+  yet" pile).
+- `qa-session`: per-platform isolation. The skill operates on
+  `qa/<platform>/` in the target project — each platform owns its
+  own `config.yml`, `charters/`, `findings/{bugs/,issues.md}`,
+  `index.json`, `oracles.md`, and `recon.sh`. Adding mobile or
+  backend support is "create another platform directory," not a
+  skill change.
+- `qa-session`: scaffolds the platform tree on first run from
+  `templates/` (config, login charter, smoke charter, oracles,
+  recon.sh) and gitignores per-run `sessions/` + `.playwright/`
+  artifacts.
+- `qa-session`: ships a canonical oracle library (`shared.md`,
+  `web.md`) covering FEW HICCUPPS, console errors, network
+  failures, layout shift, focus visibility, COOP/COEP, broken
+  images, blank renders, and tap-target sizing. Charters reference
+  oracles by name; new project-specific oracles can be authored in
+  the platform's `oracles.md`.
+- `qa-session`: parent-branch detection adapted from `retro` —
+  `qa-session.baseBranch` git config override → `develop` →
+  scan-based newest-merge-base heuristic → fallback chain. Diff
+  scoped to that base feeds the Planner's risk ranking.
+- `qa-session`: hybrid risk ranking. Skill computes a deterministic
+  baseline score (lines changed × weight + recent recurrences +
+  recent issue count + days since last run); Planner subagent
+  re-ranks where qualitative judgment beats the formula. Charters
+  the diff doesn't touch can still run if their corpus footprint
+  has high recurrence.
+- `qa-session`: bug auto-close after N consecutive runs not seeing
+  the same fingerprint (default 3, configurable). Prevents corpus
+  rot without losing history — entries flip to `auto-closed-stale`
+  rather than being deleted.
+- `qa-session`: handoff is multi-trigger and never silent. Reporter
+  splits findings into `needs_human` (perceptual judgment, design
+  intent decisions) and `needs_fixer_agent` (confirmed bugs with
+  repro). Skill never edits application source.
+
 ## 1.4.2 — 2026-04-26
 
 - `retro` / `recall-test-knowledge`: fix path typo `agent/docs/` →
