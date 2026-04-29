@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.5.1 — 2026-04-28
+
+- `qa-session`: support comma-separated charter ids in the invocation
+  argument. `/qa-session <platform> <id1>,<id2>,...` runs that exact
+  subset; unknown ids fail loud with the available list rather than
+  silently skipping. Single-id invocation is unchanged. Lets you run
+  e.g. `smoke,design-refresh` together without dragging `login` along
+  when the seed is already fresh.
+
 ## 1.5.0 — 2026-04-27
 
 - `qa-session`: new skill. Generalized session-based QA agent that

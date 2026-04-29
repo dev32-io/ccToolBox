@@ -6,10 +6,16 @@ Developer productivity skills for software engineering workflows.
 
 ### `qa-session` — generalized session-based QA agent
 
-Invoke with `/qa-session [platform] [charter-id?]` (or phrases like "run
-qa", "smoke test the app", "find bugs and bad UX") to drive a real
-browser through risk-ranked exploratory charters and surface both
-confirmed bugs and "weird, not sure yet" issues.
+Invoke with `/qa-session [platform] [charter-id-or-comma-list?]` (or
+phrases like "run qa", "smoke test the app", "find bugs and bad UX")
+to drive a real browser through risk-ranked exploratory charters and
+surface both confirmed bugs and "weird, not sure yet" issues.
+
+Examples:
+- `/qa-session web` — full set (login + smoke + everything else).
+- `/qa-session web smoke` — just smoke.
+- `/qa-session web smoke,design-refresh` — smoke and design-refresh
+  together, skipping login (use when your auth seed is fresh).
 
 The skill is built on James Bach's Session-Based Test Management:
 

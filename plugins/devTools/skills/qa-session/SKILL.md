@@ -72,15 +72,31 @@ plugin. Install it via the Claude Code plugin marketplace, then re-run.`
 
 ## Step 1 — Preamble and scope
 
-The skill is invoked one of three ways:
+The skill is invoked one of four ways:
 
 - `/qa-session` (no args) — list active platforms under `qa/`, ask user to pick.
 - `/qa-session <platform>` — run the full charter set for that platform.
 - `/qa-session <platform> <charter-id>` — run only that one charter.
+- `/qa-session <platform> <id1>,<id2>,...` — run a comma-separated subset
+  of charters (no whitespace around commas; whitespace inside any single
+  id is invalid). Unknown ids → stop with a clear error listing the
+  available ids; do NOT silently skip.
 
 Active platforms are subdirectories under `qa/` that contain a
 `config.yml`. If `qa/` doesn't exist or has no platforms, route to
 **Step 3** (first-run scaffold) with the user picking a platform name.
+
+When a charter argument is present, parse it as a list:
+
+- Split on `,` (no surrounding whitespace).
+- Each segment must match an existing `<id>` declared in some
+  `qa/<platform>/charters/*.md` frontmatter.
+- If any id is unknown, stop with:
+  `qa-session: charter id '<bad-id>' not found. Available: <id1>, <id2>, ...`
+- Empty list (e.g. trailing comma) is an error.
+
+Pass this list as `charter_filter` through Steps 4–7. A single-id
+invocation is just a one-element list.
 
 Print the preamble (markdown):
 
@@ -183,7 +199,7 @@ Use the `Agent` tool with `subagent_type: "general-purpose"`. Prompt:
 > - Findings index: `[index_path]` (may be empty `{}` on first run)
 > - Diff: `[diff_path]`
 > - Baseline risk scores (computed above): `[JSON dict charter-id → score]`
-> - Single-charter filter (if user passed one): `[charter-id or null]`
+> - Charter filter (if user passed any): `[JSON array of charter-ids, or null for "no filter"]`
 >
 > **What to do:**
 > 1. Read each charter's frontmatter and mission. Note `auth`,
@@ -194,9 +210,13 @@ Use the `Agent` tool with `subagent_type: "general-purpose"`. Prompt:
 > 4. Re-rank the baseline scores ONLY where you can articulate why
 >    (e.g. "auth flow refactored in this diff — login charter must run
 >    even though formula score is low"). Do not invent novel risk.
-> 5. If a single-charter filter is set, return only that charter.
-> 6. If no charter applies (empty diff, no changes near any charter),
->    keep the smoke charter at minimum and note the situation.
+> 5. If a charter filter is set (non-null), return only charters whose
+>    `id` is in the filter list. Preserve risk-rank order within that
+>    subset. Skip the auto-smoke fallback in this case — the user
+>    explicitly named what they want.
+> 6. If no charter applies (empty diff, no changes near any charter)
+>    AND no filter was set, keep the smoke charter at minimum and note
+>    the situation.
 >
 > **Output (JSON only, to stdout, no markdown fences, no prose):**
 > ```json
