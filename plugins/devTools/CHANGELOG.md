@@ -1,5 +1,39 @@
 # Changelog
 
+## 1.5.2 — 2026-04-29
+
+- `qa-session`: ruthlessly visual. The Explorer was passing console- and
+  network-clean runs while obvious defects (overlapping icons in a
+  voice tile, click-to-select changing tile size and rewrapping
+  description text) sailed past. Three changes:
+  1. **New visual oracles** in `oracles/web.md`:
+     `web.no-element-overlap`, `web.consistent-grid-tile-size`,
+     `web.no-jarring-reflow-on-interact`, `web.no-text-clipping`,
+     `web.no-loading-flash`, `web.alignment-and-spacing`. All are
+     screenshot-eye checks, not just DOM queries — designed to catch
+     defects that look fine in code.
+  2. **New `shared.design-critique` meta-oracle** establishing the
+     "senior designer + frustrated real user" mindset and a fixed
+     critique checklist (alignment, sizing consistency, overlap,
+     truncation, spacing, interaction sense, animation, "would a
+     designer ship this?").
+  3. **Explorer prompt** now mandates a visual-critique pass after
+     every screenshot, a compare-pair pass for grids/lists with
+     before/after screenshots, and a final design-walkthrough section
+     before closing. Lower bar for `?` tags — no visual / UX nit is
+     too small to flag.
+  4. **Reporter classification loosened**: visible visual / UX defects
+     captured in screenshots with reproducible repro steps and clear
+     expected-vs-actual descriptions are now first-class **bugs**, not
+     just "issues." Issues are reserved for genuinely unverifiable
+     hunches and tester-blockers. An anti-bias check tells the Reporter
+     to re-read the visual `?` lines if fewer than ~50% became bugs.
+  5. **`templates/oracles.md.tmpl`** now enables the new visual
+     oracles by default in scaffolded platforms. **Existing platform
+     `qa/<platform>/oracles.md` files are not auto-migrated** — add
+     the new oracle lines manually if you want them on existing
+     projects.
+
 ## 1.5.1 — 2026-04-28
 
 - `qa-session`: support comma-separated charter ids in the invocation

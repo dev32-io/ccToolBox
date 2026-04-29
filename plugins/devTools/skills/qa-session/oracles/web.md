@@ -141,6 +141,162 @@ of poll loops or leaked subscriptions.
 
 ---
 
+## web.no-element-overlap
+
+**Checks:** Visible UI elements don't unintentionally overlap each other.
+Icons don't sit on top of text. Action buttons don't cover content.
+Badges / decorations don't collide with the labels they're attached to.
+
+**How to detect:** This is primarily a **screenshot judgment** call,
+not a DOM query — overlapping elements often pass `getBoundingClientRect`
+sanity checks because they're absolutely positioned by design. After
+every screenshot, look at it as a user. Trace each interactive element
+and ask: is anything sitting on top of something else? Is text legible
+where icons / play buttons / checkmarks land?
+
+A useful complement: `browser_evaluate` to inspect `z-index` stacks and
+overlapping bounding boxes for elements within the same container, but
+the screenshot eye is the primary detector.
+
+**Severity hint:** minor for decorative overlaps a user can ignore;
+major when overlap obscures content or controls; critical when it
+makes the action ambiguous (which button am I clicking?).
+
+---
+
+## web.consistent-grid-tile-size
+
+**Checks:** Items in a repeating list / grid / row container have
+consistent dimensions. If one card is taller, wider, or laid out
+differently from its siblings without an obvious design reason
+(e.g. "featured" badge, hovered state), fire.
+
+**How to detect:** When a screen contains a list/grid of similar items
+(voices, personalities, models, conversation history, etc.), capture
+a screenshot showing several at once. Look at them side by side. Are
+all tiles the same height? Same width? Same internal layout?
+
+If clicking one tile changes its size or internal layout while the
+siblings remain unchanged, that's almost always a defect — fire and
+record both before/after screenshots.
+
+`browser_evaluate` can confirm:
+```js
+Array.from(document.querySelectorAll('[data-tile-selector]'))
+  .map(el => ({ w: el.offsetWidth, h: el.offsetHeight }));
+```
+Variance > a few pixels in a "should be uniform" container → fire.
+
+**Severity hint:** minor for slight rendering differences; major when
+the inconsistency makes the active selection ambiguous or breaks the
+visual rhythm of the page.
+
+---
+
+## web.no-jarring-reflow-on-interact
+
+**Checks:** Clicking, selecting, hovering, or focusing an element
+should not cause significant layout shift in surrounding content.
+Selecting a tile in a grid should NOT make that tile resize, push
+neighbors, or change its internal text wrapping.
+
+**How to detect:** Before any meaningful interaction (click on a tile,
+toggle, expand), take a screenshot. Perform the interaction. Take
+another screenshot. Compare the two visually:
+
+- Did the clicked element change dimensions?
+- Did siblings shift position?
+- Did text rewrap inside the clicked element?
+- Did the page jump / scroll position change unexpectedly?
+
+If any of those occurred, fire. Capture both screenshots.
+
+A confirmed-selected indicator (border, checkmark, color change) is
+expected and good. A reflow that resizes the tile or rearranges its
+contents is the defect this oracle catches.
+
+**Severity hint:** minor for tiny reflows; major when the reflow is
+disorienting or pushes content the user was aiming at.
+
+---
+
+## web.no-text-clipping
+
+**Checks:** Text doesn't clip mid-word, get cut off by container
+edges, or overflow into adjacent elements. Designed truncation (CSS
+`text-overflow: ellipsis` with the `…` glyph visible) is acceptable;
+hard clipping, unintended truncation, or text that visibly extends
+past its container is not.
+
+**How to detect:** Screenshot judgment. Read every visible text block
+in each screenshot. If you see text that ends abruptly mid-word
+without an ellipsis, or text bleeding past its container's apparent
+boundary, fire.
+
+DOM complement:
+```js
+Array.from(document.querySelectorAll('*'))
+  .filter(el => el.scrollWidth > el.clientWidth + 1
+             || el.scrollHeight > el.clientHeight + 1)
+  .filter(el => getComputedStyle(el).overflow === 'hidden')
+  .map(el => ({ tag: el.tagName, text: el.innerText.slice(0,60) }));
+```
+Non-empty result → fire (cross-check against intentional truncation
+patterns by inspecting whether ellipsis CSS is set).
+
+**Severity hint:** minor for cosmetic clip; major when clipping hides
+information the user needs (e.g. truncated description, cut-off
+button label).
+
+---
+
+## web.no-loading-flash
+
+**Checks:** No visibly jarring content flash during initial render,
+hot reactions, or state transitions. Examples: page renders
+unstyled-then-styled, component pops in late, skeleton briefly shows
+then real content with different layout, modal appears at wrong size
+then resizes.
+
+**How to detect:** During every navigation or significant action that
+re-renders content, watch attentively. If you see two distinct visual
+states in rapid succession that don't feel like a designed transition
+(fade, slide, etc.), fire.
+
+`PerformanceObserver` for `layout-shift` (see `web.no-layout-shift-after-load`)
+helps quantify, but the human-eye signal is primary: "did I see
+something flash that shouldn't have flashed?"
+
+**Severity hint:** minor for sub-100ms cosmetic flashes; major when
+the flash makes the page feel broken or unprofessional, or when it
+flashes content the user shouldn't see (e.g. error state briefly
+visible during a successful flow).
+
+---
+
+## web.alignment-and-spacing
+
+**Checks:** Elements within and across containers are aligned and
+spaced consistently. Cards in a row align to the same top baseline.
+Form fields share a consistent gutter. Buttons in a button row don't
+have random gaps. Internal padding of similar containers matches.
+
+**How to detect:** Screenshot inspection. For each composite layout,
+trace imaginary alignment lines:
+
+- Do the tops / bottoms / left edges of sibling cards line up?
+- Is the spacing between siblings the same throughout the row?
+- Do labels and their fields share the same baseline?
+- Does the internal padding of cards / panels feel intentional and
+  uniform across siblings?
+
+Misalignments of more than ~2px that aren't designed asymmetry → fire.
+
+**Severity hint:** minor (polish issues), but cumulative misalignment
+in a primary flow is a major sign that something rendered wrong.
+
+---
+
 ## web.coop-coep-headers-when-needed
 
 **Checks:** If the app uses `SharedArrayBuffer` (AudioWorklet,

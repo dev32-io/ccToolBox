@@ -164,3 +164,54 @@ context. If repro is unclear, the finding goes to `issues` not `bugs`,
 and Reporter notes "needs better repro" as the issue's open question.
 
 **Severity hint:** N/A — meta-oracle only.
+
+---
+
+## shared.design-critique
+
+**Checks:** (Meta-oracle, mindset.) Every visible state — every screenshot,
+every layout, every interaction outcome — must withstand the eye of a
+critical senior designer and a frustrated real user. "It works" is not
+enough. "It looks good in code" is not enough. The question is: would a
+team that cares about polish ship this?
+
+This oracle exists to counteract the Explorer's natural bias toward
+technical correctness (no console error → "passes"). Many of the worst
+defects in shipped software are perfectly correct in code and obviously
+broken to anyone looking at the screen.
+
+**How to detect:** After every screenshot and after every interaction
+that changes the visible state, the Explorer pauses and runs this
+checklist out loud in the session log (1–2 sentences each, with `?`
+when something is off):
+
+- **Layout & alignment** — are elements aligned to the same baseline /
+  edge as their siblings? Is the visual rhythm consistent?
+- **Sizing consistency** — do items in a list/grid/repeated container
+  have the same dimensions? Did one tile suddenly grow / shrink because
+  of state change?
+- **Overlap & collision** — do icons sit on top of text? Do badges
+  cover content? Do floating buttons block what they're attached to?
+- **Truncation & overflow** — does text clip awkwardly mid-word, push
+  out of its container, or break the layout?
+- **Spacing** — does padding feel intentional and consistent, or
+  cramped/random in places?
+- **Interaction sense** — does what just happened make sense for the
+  thing the user clicked? Did clicking "select" cause the tile to
+  resize, change content layout, or shove neighbors? Is selection
+  ambiguous (no visible indicator) or over-loud (whole layout
+  rearranges)?
+- **Animation & transitions** — janky? Missing? Too long? Stuttering?
+  Loading flashes between states?
+- **Empty / loading states** — do skeletons match the eventual content
+  shape, or do they shift the layout when real data arrives?
+- **"Would a designer ship this?"** — close one eye and look. If the
+  answer is "I'd ask the designer to fix that before merge," fire.
+
+**Lower the bar. No visual / UX defect is too small to flag.** The
+Reporter judges severity later. Your job is to NOTICE.
+
+**Severity hint:** varies. Visual polish bugs that affect a single
+non-critical view are minor; broken layouts on primary flows are
+major; a defect that misleads the user about what's selected /
+happening is major-to-critical.

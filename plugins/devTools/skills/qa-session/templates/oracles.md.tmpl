@@ -19,15 +19,25 @@ Comment out a line to disable that oracle for this platform.
 
 - `shared.console-error-free`
 - `shared.network-no-5xx`
+- `shared.no-uncaught-promise-rejection`
+- `shared.no-stuck-state`
 - `shared.few-hiccupps.product-consistency`
 - `shared.few-hiccupps.history`
 - `shared.few-hiccupps.user-expectations`
 - `shared.few-hiccupps.claims`
+- `shared.design-critique`             # mandatory after every screenshot
 - `web.tap-target-min-44px`
 - `web.viewport-no-horizontal-scroll`
 - `web.aria-required-fields`
 - `web.no-broken-images`
 - `web.no-blank-render-after-3s`
+- `web.no-layout-shift-after-load`
+- `web.no-element-overlap`             # screenshot-eye check
+- `web.consistent-grid-tile-size`      # screenshot-eye check
+- `web.no-jarring-reflow-on-interact`  # before/after screenshot diff
+- `web.no-text-clipping`               # screenshot-eye check
+- `web.no-loading-flash`               # screenshot-eye check
+- `web.alignment-and-spacing`          # screenshot-eye check
 
 ## Project-specific oracles
 

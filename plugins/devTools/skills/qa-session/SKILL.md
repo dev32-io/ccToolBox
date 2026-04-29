@@ -325,10 +325,22 @@ Dispatch the Explorer subagent. Use `Agent` tool with
 > notes, and capture evidence. You do NOT classify findings as bugs or
 > issues — that happens later. Your only output is a session log.
 >
+> **Mindset: senior designer + frustrated real user, NOT compiler.**
+> The whole point of this run is catching defects that "look fine in
+> code." Console-clean and network-clean are NOT a passing grade. A
+> screen that ships with overlapping icons, inconsistent tile sizes,
+> jarring reflow on click, clipped text, or unpolished animation IS a
+> defect, even if every oracle that checks DOM attributes passes. Be
+> ruthlessly critical. **Lower the bar for `?` tags.** No visual or
+> UX nit is too small to flag. The Reporter will judge severity later;
+> your job is to NOTICE.
+>
 > **Methodology: RST session-sheet style.** Write timestamped Markdown
 > prose as you work. Use inline tags:
 > - `!` — setup or environmental note ("! browser launched at 2026-04-27 18:04:21Z")
-> - `?` — open question or "is this expected?" ("? speaking indicator dropped before audio finished — intentional?")
+> - `?` — open question, "is this expected?", or visual / UX defect
+>   ("? play icon overlaps the description text in the selected voice
+>   tile — looks unintentional")
 > - `#` — topic tag ("#auth #login")
 > - Plain prose for what you did and what you saw
 > - Inline screenshot references: `![desc](screenshots/<filename>.png)`
@@ -369,18 +381,60 @@ Dispatch the Explorer subagent. Use `Agent` tool with
 >    find something interesting.
 > 4. After every meaningful step, write a one-line note in the session
 >    log with timestamp. Capture screenshots into `[session_dir]/screenshots/`
->    when something is visually noteworthy or anomalous.
-> 5. Actively check the platform's oracles (e.g. `console-error-free`,
->    `network-no-5xx`, `few-hiccupps.product-consistency`). Note any
->    oracle that fires in the log with a `?` and the oracle name.
-> 6. When the charter mission is complete (or the soft tool-call cap is
+>    liberally — any time the visible state changes, before AND after
+>    significant interactions, and any time something looks even mildly
+>    off. Screenshots are the primary evidence the Reporter uses to
+>    validate visual defects; under-capturing them is the #1 way obvious
+>    bugs slip past the run.
+> 5. Actively check the platform's oracles. Two categories:
+>    - **Technical signals** (run periodically): `console-error-free`,
+>      `network-no-5xx`, `no-uncaught-promise-rejection`,
+>      `viewport-no-horizontal-scroll`, etc. Note any fire with `?` +
+>      oracle name.
+>    - **Visual / UX critique** (run after EVERY screenshot —
+>      non-negotiable): `shared.design-critique`,
+>      `web.no-element-overlap`, `web.consistent-grid-tile-size`,
+>      `web.no-jarring-reflow-on-interact`, `web.no-text-clipping`,
+>      `web.no-loading-flash`, `web.alignment-and-spacing`. Look at the
+>      screenshot as if you were a senior designer reviewing a PR.
+> 6. **Mandatory visual-critique pass after each screenshot.** Write a
+>    short critique paragraph in the session log. Use the
+>    `shared.design-critique` checklist explicitly:
+>    - Layout & alignment — siblings line up?
+>    - Sizing consistency — items in a list/grid the same size?
+>    - Overlap — icons over text? badges over content?
+>    - Truncation / overflow — text clipped without ellipsis?
+>    - Spacing — consistent padding and gaps?
+>    - Interaction sense — did clicking cause unexpected reflow / resize?
+>    - Animation — janky, missing, or too long?
+>    - "Would a designer ship this?" — close one eye and judge.
+>    Each item that's anything less than "looks polished" gets a `?`
+>    line. Do not skip this pass to save tokens — it is the run's
+>    primary value.
+> 7. **Compare-pair pass** for grids/lists/repeating containers. When
+>    the charter touches a list or grid (voices, personalities, models,
+>    cards, history, gallery), explicitly:
+>    - Capture a screenshot showing 3+ items at once.
+>    - Click / select one item.
+>    - Capture a second screenshot at the same scroll position.
+>    - Diff them visually: did the selected item resize? did siblings
+>      shift? did internal text rewrap? Any of those → `?` with the
+>      `web.no-jarring-reflow-on-interact` oracle name.
+> 8. When the charter mission is complete (or the soft tool-call cap is
 >    reached), close the browser cleanly (`browser_close`).
-> 7. Write a footer:
+> 9. **Final design walkthrough.** Before writing the footer, re-open
+>    the 3–5 most important screenshots from the session and write a
+>    "design walkthrough" section: bullet through each screenshot and
+>    list anything a critical designer would flag. This is where
+>    issues missed during fast exploration get caught. Tag each finding
+>    with `?` and the relevant oracle.
+> 10. Write a footer:
 >    ```
 >    Ended: [ISO timestamp]
 >    Steps taken: [count]
 >    Screenshots: [count]
 >    Open questions: [count of `?` lines]
+>    Visual-critique passes: [count]
 >    ```
 >
 > **Hard rules:**
@@ -432,22 +486,50 @@ Once all Explorers have completed, dispatch the Reporter subagent. Use
 > 4. **Obstacles** — what blocked the Explorers? Failed selectors,
 >    unreachable services, missing fixtures, ambiguous specs. These go
 >    to `issues` (they threaten the value of testing).
-> 5. **Feelings** — re-read the logs for "this felt wrong" prose that
->    isn't a confirmed bug. UX awkwardness, visual oddities, design
->    inconsistencies that don't violate a named oracle but are worth
->    flagging. These almost always go to `issues`.
+> 5. **Feelings** — re-read the logs for "this felt wrong" prose,
+>    visual-critique paragraphs, and design-walkthrough findings.
+>    Many of these will have screenshot evidence and should be
+>    promoted to `bugs` per the classification rules below — visual
+>    defects backed by screenshots are bugs, not "issues." Only
+>    findings that are genuinely vague ("the color palette feels
+>    cold") or unreproducible from the log belong in `issues`.
 >
 > **Classification rules (apply AFTER PROOF):**
-> - Promote a finding to `bugs` ONLY when ALL hold:
->   1. A named oracle fired (e.g. `console-error-free`,
->      `few-hiccupps.product-consistency`), OR a clear functional
->      regression occurred (action returned wrong result, UI did not
->      respond, etc.).
+> - Promote a finding to `bugs` when conditions (2) and (3) hold AND
+>   any one of (1a/1b/1c) holds:
+>   1a. A named technical oracle fired (e.g. `console-error-free`,
+>       `network-no-5xx`, `no-uncaught-promise-rejection`).
+>   1b. A clear functional regression occurred — action returned wrong
+>       result, navigation didn't happen, data wasn't saved, control
+>       didn't respond.
+>   1c. **A visible visual / UX defect was captured in a screenshot**
+>       and matches one of: `shared.design-critique`,
+>       `web.no-element-overlap`, `web.consistent-grid-tile-size`,
+>       `web.no-jarring-reflow-on-interact`, `web.no-text-clipping`,
+>       `web.no-loading-flash`, `web.alignment-and-spacing`,
+>       `web.no-broken-images`, `web.viewport-no-horizontal-scroll`,
+>       `web.no-blank-render-after-3s`, `web.no-layout-shift-after-load`.
+>       Visible defects with screenshot evidence are first-class bugs,
+>       not issues. Do not demote them to issues just because no
+>       JavaScript error fired.
 >   2. You can write numbered repro steps that another agent or human
->      could execute.
->   3. You can state expected vs actual in one line each.
-> - Otherwise → `issues`. The bias is toward issues; bugs require
->   evidence.
+>      could execute (or, for visual defects, "navigate to <route>,
+>      perform <action>, observe <visible state>").
+>   3. You can state expected vs actual in one line each. For visual
+>      defects: "Expected: tiles in voice grid are uniform size with
+>      a colored border on selection. Actual: selected tile expands
+>      40px taller and rewraps its description text."
+> - Otherwise → `issues`. Issues are for genuinely unverifiable hunches
+>   ("this color choice feels off but I can't articulate why"),
+>   tester-blockers (cert errors, missing fixtures), and
+>   missing-oracle gaps. **A visible defect with a screenshot is NOT
+>   an issue — it's a bug.**
+>
+> **Anti-bias check (run before finalizing):** count the number of
+> `?` lines in the session logs that reference visual / UX defects.
+> If you classified fewer than ~50% of those into `bugs`, re-read
+> them — you are probably being too conservative. Visual defects
+> with screenshots usually have enough evidence to be bugs.
 >
 > **Dedup rules:**
 > - Compute a fingerprint per candidate bug:
