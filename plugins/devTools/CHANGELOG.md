@@ -1,5 +1,14 @@
 # Changelog
 
+## 1.5.3 — 2026-05-02
+
+- `frustration-check`: hook output now uses the fully-qualified
+  skill identifier `devTools:frustration-check` instead of the bare
+  name `frustration-check`. Bare-name signals were causing Claude to
+  guess a wrong namespace (e.g. `superpowers:frustration-check`) and
+  fail with `Unknown skill`. With the prefix in the hook message,
+  Claude can invoke the Skill tool directly without guessing.
+
 ## 1.5.2 — 2026-04-29
 
 - `qa-session`: ruthlessly visual. The Explorer was passing console- and

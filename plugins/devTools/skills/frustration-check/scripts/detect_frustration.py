@@ -76,14 +76,14 @@ def _load_settings() -> dict:
 def _emit_frustration(score_before: float) -> None:
     print(
         f"[frustration-check] FRUSTRATION signal (score={score_before:.1f}). "
-        f"Invoke frustration-check skill in FRUSTRATION mode."
+        f"Invoke `devTools:frustration-check` skill in FRUSTRATION mode."
     )
 
 
 def _emit_assist() -> None:
     print(
         "[frustration-check] SELF-REALIZATION detected. "
-        "Invoke frustration-check skill in ASSIST mode."
+        "Invoke `devTools:frustration-check` skill in ASSIST mode."
     )
 
 
