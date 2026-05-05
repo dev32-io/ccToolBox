@@ -1,5 +1,33 @@
 # Changelog
 
+## 1.7.0 — 2026-05-04
+
+- New skill: `skill-distill`. Promote a great Claude Code session
+  into a reusable, generalized Skill. Distilled from the same
+  meta-pattern that produced `ui-refinement` itself.
+  - Five-phase flow mirroring `ui-refinement` so the experience is
+    familiar: Source → Research → Design → Plan + Approval → Ship.
+  - Reads source from one of three modes: current session transcript
+    (default — `~/.claude/projects/<proj>/<id>.jsonl`), user-supplied
+    transcript path, or free-text summary.
+  - Three-lens distillation method: user-prompt patterns (persona /
+    scope / autonomy framings), agent decisions that paid off (tool
+    choices, loop structures, scope guards), and course-corrections
+    (every pushback becomes a bright-line rule).
+  - Asks destination via `AskUserQuestion`: user-level, repo-level,
+    or custom path. Custom path probes for marketplace, single-plugin,
+    or plain repo and adapts the bookkeeping (plugin.json +
+    marketplace.json + CHANGELOG + README in lockstep when
+    applicable).
+  - Encodes its own magic ingredients: read before write, user prompts
+    are half the magic, course-corrections are bright lines, web-
+    search prior art, generalize across axes, description is the
+    trigger, bookkeeping in lockstep, commit message records the
+    distillation source.
+  - Files shipped: `SKILL.md`, three reference docs (skill format,
+    distill method, destination conventions), one persona, one
+    quality checklist, one design template.
+
 ## 1.6.0 — 2026-05-04
 
 - New skill: `ui-refinement`. A generalized, autonomous UI/UX

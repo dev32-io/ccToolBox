@@ -4,6 +4,34 @@ Developer productivity skills for software engineering workflows.
 
 ## Skills
 
+### `skill-distill` — promote a great session into a Skill
+
+Invoke with `/skill-distill` (or phrases like "distill this session
+into a skill", "save what we just did as a reusable skill") to turn a
+successful session into a reusable, generalized Skill.
+
+Five-phase flow mirroring `ui-refinement`:
+
+1. **Source** — pick the session to distill from: current transcript
+   (default), other transcript path, or free-text summary.
+2. **Research** — web-search prior art on the skill's domain, learn
+   Claude Code's frontmatter rules, inspect the destination's
+   conventions.
+3. **Design** — name + description (the trigger), file layout,
+   generalization axes, magic ingredients distilled via three lenses
+   (user-prompt patterns / agent decisions / course-corrections).
+4. **Plan + Approval** — present the skeleton; ask destination via
+   `AskUserQuestion`: user / repo / custom path.
+5. **Ship** — write files; if destination is a marketplace or plugin
+   repo, do plugin.json + marketplace + CHANGELOG + README in
+   lockstep; commit with a message that records the distillation
+   source.
+
+**Destination handling:** custom path is probed — marketplace plugin
+(detects `.claude-plugin/marketplace.json`), single-plugin repo,
+plain repo with `.claude/skills/`, or plain repo without — and the
+bookkeeping adapts.
+
 ### `ui-refinement` — autonomous visual UX iteration loop
 
 Invoke with `/ui-refinement [scope?]` (or phrases like "refine this UI",
