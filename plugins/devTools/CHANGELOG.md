@@ -1,5 +1,28 @@
 # Changelog
 
+## 1.6.0 — 2026-05-04
+
+- New skill: `ui-refinement`. A generalized, autonomous UI/UX
+  refinement loop driven by browser / simulator MCP tools. Distilled
+  from a real session that turned a "this mobile chat is bad" prompt
+  into 5 production commits via the live-inspect → critique →
+  implement → regression-check loop.
+  - Five-phase flow: Define → Setup → Plan → Execute → Done. Each
+    iteration pass runs a two-persona critique (senior-designer +
+    ruthless-tester) and a regression check across unaffected
+    viewports.
+  - Platform-agnostic: web (Playwright MCP / Chrome DevTools MCP),
+    iOS (simulator MCP / manual loop), Android (emulator MCP / adb).
+    Each platform has its own gating and viewport recipes.
+  - Encodes the success patterns: live inspection only, find more
+    than the listed defects, industry refs as inspiration not gospel,
+    design-system guardrail with sign-off escalation, both viewports
+    every pass, real running stack with real data, cost protection on
+    paid credentials.
+  - Files shipped: `SKILL.md`, two persona docs, three platform docs,
+    two checklists (visual critique + design-system guard), one plan
+    template. No scripts in v1.
+
 ## 1.5.3 — 2026-05-02
 
 - `frustration-check`: hook output now uses the fully-qualified

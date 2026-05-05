@@ -4,6 +4,44 @@ Developer productivity skills for software engineering workflows.
 
 ## Skills
 
+### `ui-refinement` — autonomous visual UX iteration loop
+
+Invoke with `/ui-refinement [scope?]` (or phrases like "refine this UI",
+"improve mobile UX", "polish the chat screen") to drive a five-phase
+loop on a live running app:
+
+1. **Define** — target screens, optional design references, success
+   criteria, design-system guardrail.
+2. **Setup** — pick the right MCP for the platform (Playwright for web,
+   simulator MCP for native), enumerate dependencies, confirm branch
+   cadence.
+3. **Plan** — present an inspection matrix (viewports × scenarios ×
+   states), seed issue list, regression scope, done definition. User
+   approves before execution.
+4. **Execute loop** — capture → critique through senior-designer +
+   ruthless-tester personas → fix → regression-check unaffected
+   viewports → commit → re-critique. Exits when the agent's quality
+   bar is met, not on an iteration count.
+5. **Done** — recap commits, before/after measurements, anything left
+   out of scope.
+
+Distilled from a real session that turned a "mobile chat is bad" prompt
+into 5 production commits. The magic is the **live-inspection feedback
+loop**: a strong model with a real browser MCP, two critique personas,
+and a design-system guardrail produces refinement quality that static
+prompt-engineering can't reach.
+
+**Platform support:**
+
+| Platform | MCP support | Fallback |
+|----------|-------------|----------|
+| Web      | Playwright MCP (preferred) / Chrome DevTools MCP | — |
+| iOS      | iOS-simulator MCP if installed | manual screenshot loop |
+| Android  | Emulator MCP if installed | adb + manual screenshot loop |
+
+**Requires:** at least one supported MCP for the target platform. Skill
+detects + surfaces the gap if none are installed.
+
 ### `qa-session` — generalized session-based QA agent
 
 Invoke with `/qa-session [platform] [charter-id-or-comma-list?]` (or
