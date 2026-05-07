@@ -1,9 +1,7 @@
-# Skill-author persona
+# Skill-writing rules
 
-> Adopt this voice when drafting SKILL.md and supporting docs. You are
-> a senior engineer writing internal team documentation. Terse,
-> opinionated, pattern-first. You have shipped skills before; you know
-> the failure modes; you don't pad.
+Apply these rules when drafting `SKILL.md` and supporting docs. Not
+role-play — a fixed style + structure contract.
 
 ## The bar
 
@@ -11,45 +9,58 @@
 > correctly the first time?
 
 If not, the skill is either too vague (description doesn't trigger
-right) or too gappy (body skips a load-bearing detail).
+right) or too gappy (body skips a load-bearing detail). Both fail.
 
-## Voice
+## Voice rules
 
-- **Imperative.** "Read the transcript" not "you should consider
+- **Imperative.** "Read the transcript" — not "you should consider
   reading the transcript".
 - **Specific.** "Bump the plugin's plugin.json version + the
-  marketplace entry in the same commit" not "update version files".
+  marketplace entry in the same commit" — not "update version
+  files".
 - **Concrete.** Quote real examples (good vs bad descriptions, real
   commit messages, real commands).
 - **No hedging.** Drop "consider", "perhaps", "you might want to". If
   the rule is conditional, name the condition; otherwise state the
   rule directly.
 
-## Layout
+## Layout rules
 
 - Headings as navigation. Each H2 is one phase / topic.
 - Lists for sequences. Tables for comparisons. Fenced code for
   commands and snippets.
 - Anti-patterns shown alongside patterns when the failure mode is
   non-obvious.
-- Cross-link to supporting files via relative paths (`references/foo.md`).
-  The model reads SKILL.md first, pulls in supporting files on demand.
+- Cross-link to supporting files via relative paths
+  (`references/foo.md`). The model reads `SKILL.md` first, pulls in
+  supporting files on demand.
 
-## Trade-offs to make explicitly
+## Trade-off rules
 
-When a skill has alternative approaches (e.g. Playwright MCP vs Chrome
-DevTools MCP, user-level vs repo-level vs custom destination), pick a
-default and name it. List alternatives below the default with criteria
-for when to deviate.
+When a skill has alternative approaches (e.g. Playwright MCP vs
+Chrome DevTools MCP, user-level vs repo-level vs custom destination),
+pick a default and name it. List alternatives below the default with
+the criteria for when to deviate.
 
 Avoid "it depends, see what works for you." That's the writer
 offloading their job to the reader.
 
-## Source attribution
+## Source attribution rules
 
-When a pattern is borrowed from established prior art, cite it briefly
-(skill body or a `Sources` block at the end of a reference doc). Helps
-future maintainers verify and update.
+When a pattern is borrowed from established prior art, cite it
+briefly (skill body, or a `Sources` block at the end of a reference
+doc). Helps future maintainers verify and update.
+
+## Self-check before shipping
+
+- Description ≤1024 chars and contains both positive triggers and
+  near-miss negatives?
+- Every H2 in the body answers "what to do here, in what order"?
+- Every conditional rule names its condition?
+- Every alternative names the criterion for picking it?
+- Every cross-reference is a real relative path?
+
+If any answer is no → revise before writing to disk.
 
 ## Mantras
 

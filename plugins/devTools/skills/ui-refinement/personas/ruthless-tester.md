@@ -1,97 +1,131 @@
-# Ruthless-tester critique persona
+# Edge-state critique guide
 
-> Adopt this voice for every Phase 4.2 critique pass, **after** the
-> senior-designer pass. You are a frustrated power user who has been
-> stuck in this app for an hour. You hit every edge case. You want to
-> find what the senior designer missed. The user-listed defects are a
-> seed, not a cap — your job is to find more.
+Use this guide for the second critique pass in Phase 4.2 — the one
+that hunts for what the visual-quality pass missed. Not role-play; a
+state-coverage discipline.
 
 ## The mandate
 
-> The user listed N defects. Your job is to find at least N more.
+> The user listed N defects. Find at least N more. Hold a very high
+> standard — the bar is "would a senior reviewer accept this?", not
+> "is it tolerable?".
 
 Not because the user undercounts — because the user only sees what
-bothers them today. You probe states the user didn't try.
+bothers them today. Drive into states they didn't try.
+
+## Exploration mandate — be extremely ruthless
+
+Static screenshotting is **not enough**. Actively use the feature
+like an expert power user trying to break it.
+
+- **Click every interactive element you can see.** Buttons, menus,
+  icons, tabs, chips, badges, avatars, list items, dropdown arrows,
+  three-dot menus, hover targets, focus rings. If it looks tappable,
+  tap it. If it looks dead but has a cursor change, tap it anyway.
+- **Open every entrance.** Modals, drawers, tooltips, popovers,
+  command palettes, settings panes, sub-routes. Capture each open
+  state as a separate scenario.
+- **Exit every exit.** Close button, ESC, click-outside, swipe-down,
+  back button. Each should work and each should leave the UI in a
+  clean state.
+- **Try every input.** Empty submit, whitespace-only, paste a
+  100KB blob, paste markdown, paste an emoji, paste an RTL string,
+  rapid-fire submit, submit while a previous submit is mid-flight.
+- **Use every keyboard path.** Tab order, focus traps in modals,
+  Enter / Esc / arrow keys on lists, copy / paste, screen reader
+  intent (visible focus ring, label association).
+- **Walk every flow end-to-end.** First-run, returning user, signed
+  out, signed back in. Don't stop at the screen — follow the user
+  story until the loop closes.
+- **Scroll everywhere.** Top, middle, bottom, past-end (rubber-band /
+  bounce / dead-stop). Containers within containers. Sticky headers.
+
+Every interaction is a critique opportunity. Bad transitions, late
+loading states, jank, lost scroll position, focus going to the wrong
+place after close, content that flashes the wrong width on first
+paint — all findings.
+
+Stop only when you can no longer find a fresh interaction to try
+that you haven't already exercised in this scope.
 
 ## States to drive into existence
 
-For every component / screen, exercise:
+For every component / screen, exercise these states. Skip a state only
+if it's genuinely impossible for this scope.
 
-- **Empty.** No data. No history. First-run.
-- **One.** Single item. Does the layout still make sense?
-- **Few.** 2–5 items. Most common production state.
+- **Empty.** No data, no history, first-run.
+- **One.** Single item.
+- **Few.** 2–5 items — most common production state.
 - **Many.** 50+ items. Scroll. Pagination. Density at scale.
-- **Overflow.** Single item with absurdly long content (long usernames,
-  500-word messages, code blocks, deep nested lists).
+- **Overflow.** Single item with absurdly long content (long
+  usernames, 500-word messages, code blocks, deep nested lists).
 - **Loading.** First paint, mid-stream, just-arrived.
 - **Error.** Network failure, API error, validation failure, auth
   expired.
-- **Streaming / partial.** Mid-render. The bubble that's still typing.
-  The list that's mid-fetch.
-- **Interrupted.** User cancels mid-action. Cycle aborted. Stop
-  pressed.
-- **Multi-locale.** RTL languages (try Arabic), CJK glyphs, emoji.
-  (Skip if scope is single-locale.)
-- **Multi-density.** Phone, tablet portrait, tablet landscape, desktop,
-  ultrawide, narrow desktop window.
+- **Streaming / partial.** Mid-render bubble, mid-fetch list.
+- **Interrupted.** Cancel mid-action, cycle aborted, stop pressed.
+- **Multi-locale.** RTL (try Arabic), CJK glyphs, emoji. Skip if
+  scope is single-locale.
+- **Multi-density.** Phone, tablet portrait, tablet landscape,
+  desktop, ultrawide, narrow desktop window.
 - **Light + dark.** If both themes exist, every check runs in both.
-- **Keyboard open.** On mobile, the soft keyboard takes ~50% of screen.
-  Does the layout still work?
-- **Tap targets.** Does every button measure ≥44×44pt? Are gaps between
-  tappable elements ≥8pt so fat-finger taps don't hit the wrong target?
+- **Keyboard open.** On mobile, soft keyboard takes ~50% of screen.
+  Layout still works?
+- **Tap targets.** Every button ≥44×44pt. Gaps between tappable
+  elements ≥8pt.
 
-## Specific mobile-only probes
+## Mobile-specific probes
 
-- **One-hand reach.** Can a thumb reach the primary actions without
-  shifting grip? Bottom-of-screen actions beat top.
-- **Auto-dismiss.** After submit, does the keyboard collapse? On real
-  mobile (touch device), does focus blur? (You can detect via
-  `(hover: none) and (pointer: coarse)` matchMedia.)
-- **Notch / safe area.** On iOS, does content respect `env(safe-area-
-  inset-*)`?
-- **Pull-to-refresh.** If the gesture is meaningful, does it work
-  without conflicting with internal scroll?
-- **Scroll boundaries.** When the chat scrolls and the dock is sticky,
-  does the bottom message clear the dock? Is there enough
-  bottom-padding?
+- **One-hand reach.** Thumb reaches primary actions without grip
+  shift. Bottom > top.
+- **Auto-dismiss.** Keyboard collapses after submit. On real touch
+  devices, focus blurs (detect via `(hover: none) and (pointer:
+  coarse)` matchMedia).
+- **Notch / safe area.** Content respects `env(safe-area-inset-*)` on
+  iOS.
+- **Pull-to-refresh.** If meaningful, works without fighting internal
+  scroll.
+- **Scroll boundaries.** Sticky dock — bottom message clears it.
+  Enough bottom-padding.
 
-## What to look for that designers often miss
+## Defects often missed in pure visual review
 
-- **Truncation traps.** Long names, long URLs, long emoji-laden tool
-  names. CSS `text-overflow: ellipsis` works, but does the truncation
-  happen at a useful character?
-- **Layered routing prefixes.** Tool names like
+- **Truncation traps.** Long names, long URLs, emoji-laden tool
+  names. `text-overflow: ellipsis` works, but does the truncation
+  happen at a *useful* character?
+- **Layered routing prefixes.** Names like
   `mcp_home_assistant_ha_get_state` ellipsize to `mcp_home_…` —
   useless. Strip the prefix.
 - **Hover-only affordances on touch.** Touch devices don't hover.
   Anything revealed only on hover is invisible on mobile.
 - **Z-index conflicts.** Modals over toasts, dropdowns under headers.
-- **Animation jank.** A transition that re-runs on every input keystroke
+- **Animation jank.** Transition re-runs on every input keystroke
   because of an unmemoized prop.
-- **Accessibility regressions from visual fixes.** A change that looks
-  better but drops `aria-label`, removes focus outline, or makes
-  contrast worse.
-- **Cost / latency footprints visible in the UI.** Loading states that
-  fire too late (user thinks the app froze). First-token latency hidden
-  behind a static spinner.
+- **A11y regressions from visual fixes.** Change drops `aria-label`,
+  removes focus outline, drops contrast.
+- **Cost / latency footprints in the UI.** Loading state fires too
+  late (user thinks app froze). First-token latency hidden behind a
+  static spinner.
 
-## How to express findings
+## Finding format
 
-Use the same format as the senior-designer pass — what / where / why /
-severity. Add a category column distinguishing your finds from the
-senior-designer's:
+Same format as the visual-quality pass — what / where / why /
+severity. Add a category column to distinguish edge-state finds:
 
-| Category | What | Where | Severity |
-|----------|------|-------|----------|
-| visual   | …    | …     | …        |
-| edge-state | …  | …     | …        |
-| a11y     | …    | …     | …        |
-| mobile   | …    | …     | …        |
-| design-language | … | … | …        |
+| Category        | What | Where | Why | Severity |
+|-----------------|------|-------|-----|----------|
+| edge-state      | …    | …     | …   | …        |
+| a11y            | …    | …     | …   | …        |
+| mobile          | …    | …     | …   | …        |
+| design-language | …    | …     | …   | …        |
 
-## Mantras
+## Operating rules
 
-- "Find what the user didn't think to try."
-- "Long content, short content, no content — try all three."
-- "If it works on the happy path, hit it on the sad path."
-- "The user's complaint is the tip — there's an iceberg under it."
+- **Find more than the list.** User-listed defects are the seed, not
+  the cap. Iceberg under the tip.
+- **Long, short, none.** Try all three content lengths.
+- **Sad path > happy path.** Errors and edge states reveal more than
+  the golden flow.
+- **Cite a state, cite a rule.** Every finding names the state being
+  exercised AND the violated rule (checklist item, design-system
+  guardrail, accessibility threshold).

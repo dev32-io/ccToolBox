@@ -105,26 +105,25 @@ message per line, `type: user | assistant | system`.
 For **free-text summary**: skip transcript; the summary IS the
 distillation source.
 
-### 1.2 — Extract the magic
+### 1.2 — Extract the magic (subagent)
 
-Read `references/distill-method.md`. Apply its three lenses to the
-source:
+**Dispatch one `Agent` subagent** (`subagent_type: "general-purpose"`)
+to read the source and return the magic-ingredients list. Transcripts
+are large; offloading the read keeps the main context lean.
 
-1. **User-prompt patterns** — what did the user say that gave the
-   model permission, scope, autonomy, or a specific framing? These are
-   often the load-bearing words: "EXTREMELY ruthless", "find more than
-   the list", "use your best judgment", "industry refs are inspiration
-   not gospel". Capture verbatim where possible.
-2. **Agent decisions that paid off** — what choices the agent made (or
-   was nudged into) that turned out load-bearing later: pick a tool,
-   gate scope a particular way, two-pass critique, regression check.
-3. **Course-corrections** — every time the user pushed back. These are
-   gold; they tell you the bright lines the skill needs to encode so
-   the next agent doesn't drift the same way.
+Hand the subagent:
 
-Write the magic-ingredients list as a numbered set of one-line rules.
-8–12 items is typical. Show it to the user; ask "anything missing or
-mis-stated?" before continuing.
+- The source path (or the free-text summary verbatim).
+- `references/distill-method.md` — the three-lens method.
+- Instruction: "Read the source, apply the three lenses (user-prompt
+  patterns / agent decisions that paid off / course-corrections from
+  user pushback), and return a numbered list of 8–12 one-line rules.
+  Quote load-bearing user phrasing verbatim where possible. Do NOT
+  draft any SKILL.md content — only the ingredients list."
+
+When it returns, show the list to the user; ask "anything missing or
+mis-stated?" before continuing. The user's edits to this list are
+the spec for everything downstream.
 
 ### 1.3 — Define the skill's mission
 
@@ -141,22 +140,27 @@ Output: a short note recording (a) prior art on the skill's domain,
 (b) Claude Code skill-format requirements, (c) target-destination
 conventions.
 
-### 2.1 — Prior art
+**Dispatch 2.1 and 2.3 as parallel subagents** (single message, two
+`Agent` tool calls — `subagent_type: "general-purpose"`). They are
+independent: one does web research, the other inspects the local
+filesystem. Phase 2.2 stays in the main agent because the format
+rules need to be loaded for Phase 3 anyway.
 
-`WebSearch` for how others have built / framed this kind of skill.
-Specifically search for:
+### 2.1 — Prior art (subagent)
 
-- The skill's problem domain (e.g. "UI refinement loop", "session-based
-  QA", "skill distillation").
-- Specific MCP / tool integrations the skill will need.
-- Recent (use the current year) authoritative posts from Anthropic
-  docs, well-known dev blogs, or Claude-skill marketplaces.
+Hand the subagent:
 
-Skim 2–4 sources. Capture: are there established naming conventions,
-established workflows, established failure modes worth encoding? Don't
-copy whole patterns — extract the load-bearing ideas.
+- The skill mission from Phase 1.3.
+- The magic-ingredients list from Phase 1.2.
+- Instruction: "Use `WebSearch` to find 2–4 authoritative sources on
+  this skill's problem domain — established naming conventions,
+  workflows, failure modes. Search recent (current-year) posts:
+  Anthropic docs, dev blogs, Claude-skill marketplaces. Return a
+  short summary: what's established, what's worth borrowing, what's
+  worth avoiding. Do NOT copy whole patterns — extract load-bearing
+  ideas only."
 
-### 2.2 — Claude Code skill format
+### 2.2 — Claude Code skill format (main agent)
 
 Read `references/claude-code-skill-format.md`. The hard rules:
 
@@ -170,23 +174,22 @@ Read `references/claude-code-skill-format.md`. The hard rules:
 - Optional `tools:` allowlist — list only what the skill actually
   needs.
 
-### 2.3 — Destination conventions
+### 2.3 — Destination conventions (subagent)
 
-Don't ask the user yet — research first so Phase 4 can present an
-informed recommendation.
+Hand the subagent:
 
-Read `references/destination-conventions.md` and gather:
+- The current working directory.
+- `references/destination-conventions.md`.
+- Instruction: "Probe the cwd and `~/.claude/` to determine
+  destination options. Return: (a) is the cwd a marketplace,
+  single-plugin repo, or plain repo? (b) what `.claude/skills/`
+  paths exist at user level and repo level? (c) recommendation order
+  with one-line rationale per option (user / repo / custom). Do NOT
+  ask the user — only research."
 
-- **User-level** (`~/.claude/skills/<name>/`) — no marketplace, no
-  versioning. Standalone.
-- **Repo-level** (`<project>/.claude/skills/<name>/`) — committed to
-  the project. Skill is project-specific by intent.
-- **Custom path** — probe whatever path the user might supply. The
-  references doc lists how to detect: marketplace, single-plugin repo,
-  plain repo.
-
-If the active project (cwd) is a plugin marketplace, surface that as a
-likely destination preview.
+When both subagents return, fold their outputs into the Phase 3
+design pass. If either flags a blocker (e.g. cwd looks like a
+read-only path), surface it before continuing.
 
 ---
 
@@ -381,20 +384,24 @@ Re-read at the start of every Phase 1 pass:
    just the agent's output.
 3. **Course-corrections are bright lines.** Every pushback in the
    source becomes a rule the next agent must respect.
-4. **Web-search prior art.** Established naming, established workflows,
-   established failure modes — borrow, don't reinvent.
-5. **Inspect destination conventions before writing.** Marketplace
+4. **Subagent the heavy reads.** Transcript extraction (Phase 1.2),
+   prior-art search (Phase 2.1), and destination probing (Phase 2.3)
+   all dispatch to subagents — large reads stay out of the main
+   context. Run 2.1 and 2.3 in parallel.
+5. **Web-search prior art.** Established naming, established
+   workflows, established failure modes — borrow, don't reinvent.
+6. **Inspect destination conventions before writing.** Marketplace
    shape, plugin layout, version semantics — match them in lockstep.
-6. **Generalize across platforms / projects / inputs.** A skill that
+7. **Generalize across platforms / projects / inputs.** A skill that
    works only for the source project is a snippet, not a skill.
-7. **Description is the trigger.** Spend disproportionate time on the
+8. **Description is the trigger.** Spend disproportionate time on the
    description; the body is read after the skill fires.
-8. **Show plan, then write.** Always present the skeleton before
+9. **Show plan, then write.** Always present the skeleton before
    touching disk.
-9. **Bookkeeping in lockstep.** Plugin version + marketplace +
-   CHANGELOG + README in one commit, never partial.
-10. **Commit message records the distillation.** What session inspired
-    this, what magic it captured.
+10. **Bookkeeping in lockstep.** Plugin version + marketplace +
+    CHANGELOG + README in one commit, never partial.
+11. **Commit message records the distillation.** What session
+    inspired this, what magic it captured.
 
 ---
 
@@ -406,6 +413,7 @@ Re-read at the start of every Phase 1 pass:
   outputs / corrections.
 - `references/destination-conventions.md` — user / repo / custom-path
   detection + bookkeeping.
-- `personas/skill-author.md` — writing voice + trade-offs.
+- `personas/skill-author.md` — skill-writing rules (voice, layout,
+  trade-off, attribution, self-check).
 - `checklists/skill-quality.md` — pre-ship quality bar.
 - `templates/skill-design.md` — Phase 4 plan shape.

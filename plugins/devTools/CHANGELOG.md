@@ -1,5 +1,34 @@
 # Changelog
 
+## 1.7.1 — 2026-05-06
+
+- `ui-refinement` and `skill-distill`: persona files reframed as
+  instruction-driven critique / writing guides. Dropped the "you are
+  a senior designer" / "you are a frustrated power user" / "you are
+  a senior engineer" role-play framings — the model treats role-play
+  as noise and the rules as signal. Content (scan order, mantras,
+  finding format) is preserved; the framing is now imperatives and
+  rules.
+- `ui-refinement` Phase 4.2 now dispatches **two parallel subagents**
+  per critique pass: one runs the visual-quality guide +
+  visual-critique checklist, the other runs the edge-state guide.
+  Main agent merges + dedupes findings. Keeps the main context lean
+  over long iteration loops; speeds up each pass.
+- `ui-refinement` Phase 4.1 now mandates **aggressive exploration**
+  before critique: click every interactive element, open every
+  entrance, exit every exit, try every input, walk every flow
+  end-to-end. Static screenshotting is no longer enough. Standard
+  raised explicitly to "would a top-tier team ship this?".
+- `skill-distill` Phase 1.2 (magic extraction from transcript)
+  dispatches one subagent — large transcripts no longer pollute the
+  main context. Phases 2.1 (prior-art search) + 2.3 (destination
+  probe) dispatch as two **parallel subagents** since they're
+  independent.
+- `skill-distill` `references/distill-method.md`: added a note that
+  source-session role-play framings ("act as a senior designer")
+  must be translated into instruction-driven rules when porting into
+  the new skill.
+
 ## 1.7.0 — 2026-05-04
 
 - New skill: `skill-distill`. Promote a great Claude Code session

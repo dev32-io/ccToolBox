@@ -1,71 +1,85 @@
-# Senior-designer critique persona
+# Visual-quality critique guide
 
-> Adopt this voice for every Phase 4.2 critique pass. You are a senior
-> product designer doing a final visual review before the design ships.
-> You've reviewed thousands of UIs and you can name what's off in one
-> sentence. You don't lecture; you point.
+Use this guide for one of the two critique passes in Phase 4.2. The
+goal: surface every defect that would prevent shipping at a senior
+visual bar. No role-play, no "imagine you are..." — just apply the
+rules below to the captured screenshot.
 
 ## The bar
 
-Would I ship this with my name on it? If not, why not — in one line per
-defect. No hedging, no "consider", no "it might be nice".
+Hold a very high standard — the question is not "is it tolerable?"
+but "would a top-tier product team ship this with their name on
+it?". Be picky. The cost of one extra finding is small; the cost of
+shipping a defect is large.
 
-## What you scan for, in order
+For each potential finding, ask: **does this defect violate a stated
+rule, the design-system guardrail, or the visual-critique
+checklist?** If yes → finding. If no → not a finding.
 
-1. **Hierarchy.** Does the eye land where it should first? Is the
-   primary action obvious? Is the secondary information dimmer than the
-   primary?
-2. **Alignment.** Are vertical and horizontal lines consistent? Are
-   elements in the same row baseline-aligned? Are repeating items
-   left-edge / right-edge aligned?
-3. **Spacing rhythm.** Are gaps consistent within a group? Do the gaps
-   between groups match the design system's spacing scale (xs/sm/md/lg)?
-   Are there awkward orphan paddings (padding 17px between two siblings
-   that everywhere else use 12 or 16)?
-4. **Sizing consistency.** Same kind of element, same size? Pills in a
-   row should be the same height. Avatars in a list should be the same
-   diameter. Cards in a grid should be the same dimensions until a
-   breakpoint legitimately changes them.
-5. **Density.** Is the screen too sparse or too cramped for the
-   context? Phone chat → tighter than desktop. Settings page → more
-   breathing room. Match the conventions of the device, not the
-   designer's aesthetic preference.
-6. **Type.** Is the type scale used consistently (heading sizes match
-   the system; body matches body; small print is genuinely small print)?
-   Is line-height tight enough to feel intentional but loose enough to
-   read?
-7. **Color.** Is contrast adequate (WCAG AA min for body text)? Are
-   accent colors used sparingly enough to mean something? Does the
-   user-vs-system color distinction read on the device's actual
-   background (dark mode!)?
-8. **Motion.** Does animation serve the user or annoy them? Are
-   transitions consistent (same duration / easing across similar
-   interactions)? Is the speaking / loading / streaming indicator
-   readable?
-9. **Edges.** Border radii consistent? Shadow language consistent? Are
-   the visual "atoms" (cards, bubbles, pills, chips) using the same
-   shape grammar?
-10. **Affordance.** Can a user tell what's clickable from what's
-    decorative? Are tap targets ≥ 44×44pt on mobile? Do interactive
-    states (hover / focus / active / disabled) read clearly?
+Do not write hedged findings ("might feel cramped", "could maybe").
+Either it violates a rule with a measurable cite, or it doesn't.
 
-## How to write a finding
+## Scan order
+
+Walk the screenshot in this fixed order. One full pass per scenario.
+
+1. **Hierarchy.** First-glance focus lands on the primary action.
+   Secondary info (timestamps, captions) is visibly demoted via size,
+   weight, or color.
+2. **Alignment.** Repeating elements share a left or right edge
+   without drift. Same-row baselines align. Sibling padding from the
+   container edge is consistent.
+3. **Spacing rhythm.** Gaps inside a group share a token value
+   (xs/sm/md/lg, not magic numbers). Between-group gaps are visibly
+   larger than within-group. No orphan paddings (e.g. 17px when the
+   rest use 12 or 16).
+4. **Sizing consistency.** Same-kind elements share a size: avatars,
+   pills, buttons, cards. Variations have a clear reason (selected vs
+   default, primary vs secondary).
+5. **Density.** Density matches device convention — phone chat tight,
+   desktop dashboard airy. Empty space is intentional, not residual.
+6. **Type.** Type scale used consistently — heading sizes match,
+   body matches body. Line-height 1.4–1.6 for body text. Long content
+   wraps reasonably (no forced ellipsis where multi-line works).
+7. **Color.** Body text contrast ≥ WCAG AA (4.5:1 normal, 3:1 large).
+   Accent colors used sparingly. User-vs-system distinction reads on
+   the actual background. Light + dark both reviewed.
+8. **Motion.** Transitions share duration / easing across similar
+   interactions. Loading / streaming clearly animated, not static.
+   Respects `prefers-reduced-motion`.
+9. **Edges.** Border radii consistent across atoms. Shadow language
+   consistent — no flat cards mixed with random drop-shadows.
+10. **Affordance.** Clickable distinguishable from decorative. Tap
+    targets ≥ 44×44 pt on mobile. Hover / focus / active / disabled
+    visibly distinct.
+
+## Finding format
 
 Bad: "the spacing might be a little tight, could maybe be loosened"
 
-Good: "list gap is 24px (mobile rule); ChatGPT/Claude mobile use ~12px;
-24px reads sparse on a 390px viewport. Reduce to 14px."
+Good: "list gap is 24px (mobile rule); ChatGPT/Claude mobile use
+~12px; 24px reads sparse on a 390px viewport. Reduce to 14px."
 
 Bad: "the bubble looks weird"
 
 Good: "user bubble bg `color-mix(sage 16%)` is ~3% lighter than the
 page bg on dark theme — bubble is barely visible. Bump to 26%."
 
-## Mantras
+Required fields per finding:
 
-- "Show me, don't tell me." Every finding cites a measurement, a
-  selector, or a screenshot region.
-- "Don't redesign — refine." If the existing design is internally
-  consistent, the right move is to tighten it, not replace it.
-- "Trust the system." If a token exists for the value you'd use, use
-  the token, not a magic number.
+- **What** — defect, one line.
+- **Where** — selector or bbox.
+- **Why** — rule cited (checklist item, design-system token, WCAG
+  threshold).
+- **Severity** — blocker / major / minor / nit.
+
+## Operating rules
+
+- **Show, don't tell.** Every finding cites a measurement, a
+  selector, or a screenshot region. No abstract impressions.
+- **Refine, don't redesign.** If the existing design is internally
+  consistent, tighten it — don't replace it.
+- **Trust the system.** If a token exists for the value, use the
+  token, not a magic number.
+- **Cite the bar.** Every finding has a rule citation. If a finding
+  has no rule, drop it or escalate as "subjective — needs user call".

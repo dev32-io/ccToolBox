@@ -55,6 +55,16 @@ might feel cramped on mobile" — **stop**. Open the browser, take the
 screenshot, look at it, then write the critique with the bbox + the
 exact pixel values you measured. No live inspection, no critique.
 
+## Anti-pattern: passive exploration
+
+If you only screenshot the default state and call it done, you've
+missed the whole point. The skill demands **aggressive exploration**:
+click every button, open every menu, exit every modal, paste every
+weird input, walk every flow. The ruthless tester is not a hat the
+agent puts on for a moment — it's the operating mode for the entire
+loop. Hold a very high standard. The bar is "would a top-tier team
+ship this?", not "does it work."
+
 ## Flow at a glance
 
 ```dot
@@ -237,42 +247,86 @@ Present the plan, ask "Proceed, revise, or stop?" via
 
 Each iteration pass = one TodoWrite item. Use this structure:
 
-### 4.1 — Capture baseline
+### 4.1 — Aggressive exploration + baseline capture
 
-Set the viewport (per platform's `browser_resize`-equivalent), navigate
-to the target screen, drive any required state (login, fixture data,
-trigger the UI state — empty / streaming / error / etc.), and capture
-both:
+This step is **not** "open the page and screenshot it." It is
+"actively use the feature like a ruthless power user, click into
+every corner, and capture every state you find."
 
-- A screenshot (for visual critique)
+Set the viewport (per platform's `browser_resize`-equivalent),
+navigate to the target screen, then **explore aggressively** before
+you settle into critique:
+
+- Drive any required state (login, fixture data, trigger empty /
+  loading / streaming / error).
+- **Click every interactive element you can see** — buttons, menus,
+  icons, tabs, chips, three-dot menus. Capture each open / hover /
+  focused state as a separate scenario.
+- **Open every entrance and exit every exit** — modals, drawers,
+  tooltips, popovers; close via button, ESC, click-outside, back.
+- **Try every input** — empty, whitespace, oversized paste, emoji,
+  RTL, rapid-fire, mid-flight cancel.
+- **Walk the full flow end-to-end** — first-run → typical use →
+  edge → exit. Don't stop at the visible screen.
+- **Scroll everywhere** — top, mid, past-end. Sticky headers.
+  Nested scroll containers.
+
+For each distinct state you reach, capture both:
+
+- A screenshot (for visual critique).
 - An accessibility snapshot or DOM inspection (for measurements:
-  bounding boxes, computed styles, font sizes)
+  bounding boxes, computed styles, font sizes).
 
-Save each baseline screenshot with a deterministic name
-(`<scope>-<viewport>-<scenario>-baseline.png`) in the project's existing
-screenshot dir if any, otherwise the playwright MCP default
-(`.playwright-mcp/`).
+Save each screenshot with a deterministic name (`<scope>-<viewport>-
+<scenario>-<state>.png`) in the project's existing screenshot dir if
+any, otherwise the playwright MCP default (`.playwright-mcp/`).
 
-### 4.2 — Critique through TWO personas
+The bar for finishing 4.1: you can no longer think of a fresh
+interaction to try in this scope. If you stopped earlier than that,
+go back.
 
-**Mandatory two-pass critique.** Read both:
+### 4.2 — Two parallel critique subagents
 
-- `personas/senior-designer.md` — alignment, sizing consistency, spacing
-  rhythm, hierarchy, motion sense, density. The "would I ship this?"
-  bar.
-- `personas/ruthless-tester.md` — find what the user listed AND find
-  what they missed. Edge cases (very short / very long content, error
-  states, tap-target sizes, keyboard-open height, scroll boundaries).
+**Dispatch two `Agent` subagents in parallel** (single message, two
+`Agent` tool calls — `subagent_type: "general-purpose"`). Each gets
+the captured screenshot path(s), the design-system guardrail from
+Phase 1, and one critique guide. They return findings tables; the
+main agent merges and dedupes.
 
-Read `checklists/visual-critique.md` once and run the checklist on each
-captured screenshot. For each finding, write:
+Why subagents: the two passes are independent, run faster in
+parallel, and keep the main context small enough to carry a long
+loop.
 
-- **What** — the defect, in one line.
-- **Where** — selector or bbox.
-- **Why it's a defect** — citing checklist or design-system rule.
-- **Severity** — blocker / major / minor / nit.
+**Subagent A — visual-quality critique.** Hand it:
 
-Output the findings as a table. Don't classify into fixes yet.
+- Path(s) to baseline screenshot(s) for this pass.
+- The design-system guardrail (from Phase 1.3) verbatim.
+- Instruction: "Read `personas/senior-designer.md` and
+  `checklists/visual-critique.md`, apply both to each screenshot,
+  and return a findings table with columns: What | Where | Why |
+  Severity. Cite a checklist item or design-system rule per finding.
+  No hedged findings."
+
+**Subagent B — edge-state critique.** Hand it:
+
+- Same screenshot paths.
+- The list of states already driven (from 4.1) and any not yet
+  exercised.
+- Instruction: "Read `personas/ruthless-tester.md`, hunt for
+  defects the visual-quality pass would miss — edge content lengths,
+  error / loading / streaming states, mobile probes, a11y. Return a
+  findings table with columns: Category | What | Where | Why |
+  Severity. The user listed N defects; aim to find at least N more
+  the user didn't list."
+
+**Merge.** When both return, dedupe overlap (same defect, same
+location), keep the more-specific phrasing, and flag any
+contradictions for explicit user call. Output a single combined
+findings table. Don't classify into fixes yet.
+
+> If the platform / scope is too small for two passes (e.g. a
+> single-component refinement on one viewport), collapse into one
+> subagent that runs both guides sequentially. Don't skip a guide.
 
 ### 4.3 — Plan the fix(es) for this pass
 
@@ -405,33 +459,43 @@ These are the success patterns from real ui-refinement runs. Re-read
 them at the start of every Phase 4 pass:
 
 1. **Live inspection only.** No critique without a fresh screenshot.
-2. **Find more than the list.** The user-listed defects are a seed,
-   not a cap. The ruthless-tester persona's job is to find what they
-   missed.
-3. **Industry refs are inspiration, not gospel.** Cite them, then
+2. **Aggressive exploration is mandatory.** Click every interactive
+   element, open every entrance, exit every exit, try every input,
+   walk every flow end-to-end. Stop only when no fresh interaction
+   remains in scope.
+3. **Find more than the list.** The user-listed defects are a seed,
+   not a cap. The edge-state critique guide's job is to find what
+   they missed.
+4. **Hold a very high standard.** The bar is "would a top-tier team
+   ship this?" — not "is it tolerable?". Be picky on every UI / UX
+   detail.
+5. **Industry refs are inspiration, not gospel.** Cite them, then
    filter through the design-system guardrail.
-4. **Both viewports, every pass.** Regression catches matter more than
+6. **Both viewports, every pass.** Regression catches matter more than
    theoretical correctness.
-5. **Real running stack, real data.** Mocked state lies. Drive the
+7. **Real running stack, real data.** Mocked state lies. Drive the
    actual feature with realistic content.
-6. **Cost protection.** If the user said "skip TTS / use free
+8. **Cost protection.** If the user said "skip TTS / use free
    models", honor it forever in the session.
-7. **Senior-designer + ruthless-tester, both.** Each catches what the
-   other misses.
-8. **Scope-guard every edit.** If a fix could affect another surface,
-   either gate it via media query / feature flag / platform check, or
-   escalate to the user.
-9. **Commit each meaningful pass.** Lost work in the middle of a
-   refinement loop is the worst outcome.
-10. **Exit on quality bar, not iteration count.** Stop when the agent
+9. **Two parallel critique subagents per pass.** Visual-quality and
+   edge-state run in parallel. Each catches what the other misses;
+   parallelism keeps the main context lean over long loops.
+10. **Scope-guard every edit.** If a fix could affect another surface,
+    either gate it via media query / feature flag / platform check,
+    or escalate to the user.
+11. **Commit each meaningful pass.** Lost work in the middle of a
+    refinement loop is the worst outcome.
+12. **Exit on quality bar, not iteration count.** Stop when the agent
     can no longer find a finding, not when N passes are done.
 
 ---
 
 ## Files in this skill
 
-- `personas/senior-designer.md` — critique mindset
-- `personas/ruthless-tester.md` — find-more discipline
+- `personas/senior-designer.md` — visual-quality critique guide
+  (rules + scan order + finding format)
+- `personas/ruthless-tester.md` — edge-state critique guide (state
+  coverage + mobile probes + finding format)
 - `platforms/web.md` — web inspection (Playwright / Chrome DevTools MCP)
 - `platforms/ios.md` — iOS simulator inspection
 - `platforms/android.md` — Android inspection

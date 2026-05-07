@@ -15,7 +15,11 @@ or a specific framing? These are usually the load-bearing words.
 Look for:
 
 - **Persona / mindset framing.** "be EXTREMELY ruthless", "act as a
-  senior designer", "you are a frustrated power user".
+  senior designer", "you are a frustrated power user". When porting
+  these into the new skill, translate the role-play into
+  instruction-driven rules (what to scan for, what bar to apply,
+  what mantras) — not "you are X" framing. Role-play is noise; the
+  rules are the signal.
 - **Scope-cap phrases.** "chat only for now", "in a feature branch",
   "don't touch unrelated files".
 - **Autonomy grants.** "use your best judgment", "you are free to run
