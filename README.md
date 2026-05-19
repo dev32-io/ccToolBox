@@ -2,6 +2,17 @@
 
 A personal Claude Code plugin marketplace.
 
+## Pairs with agentic-dev-harness
+
+[`agentic-dev-harness`](https://github.com/dev32-io/agentic-dev-harness) provides the rules, hooks, and scripts substrate the skills here consume. Install both together:
+
+```sh
+sh agentic-dev-harness/install.sh --target . --platforms web,bun
+claude plugins install dev32-io/ccToolBox/devTools
+```
+
+`frustration-check` (under `devTools`) is highlighted there as the headline skill — the rarest piece in the public AI-tooling market for maximizing AI-as-collaborator.
+
 ## Setup
 
 ### 1. Add the marketplace
