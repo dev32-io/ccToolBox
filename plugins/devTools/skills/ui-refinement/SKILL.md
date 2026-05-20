@@ -502,3 +502,5 @@ them at the start of every Phase 4 pass:
 - `checklists/visual-critique.md` — 12-point visual checklist
 - `checklists/design-system-guard.md` — drift-prevention discipline
 - `templates/refinement-plan.md` — Phase 3 plan shape
+
+Design rationale: [`../../docs/ui-refinement.md`](../../docs/ui-refinement.md)

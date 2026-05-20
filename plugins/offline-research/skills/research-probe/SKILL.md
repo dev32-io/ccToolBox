@@ -142,3 +142,5 @@ Then ask:
 > Copy to clipboard? (y/n)
 
 If yes, copy the selected command to clipboard via `printf '%s' '<command>' | pbcopy`.
+
+Design rationale: [`../../docs/architecture.md`](../../docs/architecture.md)

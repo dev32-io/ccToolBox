@@ -417,3 +417,5 @@ Re-read at the start of every Phase 1 pass:
   trade-off, attribution, self-check).
 - `checklists/skill-quality.md` — pre-ship quality bar.
 - `templates/skill-design.md` — Phase 4 plan shape.
+
+Design rationale: [`../../docs/skill-distill.md`](../../docs/skill-distill.md)

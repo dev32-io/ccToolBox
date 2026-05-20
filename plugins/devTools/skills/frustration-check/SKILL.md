@@ -124,3 +124,5 @@ patterns Kevin's false-positives to a suppression list (future work).
 If it rarely fires, lower `threshold` or add custom patterns to `t1`/`t2`/
 `t3`. Lexical additions are fine; behavioral detection is deliberately out
 of scope (see spec).
+
+Design rationale: [`../../docs/frustration-check.md`](../../docs/frustration-check.md)
