@@ -37,6 +37,8 @@ This project follows [Semantic Versioning](https://semver.org/).
   must be translated into instruction-driven rules when porting into
   the new skill.
 
+> Deep dive: [docs/2026-05-06-v1.7.1-refactor.md](docs/2026-05-06-v1.7.1-refactor.md)
+
 ## 1.7.0 — 2026-05-04
 
 ### Added
@@ -67,6 +69,8 @@ This project follows [Semantic Versioning](https://semver.org/).
     distill method, destination conventions), one persona, one
     quality checklist, one design template.
 
+> Deep dive: [docs/skill-distill.md](docs/skill-distill.md)
+
 ## 1.6.0 — 2026-05-04
 
 ### Added
@@ -91,6 +95,8 @@ This project follows [Semantic Versioning](https://semver.org/).
   - Files shipped: `SKILL.md`, two persona docs, three platform docs,
     two checklists (visual critique + design-system guard), one plan
     template. No scripts in v1.
+
+> Deep dive: [docs/ui-refinement.md](docs/ui-refinement.md)
 
 ## 1.5.3 — 2026-05-02
 
@@ -241,6 +247,8 @@ This project follows [Semantic Versioning](https://semver.org/).
   substring `skip frustration-check` in a prompt. Settings ship at
   `version: 1` with threshold, decay, TTL, and user-extensible custom
   patterns per tier.
+
+> Deep dive: [docs/frustration-check.md](docs/frustration-check.md)
 
 ## 1.3.0 — 2026-04-22
 

@@ -42,6 +42,8 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 - Subagent rate-limit detection — all runners now use broad regex patterns to catch `429`, `too many requests`, `quota exceeded`, etc. (backported from source refactor-probe runner)
 
+> Deep dive: [docs/architecture.md](docs/architecture.md)
+
 ## 2.3.2
 
 ### Fixed
