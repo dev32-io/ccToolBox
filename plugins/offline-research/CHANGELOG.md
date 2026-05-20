@@ -1,6 +1,10 @@
 # Changelog
 
-All notable changes to the offline-research plugin.
+All notable changes to the offline-research plugin are documented here.
+Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+This project follows [Semantic Versioning](https://semver.org/).
+
+## [Unreleased]
 
 ## 2.4.2
 

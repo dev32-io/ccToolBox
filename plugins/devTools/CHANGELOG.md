@@ -1,6 +1,14 @@
 # Changelog
 
+All notable changes to the devTools plugin are documented here.
+Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+This project follows [Semantic Versioning](https://semver.org/).
+
+## [Unreleased]
+
 ## 1.7.1 — 2026-05-06
+
+### Changed
 
 - `ui-refinement` and `skill-distill`: persona files reframed as
   instruction-driven critique / writing guides. Dropped the "you are
@@ -31,6 +39,8 @@
 
 ## 1.7.0 — 2026-05-04
 
+### Added
+
 - New skill: `skill-distill`. Promote a great Claude Code session
   into a reusable, generalized Skill. Distilled from the same
   meta-pattern that produced `ui-refinement` itself.
@@ -59,6 +69,8 @@
 
 ## 1.6.0 — 2026-05-04
 
+### Added
+
 - New skill: `ui-refinement`. A generalized, autonomous UI/UX
   refinement loop driven by browser / simulator MCP tools. Distilled
   from a real session that turned a "this mobile chat is bad" prompt
@@ -82,6 +94,8 @@
 
 ## 1.5.3 — 2026-05-02
 
+### Fixed
+
 - `frustration-check`: hook output now uses the fully-qualified
   skill identifier `devTools:frustration-check` instead of the bare
   name `frustration-check`. Bare-name signals were causing Claude to
@@ -90,6 +104,8 @@
   Claude can invoke the Skill tool directly without guessing.
 
 ## 1.5.2 — 2026-04-29
+
+### Changed
 
 - `qa-session`: ruthlessly visual. The Explorer was passing console- and
   network-clean runs while obvious defects (overlapping icons in a
@@ -125,6 +141,8 @@
 
 ## 1.5.1 — 2026-04-28
 
+### Added
+
 - `qa-session`: support comma-separated charter ids in the invocation
   argument. `/qa-session <platform> <id1>,<id2>,...` runs that exact
   subset; unknown ids fail loud with the available list rather than
@@ -133,6 +151,8 @@
   when the seed is already fresh.
 
 ## 1.5.0 — 2026-04-27
+
+### Added
 
 - `qa-session`: new skill. Generalized session-based QA agent that
   catches functional bugs *and* bad UX (visual issues, weird
@@ -183,6 +203,8 @@
 
 ## 1.4.2 — 2026-04-26
 
+### Fixed
+
 - `retro` / `recall-test-knowledge`: fix path typo `agent/docs/` →
   `agents/docs/` across skill instructions, helper scripts, tests, and
   README. Scripts that scaffold and read knowledge dirs (`detect_context.sh`,
@@ -190,6 +212,8 @@
   intended convention.
 
 ## 1.4.1 — 2026-04-23
+
+### Added
 
 - `frustration-check`: register a `SessionStart` hook that runs
   `init_settings.py` on every session start. Previously the user settings
@@ -200,6 +224,8 @@
   migrates) and silent on stdout, so it adds no context overhead.
 
 ## 1.4.0 — 2026-04-23
+
+### Added
 
 - `frustration-check`: new skill with auto-triggering `UserPromptSubmit`
   hook. Detects drift/frustration via tiered regex (T1 constraint
@@ -217,6 +243,8 @@
   patterns per tier.
 
 ## 1.3.0 — 2026-04-22
+
+### Added
 
 - `retro`: add a dedicated testing-extraction pass to the analysis
   subagent. New candidate types `test-method` and `test-case` enforce a
@@ -239,6 +267,8 @@
 
 ## 1.2.0 — 2026-04-20
 
+### Changed
+
 - `retro`: prefer `develop` (or `origin/develop`) as the default parent
   branch in auto-detection when it exists. Previously the heuristic picked
   the ref with the newest merge-base, which could select a sibling feature
@@ -246,6 +276,8 @@
   Scan-based detection is retained as a fallback when develop is absent.
 
 ## 1.1.0 — 2026-04-19
+
+### Changed
 
 - `retro`: detect the actual parent branch instead of assuming `main`.
   `detect_context.sh` now scans all local + remote-tracking branches,
@@ -259,7 +291,7 @@
 
 ## 1.0.0 — 2026-04-19
 
-Initial release.
+### Added
 
 - Added `retro` skill: branch-scoped retrospective that distills session +
   diff into rule/details/learnings/test-knowledge artifacts via subagent

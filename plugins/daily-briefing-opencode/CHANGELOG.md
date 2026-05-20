@@ -1,6 +1,10 @@
 # Changelog
 
-All notable changes to the daily-briefing-opencode plugin.
+All notable changes to the daily-briefing-opencode plugin are documented here.
+Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
+This project follows [Semantic Versioning](https://semver.org/).
+
+## [Unreleased]
 
 ## 1.1.0
 
