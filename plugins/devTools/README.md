@@ -6,69 +6,15 @@ Developer productivity skills for software engineering workflows.
 
 ### `skill-distill` — promote a great session into a Skill
 
-Invoke with `/skill-distill` (or phrases like "distill this session
-into a skill", "save what we just did as a reusable skill") to turn a
-successful session into a reusable, generalized Skill.
+Promotes a successful Claude Code session into a reusable, generalized Skill. Five-phase flow (Source → Research → Design → Plan + Approval → Ship) with three-lens distillation (user-prompt patterns / agent decisions / course-corrections). Destination handling adapts to marketplace plugins, single-plugin repos, and plain repos with or without `.claude/skills/`.
 
-Five-phase flow mirroring `ui-refinement`:
-
-1. **Source** — pick the session to distill from: current transcript
-   (default), other transcript path, or free-text summary.
-2. **Research** — web-search prior art on the skill's domain, learn
-   Claude Code's frontmatter rules, inspect the destination's
-   conventions.
-3. **Design** — name + description (the trigger), file layout,
-   generalization axes, magic ingredients distilled via three lenses
-   (user-prompt patterns / agent decisions / course-corrections).
-4. **Plan + Approval** — present the skeleton; ask destination via
-   `AskUserQuestion`: user / repo / custom path.
-5. **Ship** — write files; if destination is a marketplace or plugin
-   repo, do plugin.json + marketplace + CHANGELOG + README in
-   lockstep; commit with a message that records the distillation
-   source.
-
-**Destination handling:** custom path is probed — marketplace plugin
-(detects `.claude-plugin/marketplace.json`), single-plugin repo,
-plain repo with `.claude/skills/`, or plain repo without — and the
-bookkeeping adapts.
+→ [Design rationale: `docs/skill-distill.md`](docs/skill-distill.md)
 
 ### `ui-refinement` — autonomous visual UX iteration loop
 
-Invoke with `/ui-refinement [scope?]` (or phrases like "refine this UI",
-"improve mobile UX", "polish the chat screen") to drive a five-phase
-loop on a live running app:
+Autonomous UI/UX critique loop with live-browser MCP integration. Two parallel critique subagents (visual-quality and edge-state) drive iteration toward a "top-tier team ship" standard. Exits when the agent's own quality bar is met, not on an iteration count.
 
-1. **Define** — target screens, optional design references, success
-   criteria, design-system guardrail.
-2. **Setup** — pick the right MCP for the platform (Playwright for web,
-   simulator MCP for native), enumerate dependencies, confirm branch
-   cadence.
-3. **Plan** — present an inspection matrix (viewports × scenarios ×
-   states), seed issue list, regression scope, done definition. User
-   approves before execution.
-4. **Execute loop** — capture → critique through senior-designer +
-   ruthless-tester personas → fix → regression-check unaffected
-   viewports → commit → re-critique. Exits when the agent's quality
-   bar is met, not on an iteration count.
-5. **Done** — recap commits, before/after measurements, anything left
-   out of scope.
-
-Distilled from a real session that turned a "mobile chat is bad" prompt
-into 5 production commits. The magic is the **live-inspection feedback
-loop**: a strong model with a real browser MCP, two critique personas,
-and a design-system guardrail produces refinement quality that static
-prompt-engineering can't reach.
-
-**Platform support:**
-
-| Platform | MCP support | Fallback |
-|----------|-------------|----------|
-| Web      | Playwright MCP (preferred) / Chrome DevTools MCP | — |
-| iOS      | iOS-simulator MCP if installed | manual screenshot loop |
-| Android  | Emulator MCP if installed | adb + manual screenshot loop |
-
-**Requires:** at least one supported MCP for the target platform. Skill
-detects + surfaces the gap if none are installed.
+→ [Design rationale: `docs/ui-refinement.md`](docs/ui-refinement.md)
 
 ### `qa-session` — generalized session-based QA agent
 
@@ -190,28 +136,10 @@ casual mentions like "the tests pass" or "I tested it earlier".
 
 ### `frustration-check` — auto-detect drift and realign intent
 
-A `UserPromptSubmit` hook scores every user prompt against tiered regex
-patterns — T1 constraint repetition ("i already told you", "i made it
-clear"), T2 rage ("wtf", "fucking", "omfg"), T3 contradiction/halt ("no
-stop", "why are you still"), plus T4 self-realization phrases ("let me
-step back", "maybe i was wrong"). Per-session score accumulates across
-turns with ×0.5 decay; the skill activates when score ≥ threshold
-(default 5) or on any T4 match.
+A `UserPromptSubmit` hook that scores every prompt against tiered regex patterns with decay-weighted scoring. When the score crosses a threshold, it injects a signal that triggers a consent-gated intervention. The hook is corruption-safe: it never breaks the prompt.
 
-When triggered, the skill offers a consent-gated intervention: a brief
-non-preachy step-back line, a 2–3 sentence reflection on recent turns,
-then three user-chosen paths — (a) drift scan, (b) specific
-websearch/context7 knowledge-gap lookups, or (c) push on. Never
-auto-researches; always waits for consent.
+→ [Design rationale: `docs/frustration-check.md`](docs/frustration-check.md)
 
-**Opt-out:**
-- `enabled: false` in `~/.ccToolBox/frustration-check/settings.json`
-- Include the substring `skip frustration-check` in a prompt to suppress
-  for that turn only (state is not updated)
+---
 
-**Settings** (shipped at `version: 1`, user file at
-`~/.ccToolBox/frustration-check/settings.json`): `threshold`, `decay`,
-`state_ttl_days`, and `custom_patterns` for extending any tier's regex
-list.
-
-**Requires:** `python3` (stdlib only), `bash` 3.2+.
+See [CHANGELOG.md](CHANGELOG.md) for version history.
