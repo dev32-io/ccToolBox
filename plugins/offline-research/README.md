@@ -20,32 +20,6 @@ Guides freeform research intent into structured seed files for the offline resea
 4. Generates 4 seed files (`prompt.md`, `progress.md`, `critique-loop.md`, `scoring-rubric.md`) to your chosen directory
 5. Gives you the run command for the research container
 
-**How the loop works:**
-
-The agent follows a checklist in `progress.md`, processing one item per iteration:
-
-1. **Research** each topic -- deep dive with sources
-2. **Critique & Score** each topic via isolated Sonnet subagent (0-50 across 5 dimensions)
-3. **Improve** based on scorer feedback, spawn sub-topics as needed
-4. **Repeat** until plateau -- a topic is CONCLUDED when delta <= 3 for 2 consecutive scores
-
-The loop ends when all topics plateau or max-iterations is reached.
-
-**Max iterations:** `topics * 8 + 10`
-
-```
-Per topic (multiplier 8):
-- Research → Score → Improve → Re-score = 4 (base)
-- First plateau (streak 0) triggers one more improve cycle = +2
-- Minimum 2 approaches rule may force an alternative = +2
-
-Headroom (+10):
-- Decompose, Survey, and Synthesize steps that run once regardless of topic count
-- Buffer for the model to explore spawned sub-topics when needed
-
-Exits early when all topics plateau.
-```
-
 ---
 
 ### /arch-forge
@@ -61,32 +35,6 @@ Refines a sketch architecture through the offline container loop with PoC valida
 3. Refinement -- 3-5 questions to clarify constraints and priorities
 4. Generates 4 seed files (`prompt.md`, `progress.md`, `expansion-loop.md`, `scoring-rubric.md`) to your chosen directory
 5. Gives you the run command for the arch-tool container
-
-**How it differs from research-probe:**
-
-- Spawns PoCs to validate architectural decisions
-- Explores alternatives per decision area (minimum 2 approaches before concluding)
-- Uses dimension-aware expansion based on weakest scoring dimension:
-  - Feasibility < 6 -- build a PoC
-  - Maintainability < 6 -- decompose into sub-decisions
-  - Risk < 6 -- investigate failure modes
-  - Effort < 6 -- find a simpler alternative
-  - Alignment < 6 -- refocus on project intent
-
-**Max iterations:** `decisions * 10 + 15`
-
-```
-Per decision (multiplier 10):
-- Explore → Score → PoC → Re-score → Alternative → Score = 6 (base)
-- Dimension-aware expansion may add Decompose/Investigate tasks = +2
-- Plateau improvement cycles before concluding = +2
-
-Headroom (+15):
-- Decompose, Survey, and multiple Synthesize steps
-- Larger buffer than research-probe — PoC builds and sub-decision spawning need room
-
-Exits early when all decisions converge.
-```
 
 ---
 
@@ -105,26 +53,7 @@ Explores codebase tech debt and refactoring ideas through collaborative rubric c
 5. Generates 4 seed files (`prompt.md`, `progress.md`, `expansion-loop.md`, `scoring-rubric.md`) to your chosen directory
 6. Gives you the run command for the workshop container
 
-**How it differs from siblings:**
-
-- User-designed custom rubric (3-7 dimensions with custom anchors)
-- Dimension hint tags drive expansion: BUILD, INVESTIGATE, RETHINK, REFOCUS
-- Codebase-aware — scans real code during intake and grounds suggestions in actual patterns
-- PoCs replicate the real problem at small scale in isolated sketch projects
-
-**Max iterations:** `topics * 10 + 15`
-
-```Per topic (multiplier 10):
-- Explore → Score → PoC → Re-score → Alternative → Score = 6 (base)
-- Dimension-aware expansion may add PoC/Investigate/Rethink tasks = +2
-- Plateau improvement cycles before concluding = +2
-
-Headroom (+15):
-- Scan, Survey, and multiple Synthesize steps
-- Larger buffer — PoC builds and topic spawning need room
-
-Exits early when all topics plateau.
-```
+For container architecture, structured I/O contract, plateau math, and dimension-aware expansion, see [`docs/architecture.md`](docs/architecture.md).
 
 ## Containers
 
@@ -150,6 +79,6 @@ See [containers/workshop/](../../containers/workshop/) for setup and configurati
 claude plugins install offline-research@ccToolBox
 ```
 
-## Changelog
+---
 
 See [CHANGELOG.md](CHANGELOG.md) for version history.
