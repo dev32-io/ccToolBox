@@ -112,9 +112,12 @@ Determine the plugin root (two directories up from this skill file) to find temp
 
 **Fill progress.md:**
 - Replace `[MAX_ITER]` in the header with: `decisions × 10 + 15`
-- Replace `[DECISION_SCOREBOARD]` (unchanged from v1)
-- Replace `[DECISION_EXPLORATION]` (unchanged)
-- Replace `[DECISION_SCORING]` (unchanged)
+
+**CRITICAL — decision-slug convention.** The `topics/` directory uses `NN-<decision-slug>.md` filenames (e.g. `01-runtime-choice.md`) for sort order. EVERYWHERE ELSE — scoreboard rows, queue tasks, findings files, scores files — use the **bare `<decision-slug>`** (no `NN-` prefix). Mixing forms produces duplicate files and queue/file mismatches.
+
+- Replace `[DECISION_SCOREBOARD]` with one row per decision, using `<decision-slug>` ONLY (no `NN-` prefix). Example: `| runtime-choice | ACTIVE | - | - | - | - | - | - | - | 0 | 0 |`
+- Replace `[DECISION_EXPLORATION]` with one `- [ ] Explore: <decision-slug>` per decision (slug only).
+- Replace `[DECISION_SCORING]` with one `- [ ] Score: <decision-slug>` per decision (slug only).
 
 **Write `scoring-rubric.md`** unchanged (no placeholders to fill).
 

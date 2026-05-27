@@ -190,9 +190,12 @@ Read templates from `<plugin-root>/templates/refactor-probe/`:
 **`progress.md`** placeholders:
 - `[MAX_ITER]` — `topics × 10 + 15`
 - `[DIMENSION_HEADERS]` — abbreviated dim names (unchanged from v1)
-- `[TOPIC_SCOREBOARD]` — one row per topic (unchanged)
-- `[TOPIC_EXPLORATION]` — one line per topic (unchanged)
-- `[TOPIC_SCORING]` — one line per topic (unchanged)
+
+**CRITICAL — topic-slug convention.** The `topics/` directory uses `NN-<topic-slug>.md` filenames (e.g. `01-auth-cutover.md`) for sort order. EVERYWHERE ELSE — scoreboard rows, queue tasks, findings files, scores files — use the **bare `<topic-slug>`** (no `NN-` prefix). Mixing forms produces duplicate files and queue/file mismatches.
+
+- `[TOPIC_SCOREBOARD]` — one row per topic with `<topic-slug>` only (no `NN-`).
+- `[TOPIC_EXPLORATION]` — one `- [ ] Explore: <topic-slug>` per topic (slug only).
+- `[TOPIC_SCORING]` — one `- [ ] Score: <topic-slug>` per topic (slug only).
 
 **`scoring-rubric-template.md`** -- generates `scoring-rubric.md`:
 - `[DIMENSIONS_WITH_HINT_ACTION]` — full dimension table with `hint_action` column AND 0/5/10 anchors from co-design. Format:

@@ -83,7 +83,7 @@ Determine the plugin root (two directories up from this skill file) to find temp
 - Replace `[INTENT]` with one paragraph describing what the user wants to learn and why
 - Replace `[CONSTRAINTS]` with the user's hard boundaries (or "None specified" if none)
 
-**Write topics/ files:** For each refined topic, write `<probe-dir>/topics/NN-<topic-slug>.md` (zero-padded ordinal, kebab slug). Content:
+**Write topics/ files:** For each refined topic, write `<probe-dir>/topics/NN-<topic-slug>.md` (zero-padded ordinal for sort order + kebab `<topic-slug>` — example: `topics/01-vancouver-seasonal-calendar.md` has slug `vancouver-seasonal-calendar`). The `NN-` ordinal is ONLY for the topic file's filename — everywhere else (queue tasks, scoreboard, findings, scores) uses the bare slug. Content:
 
 ```
 # <Topic Name>
@@ -97,10 +97,17 @@ Determine the plugin root (two directories up from this skill file) to find temp
 ```
 
 **Fill progress.md:**
+
+**CRITICAL — topic-slug convention.** The `topics/` directory uses `NN-<topic-slug>.md` filenames (e.g. `01-vancouver-seasonal-calendar.md`) for sort order. EVERYWHERE ELSE — scoreboard rows, queue tasks, findings files, scores files — use the **bare `<topic-slug>`** (no `NN-` prefix). Mixing the two forms produces duplicate files and queue/file mismatches in agent dispatches.
+
 - Replace `[MAX_ITER]` in the header with the computed value: `topics × 8 + 10`
-- Replace `[TOPIC_SCOREBOARD]` with one row per topic (unchanged from v1)
-- Replace `[TOPIC_RESEARCH]` with one line per topic (unchanged)
-- Replace `[TOPIC_CRITIQUE]` with one line per topic (unchanged)
+- Replace `[TOPIC_SCOREBOARD]` with one row per topic, using `<topic-slug>` ONLY (no `NN-` prefix):
+  ```
+  | <topic-slug> | ACTIVE | - | - | - | - | - | - | - | 0 |
+  ```
+  Example: `| vancouver-seasonal-calendar | ACTIVE | - | - | - | - | - | - | - | 0 |`
+- Replace `[TOPIC_RESEARCH]` with one `- [ ] Research: <topic-slug>` line per topic (slug only — `Research: vancouver-seasonal-calendar`, NOT `Research: 01-vancouver-seasonal-calendar`).
+- Replace `[TOPIC_CRITIQUE]` with one `- [ ] Critique & Score: <topic-slug>` line per topic (slug only).
 
 **Write `scoring-rubric.md`** unchanged (no placeholders to fill).
 

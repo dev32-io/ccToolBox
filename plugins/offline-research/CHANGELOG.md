@@ -4,6 +4,22 @@ All notable changes to the offline-research plugin are documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [3.0.3] — 2026-05-27
+
+### Fixed
+
+- **Critical**: topic-slug naming inconsistency. The `topics/` directory uses
+  `NN-<topic-slug>.md` filenames for sort order, but probe skills were filling
+  the scoreboard and queue tasks with the `NN-` prefix too. Agents (especially
+  topic-researcher and critique-scorer) interpreted the topic identifier
+  inconsistently — sometimes keeping `NN-`, sometimes stripping it — resulting
+  in duplicate findings files (`01-foo.md` AND `foo.md`) and mismatched
+  scores/queue references. Fix: clarified across all three probe skills
+  (`/research-probe`, `/arch-forge`, `/refactor-probe`) and agent definitions
+  (`topic-researcher`, `critique-scorer`) that the `NN-` ordinal lives ONLY
+  on the `topics/` filename. Scoreboard, queue tasks, findings, scores, and
+  all expansion-planner outputs use the **bare `<topic-slug>`**.
+
 ## [3.0.2] — 2026-05-27
 
 ### Fixed
