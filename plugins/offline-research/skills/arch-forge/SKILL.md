@@ -125,14 +125,14 @@ Determine the plugin root (two directories up from this skill file) to find temp
 Derive `<folder-name>` from the last path segment of the user's chosen directory.
 
 > **How do you want to run this architecture exploration?**
-> 1. `/workshop-loop` in the current Claude Code session (Recommended)
-> 2. `/workshop-loop` inside a sandboxed container (if PoC code execution will be material)
+> 1. `/offline-research:workshop-loop` in the current Claude Code session (Recommended)
+> 2. `/offline-research:workshop-loop` inside a sandboxed container (if PoC code execution will be material)
 
 After the user picks, print only the selected command:
 
 - **Option 1**:
   ```
-  /workshop-loop <probe-dir>
+  /offline-research:workshop-loop <probe-dir>
   ```
 
 - **Option 2**:
@@ -142,7 +142,7 @@ After the user picks, print only the selected command:
   # inside container shell:
   claude
   # in Claude Code:
-  /workshop-loop /workspace
+  /offline-research:workshop-loop /workspace
   ```
 
 Replace `<probe-dir>` with the user's chosen directory (absolute path).

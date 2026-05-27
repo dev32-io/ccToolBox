@@ -1,12 +1,12 @@
 # Offline Research
 
-Structured offline research and architecture exploration, driven by an in-session orchestrator (`/workshop-loop`) with 5 plugin-shipped subagents.
+Structured offline research and architecture exploration, driven by an in-session orchestrator (`/offline-research:workshop-loop`) with 5 plugin-shipped subagents.
 
 **Version:** 3.0.0 — see [CHANGELOG.md](CHANGELOG.md) for the v3.0.0 breaking changes.
 
 ## What it does
 
-Three intake skills generate seed files (`mission.md`, `progress.md`, `scoring-rubric.md`, `topics/*.md`) into a probe directory. Then one slash command — `/workshop-loop <probe-dir>` — runs the master orchestrator inside your current Claude Code session. It dispatches one of 5 specialized subagents per task, reads scores back, applies plateau math, and iterates until all topics are CONCLUDED or `max_iter` is reached.
+Three intake skills generate seed files (`mission.md`, `progress.md`, `scoring-rubric.md`, `topics/*.md`) into a probe directory. Then one slash command — `/offline-research:workshop-loop <probe-dir>` — runs the master orchestrator inside your current Claude Code session. It dispatches one of 5 specialized subagents per task, reads scores back, applies plateau math, and iterates until all topics are CONCLUDED or `max_iter` is reached.
 
 The orchestrator is **subscription-safe**: it runs in your interactive Claude Code session, so it stays on the standard subscription quota (not the new Agent SDK credit pool).
 
@@ -32,7 +32,7 @@ Co-designs a custom scoring rubric (BUILD / INVESTIGATE / RETHINK / REFOCUS hint
 
 ## Command (orchestrator)
 
-### /workshop-loop &lt;probe-dir&gt; [--max-iter N]
+### /offline-research:workshop-loop &lt;probe-dir&gt; [--max-iter N]
 
 Master loop. Reads `progress.md`, dispatches one of 5 subagents per task, checks off, and iterates until termination.
 
@@ -76,7 +76,7 @@ For PoCs that need code execution against an isolated codebase:
 # inside the container shell:
 claude
 # in Claude Code:
-/workshop-loop /workspace
+/offline-research:workshop-loop /workspace
 ```
 
 This drops you into an interactive `claude` session inside a Docker sandbox with `WORKSHOP_CONTAINER=1` set. `poc-builder` detects this env var and unlocks full Bash execution. Still subscription billing (interactive `claude`, not `claude -p`).

@@ -29,4 +29,4 @@
 └── README.md               # final TLDR + navigation (synthesizer)
 ```
 
-Run with: `/workshop-loop <this-dir>`
+Run with: `/offline-research:workshop-loop <this-dir>`

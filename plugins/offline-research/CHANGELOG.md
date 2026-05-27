@@ -12,7 +12,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 - **Removed `./launch.sh run` subcommand.** Driving iteration via host-side
   `docker exec ... claude -p` would move to Anthropic's separate Agent SDK
-  credit pool on 2026-06-15. Use `/workshop-loop <probe-dir>` from an
+  credit pool on 2026-06-15. Use `/offline-research:workshop-loop <probe-dir>` from an
   interactive Claude Code session instead. The session can be local
   (subscription billing) or inside `./launch.sh shell` for PoC sandboxing
   (still subscription billing — interactive `claude`, not `claude -p`).
@@ -28,7 +28,7 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ### Added
 
-- **`/workshop-loop <probe-dir> [--max-iter N]`** slash command. Runs the
+- **`/offline-research:workshop-loop <probe-dir> [--max-iter N]`** slash command. Runs the
   master orchestrator in the user's interactive Claude Code session.
   Validates the probe directory via `scripts/validate-probe-dir.sh`,
   emits an activation marker, dispatches subagents per task.
@@ -63,7 +63,7 @@ This project follows [Semantic Versioning](https://semver.org/).
   `~/offline-research/<short-title>/`). Rationale: repo-level plugin
   install scopes hooks to the project.
 - All three probe skills' final run-command emission now points at
-  `/workshop-loop` (single recommended path) with sandboxed
+  `/offline-research:workshop-loop` (single recommended path) with sandboxed
   `./launch.sh shell` as the second option.
 - Container Dockerfiles preserved; only the host-side runner scripts +
   light entrypoints removed.

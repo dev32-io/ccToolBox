@@ -2,7 +2,7 @@
 
 > Design spec: [`../../../docs/superpowers/specs/2026-05-26-offline-research-v2-design.md`](../../../docs/superpowers/specs/2026-05-26-offline-research-v2-design.md)
 
-The plugin's job is to run multi-hour exploratory research without burning out a Claude Code session's context window. v3 achieves this with a stop-hook-driven orchestrator (`/workshop-loop`) that runs inside the user's interactive session, dispatching specialized subagents per task and reading state from a single source of truth: `<probe-dir>/progress.md`.
+The plugin's job is to run multi-hour exploratory research without burning out a Claude Code session's context window. v3 achieves this with a stop-hook-driven orchestrator (`/offline-research:workshop-loop`) that runs inside the user's interactive session, dispatching specialized subagents per task and reading state from a single source of truth: `<probe-dir>/progress.md`.
 
 This is a rebuild of v1's container-based loop. v1 drove iteration with host-side `docker exec ... claude -p`, which moves to a separate billing bucket on 2026-06-15. v3 stays on the subscription side by running the orchestrator in interactive Claude Code.
 
@@ -13,9 +13,9 @@ This is a rebuild of v1's container-based loop. v1 drove iteration with host-sid
 ### Lifecycle
 
 ```
-User: /workshop-loop ~/offline-research/2026-05-26-foo [--max-iter 50]
+User: /offline-research:workshop-loop ~/offline-research/2026-05-26-foo [--max-iter 50]
   ↓
-commands/workshop-loop.md
+commands/offline-research:workshop-loop.md
   - invokes scripts/validate-probe-dir.sh
     (checks mission.md, progress.md, scoring-rubric.md exist;
      verifies max_iter: header; applies --max-iter override)
@@ -55,7 +55,7 @@ v1 of the design (and ralph-loop, the closest prior art) keep an iteration count
 
 1. `progress.md` already encodes iteration count exactly (`grep -c '^- \[x\]'`).
 2. `progress.md` is human-readable, git-trackable, and survives power loss mid-iteration.
-3. Cancel = Ctrl-C. Resume = re-invoke `/workshop-loop <same-dir>`. The marker re-emits, the hook re-engages, picking up from the first `[ ]` in progress.md.
+3. Cancel = Ctrl-C. Resume = re-invoke `/offline-research:workshop-loop <same-dir>`. The marker re-emits, the hook re-engages, picking up from the first `[ ]` in progress.md.
 
 ### The 5 subagents
 
@@ -161,7 +161,7 @@ For PoCs that must execute against an isolated environment, the container still 
 ./launch.sh shell --container=refactor /path/to/probe-dir
 # drops user into bash inside container at /workspace
 $ claude
-> /workshop-loop /workspace
+> /offline-research:workshop-loop /workspace
 ```
 
 The `shell` subcommand sets `WORKSHOP_CONTAINER=1` in the container env. `poc-builder` reads this at the start of every invocation:
@@ -191,7 +191,7 @@ plugins/offline-research/
 │   ├── poc-builder.md                  # PoC/Build (sandbox-aware)
 │   └── synthesizer.md                  # Synthesize/Final report + retro
 ├── commands/
-│   └── workshop-loop.md                # /workshop-loop slash command
+│   └── workshop-loop.md                # /offline-research:workshop-loop slash command
 ├── hooks/
 │   ├── hooks.json                      # Stop hook registration
 │   └── workshop-loop-stop.sh           # the hook itself

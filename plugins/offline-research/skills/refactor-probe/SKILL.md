@@ -214,8 +214,8 @@ Write all files to the output directory:
 **Ask and wait for user's choice:**
 
 > **How do you want to run this refactor exploration?**
-> 1. `/workshop-loop` in the current Claude Code session (Recommended for write-only exploration)
-> 2. `/workshop-loop` inside a sandboxed container (Recommended if PoCs must execute against the codebase)
+> 1. `/offline-research:workshop-loop` in the current Claude Code session (Recommended for write-only exploration)
+> 2. `/offline-research:workshop-loop` inside a sandboxed container (Recommended if PoCs must execute against the codebase)
 
 **STOP HERE.** Wait for the user to pick 1 or 2.
 
@@ -229,7 +229,7 @@ cp -r <codebase-path> <probe-dir>/codebase
 
 **If user picks 1**, print:
 ```
-/workshop-loop <probe-dir>
+/offline-research:workshop-loop <probe-dir>
 ```
 
 **If user picks 2**, print:
@@ -239,7 +239,7 @@ cp -r <codebase-path> <probe-dir>/codebase
 # inside container shell:
 claude
 # in Claude Code:
-/workshop-loop /workspace
+/offline-research:workshop-loop /workspace
 ```
 
 Replace `<probe-dir>` with the absolute path.

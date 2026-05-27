@@ -187,7 +187,7 @@ cmd_shell() {
     echo
     log_dim "📦 You're inside ${BOLD}workshop-${PROFILE}${RESET}${DIM} sandbox at /workspace."
     log_dim "   Run: ${BOLD}claude${RESET}${DIM}"
-    log_dim "   Then in Claude Code: ${BOLD}/workshop-loop /workspace${RESET}"
+    log_dim "   Then in Claude Code: ${BOLD}/offline-research:workshop-loop /workspace${RESET}"
     echo
     docker exec -it --user node "$CONTAINER_NAME" bash
 }
@@ -208,7 +208,7 @@ cmd_help() {
     printf "    setup                          Build image + drop into shell for first-time setup\n"
     printf "    shell [<probe-dir>]            Drop into interactive container shell.\n"
     printf "                                   If <probe-dir> given, mounted as /workspace.\n"
-    printf "                                   Inside: claude → /workshop-loop /workspace\n"
+    printf "                                   Inside: claude → /offline-research:workshop-loop /workspace\n"
     printf "    build                          Build the image without entering shell\n"
     echo
 }
@@ -226,7 +226,7 @@ case "${FILTERED_ARGS[0]:-help}" in
     run)
         log_err "\`run\` subcommand was removed in v3.0.0."
         log_dim "Use:  ./launch.sh shell --container=$PROFILE <probe-dir>"
-        log_dim "Then: claude → /workshop-loop /workspace"
+        log_dim "Then: claude → /offline-research:workshop-loop /workspace"
         exit 1
         ;;
     help|*) cmd_help ;;

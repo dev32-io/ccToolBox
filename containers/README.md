@@ -2,7 +2,7 @@
 
 Docker-based sandbox running interactive Claude Code or OpenCode for PoC validation during workshop-loop research runs.
 
-> v3.0.0: the host-side `run` subcommand was retired (host `claude -p` is moving to a separate billing pool on 2026-06-15). The container now serves only as an optional sandbox for `/workshop-loop` runs that need to execute generated PoC code against an isolated environment. Day-to-day use of the offline-research plugin no longer requires Docker — `/workshop-loop` runs in your normal interactive Claude Code session.
+> v3.0.0: the host-side `run` subcommand was retired (host `claude -p` is moving to a separate billing pool on 2026-06-15). The container now serves only as an optional sandbox for `/offline-research:workshop-loop` runs that need to execute generated PoC code against an isolated environment. Day-to-day use of the offline-research plugin no longer requires Docker — `/offline-research:workshop-loop` runs in your normal interactive Claude Code session.
 
 ## Workshop
 
@@ -34,7 +34,7 @@ export OPENCODE_AUTH_DIR="$HOME/.config/opencode"
 # inside container:
 claude
 # in Claude Code:
-/workshop-loop /workspace
+/offline-research:workshop-loop /workspace
 ```
 
 Replace `research` with `arch` or `refactor` as needed. Add `--agent=opencode` to use OpenCode instead of Claude.

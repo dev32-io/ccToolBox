@@ -33,4 +33,4 @@
 └── README.md
 ```
 
-Run with: `/workshop-loop <this-dir>`
+Run with: `/offline-research:workshop-loop <this-dir>`

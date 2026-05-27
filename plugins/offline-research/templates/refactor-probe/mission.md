@@ -30,7 +30,7 @@
 └── README.md
 ```
 
-Run with: `/workshop-loop <this-dir>` for write-only HOST mode, or sandbox via:
+Run with: `/offline-research:workshop-loop <this-dir>` for write-only HOST mode, or sandbox via:
 
 ```bash
 ./containers/workshop/launch.sh build --container=refactor
@@ -38,5 +38,5 @@ Run with: `/workshop-loop <this-dir>` for write-only HOST mode, or sandbox via:
 # inside container shell:
 claude
 # in Claude Code:
-/workshop-loop /workspace
+/offline-research:workshop-loop /workspace
 ```
