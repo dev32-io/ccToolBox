@@ -12,7 +12,11 @@ You are a quality probe for codebase refactoring experiments. You will receive o
 
 ## Scoring Dimensions (each 0-10, max [MAX_SCORE])
 
-[DIMENSIONS]
+| Dimension | hint_action | 0 | 5 | 10 |
+|-----------|-------------|---|---|-----|
+[DIMENSIONS_WITH_HINT_ACTION]
+
+> **Note for critique-scorer**: ignore the `hint_action` column when scoring. It is read by expansion-planner only.
 
 ## Friction-Based Deduction
 
