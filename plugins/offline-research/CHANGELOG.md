@@ -4,6 +4,16 @@ All notable changes to the offline-research plugin are documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [3.0.4] — 2026-05-27
+
+### Fixed
+
+- Completes the 3.0.3 topic-slug convention: critique-scorer.md was missed
+  in the 3.0.3 commit (read-before-write race). Now critique-scorer's
+  Inputs section explicitly says `topic` is the bare slug (strip `NN-` if
+  passed in dispatch), and all path references use `<topic-slug>` instead
+  of `<topic>`.
+
 ## [3.0.3] — 2026-05-27
 
 ### Fixed
