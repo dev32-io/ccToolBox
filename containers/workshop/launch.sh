@@ -38,19 +38,16 @@ case "$PROFILE" in
     research)
         IMAGE_NAME="workshop-research"
         CONTAINER_NAME="${CONTAINER_NAME:-workshop-research-sandbox}"
-        RUNNER_SCRIPT="run-research.sh"
         RESOURCE_LIMITS=()
         ;;
     arch)
         IMAGE_NAME="workshop-arch"
         CONTAINER_NAME="${CONTAINER_NAME:-workshop-arch-sandbox}"
-        RUNNER_SCRIPT="run-arch-forge.sh"
         RESOURCE_LIMITS=(--memory=4g --cpus=4 --pids-limit=200)
         ;;
     refactor)
         IMAGE_NAME="workshop-refactor"
         CONTAINER_NAME="${CONTAINER_NAME:-workshop-refactor-sandbox}"
-        RUNNER_SCRIPT="run-refactor.sh"
         RESOURCE_LIMITS=(--memory=4g --cpus=4 --pids-limit=200)
         ;;
     *)
@@ -151,6 +148,7 @@ ensure_container() {
     fi
 
     RUN_CMD+=(-e "TZ=${TZ}")
+    RUN_CMD+=(-e "WORKSHOP_CONTAINER=1")
     [[ -n "${GH_TOKEN:-}" ]] && RUN_CMD+=(-e GH_TOKEN="$GH_TOKEN")
     RUN_CMD+=("$IMAGE_NAME" tail -f /dev/null)
 
@@ -169,25 +167,34 @@ cmd_setup() {
     docker exec -it --user node "$CONTAINER_NAME" bash
 }
 
-cmd_run() {
-    local topic_path="${1:?Usage: launch.sh --container=${PROFILE} run <topic-path> [max-iterations]}"
-    local max_iter="${2:-75}"
+cmd_shell() {
+    local probe_path="${1:-}"
 
-    topic_path="$(cd "$topic_path" && pwd)"
+    printf "\n${BOLD}${CYAN}  workshop shell (${PROFILE})${RESET}\n\n"
 
-    printf "\n${BOLD}${CYAN}  workshop run (${PROFILE})${RESET}\n\n"
-    build_image
-    WORKSPACE="$topic_path"
+    # If probe path supplied, override WORKSPACE to mount it as /workspace
+    if [[ -n "$probe_path" ]]; then
+        if [[ ! -d "$probe_path" ]]; then
+            log_err "probe directory does not exist: $probe_path"
+            exit 1
+        fi
+        probe_path="$(cd "$probe_path" && pwd)"
+        WORKSPACE="$probe_path"
+        log_dim "Mounting $probe_path as /workspace"
+    fi
+
     ensure_container
     echo
-    exec "$SCRIPT_DIR/$RUNNER_SCRIPT" "$max_iter"
-}
-
-cmd_shell() {
-    printf "\n${BOLD}${CYAN}  workshop shell (${PROFILE})${RESET}\n\n"
-    ensure_container
+    log_dim "📦 You're inside ${BOLD}workshop-${PROFILE}${RESET}${DIM} sandbox at /workspace."
+    log_dim "   Run: ${BOLD}claude${RESET}${DIM}"
+    log_dim "   Then in Claude Code: ${BOLD}/workshop-loop /workspace${RESET}"
     echo
     docker exec -it --user node "$CONTAINER_NAME" bash
+}
+
+cmd_build() {
+    printf "\n${BOLD}${CYAN}  workshop build (${PROFILE})${RESET}\n\n"
+    build_image
 }
 
 cmd_help() {
@@ -198,18 +205,29 @@ cmd_help() {
     printf "    arch                           4g memory, 4 CPUs, 200 pids\n"
     printf "    refactor                       4g memory, 4 CPUs, 200 pids\n\n"
     printf "  ${BOLD}Commands:${RESET}\n"
-    printf "    setup                          Create container and login\n"
-    printf "    run <topic-path> [max-iter]    Start runner with auto-resume\n"
-    printf "    shell                          Open container shell\n"
+    printf "    setup                          Build image + drop into shell for first-time setup\n"
+    printf "    shell [<probe-dir>]            Drop into interactive container shell.\n"
+    printf "                                   If <probe-dir> given, mounted as /workspace.\n"
+    printf "                                   Inside: claude → /workshop-loop /workspace\n"
+    printf "    build                          Build the image without entering shell\n"
     echo
 }
 
 # Restore filtered args (--container stripped out)
 set -- "${FILTERED_ARGS[@]+"${FILTERED_ARGS[@]}"}"
 
-case "${1:-help}" in
-    setup) cmd_setup ;;
-    run)   shift; cmd_run "$@" ;;
-    shell) cmd_shell ;;
-    *)     cmd_help ;;
+case "${FILTERED_ARGS[0]:-help}" in
+    setup) shift; cmd_setup "$@" ;;
+    shell)
+        # Strip the 'shell' arg, pass remaining FILTERED_ARGS positional args
+        cmd_shell "${FILTERED_ARGS[@]:1}"
+        ;;
+    build) cmd_build ;;
+    run)
+        log_err "\`run\` subcommand was removed in v3.0.0."
+        log_dim "Use:  ./launch.sh shell --container=$PROFILE <probe-dir>"
+        log_dim "Then: claude → /workshop-loop /workspace"
+        exit 1
+        ;;
+    help|*) cmd_help ;;
 esac
