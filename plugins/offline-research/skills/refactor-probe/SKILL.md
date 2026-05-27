@@ -143,146 +143,106 @@ Present the final rubric with all dimensions, anchors, and hint tags. User signs
 
 Get the current date via `date +%Y-%m-%d`. Derive a short kebab-case title from the experiment (e.g., `auth-migration`, `build-pipeline-cleanup`).
 
-Ask and **wait for the user's response before proceeding**:
+Ask the user (and **wait for their response before proceeding**):
 
 > Where should I write the seed files?
-> 1. `~/offline-research/YYYY-MM-DD-short-title/`
-> 2. `<git-root>/offline-research/YYYY-MM-DD-short-title/` (or `./YYYY-MM-DD-short-title/` if not in a git repo)
+> 1. `<cwd>/<short-title>/`  (Recommended)
+> 2. `~/offline-research/<short-title>/`
 > 3. Type a custom path
 
 **STOP HERE.** Do not read templates, fill placeholders, or write any files until the user has confirmed the output location. Only proceed to the next section after receiving the user's choice.
 
-Get the current date via `date +%Y-%m-%d`. Determine git root via `git rev-parse --show-toplevel 2>/dev/null`.
+Get the current date via `date +%Y-%m-%d`. Determine git root via `git rev-parse --show-toplevel 2>/dev/null`. CWD = `$(pwd)` from a Bash invocation. Derive `<short-title>` as a kebab-case slug from the experiment title.
 
 #### Read templates
 
 Determine the plugin root — two directories up from this skill file.
 
 Read templates from `<plugin-root>/templates/refactor-probe/`:
-- `prompt.md`
+- `mission.md`
 - `progress.md`
-- `expansion-loop.md`
 - `scoring-rubric-template.md`
 
 #### Fill templates
 
-**`prompt.md`** placeholders:
-- `[TITLE]` -- experiment title
-- `[PROBE_DIR]` -- the output directory path (e.g., `.refactor-probe/2026-04-06-auth-migration/`)
-- `[CODEBASE_CONTEXT]` -- structure summary, key files, patterns observed during the survey
-- `[GOALS]` -- refined goals from Phase 3
-- `[TOPICS]` -- refined topic list with sub-topics, each formatted as:
-  ```
-  ### N. Topic Name (`topic-name.md`)
-  - sub-topic or angle
-  - sub-topic or angle
-  - ...
-  ```
+**`mission.md`** placeholders:
+- `[TITLE]` — experiment title
+- `[GOALS]` — refined goals from Phase 3
+- `[CODEBASE_CONTEXT]` — structure summary, key files, patterns observed during the survey
+
+**Write topics/ files:** For each refined topic, write `<probe-dir>/topics/NN-<topic-slug>.md`. Content:
+
+```
+# <Topic Name>
+
+## Sub-questions / angles
+- <question>
+- <question>
+
+## Codebase touchpoints
+- <file or pattern>
+- <file or pattern>
+
+## Migration concerns
+- <concern>
+```
 
 **`progress.md`** placeholders:
-- `[PROBE_DIR]` -- same output directory path as prompt.md
-- `[DIMENSION_HEADERS]` -- abbreviated dimension names separated by ` | `, derived from the co-designed rubric (e.g., `MigSafe | BackCompat | Complex | TestCov | Rollback`)
-- `[TOPIC_SCOREBOARD]` -- one row per topic:
-  ```
-  | topic-name | ACTIVE | - | - | ... | 0 | 0 | 0 |
-  ```
-  (one `-` per dimension, plus Total, Delta, Streak, Approaches columns)
-- `[TOPIC_EXPLORATION]` -- one line per topic:
-  ```
-  - [ ] Explore: topic-name
-  ```
-- `[TOPIC_SCORING]` -- one line per topic:
-  ```
-  - [ ] Score: topic-name
-  ```
-
-**`expansion-loop.md`** placeholders:
-- `[PROBE_DIR]` -- same output directory path as prompt.md
-- `[DIMENSION_HINTS]` -- per-dimension expansion rules generated from the co-designed rubric. Format each dimension as:
-  ```
-  Dimension Name (TAG):
-  +-- Add: <task-type>: <topic>-<specific> -- <description>
-  \-- <fallback or alternative action>
-  ```
-
-  Example output:
-  ```
-  Migration Safety (BUILD):
-  +-- Add: PoC: <topic>-incremental-migration -- build a sketch showing incremental cutover
-  \-- If PoC exists, add: PoC: <topic>-alternative-migration -- try a different strategy
-
-  Backwards Compatibility (INVESTIGATE):
-  +-- Add: Investigate: <topic>-compat-risks -- find session/client breakage scenarios
-  \-- Reference specific gaps from subagent's friction log
-
-  Complexity Reduction (RETHINK):
-  +-- Add: Rethink: <topic> -- is the new approach actually simpler? Consider alternatives
-  \-- Add: Explore: <topic>-simpler -- look for a lighter approach
-
-  Test Coverage (BUILD):
-  +-- Add: PoC: <topic>-test-harness -- build a sketch test suite for the migration path
-  \-- If PoC exists, add: PoC: <topic>-integration-test -- test at a different boundary
-
-  Rollback Viability (INVESTIGATE):
-  +-- Add: Investigate: <topic>-rollback-scenarios -- map failure modes and revert paths
-  \-- Reference specific gaps from subagent's friction log
-  ```
+- `[MAX_ITER]` — `topics × 10 + 15`
+- `[DIMENSION_HEADERS]` — abbreviated dim names (unchanged from v1)
+- `[TOPIC_SCOREBOARD]` — one row per topic (unchanged)
+- `[TOPIC_EXPLORATION]` — one line per topic (unchanged)
+- `[TOPIC_SCORING]` — one line per topic (unchanged)
 
 **`scoring-rubric-template.md`** -- generates `scoring-rubric.md`:
-- `[DIMENSIONS]` -- full dimension table with 0/5/10 anchors from co-design
-- `[DIMENSION_COUNT]` -- number of dimensions
-- `[MAX_SCORE]` -- dimension count x 10
-- `[SCORE_FORMAT]` -- one line per dimension:
+- `[DIMENSIONS_WITH_HINT_ACTION]` — full dimension table with `hint_action` column AND 0/5/10 anchors from co-design. Format:
   ```
-  - <Dimension Name>: N/10
+  | <Dimension Name> | <BUILD|INVESTIGATE|RETHINK|REFOCUS> | <0 anchor> | <5 anchor> | <10 anchor> |
   ```
+- `[DIMENSION_COUNT]` — number of dimensions
+- `[MAX_SCORE]` — dimension count x 10
+- `[SCORE_FORMAT]` — one line per dimension: `- <Dimension Name>: N/10`
 
 #### Write files
 
 Write all files to the output directory:
-- `prompt.md` (filled)
+- `mission.md` (filled)
 - `progress.md` (filled)
-- `expansion-loop.md` (filled)
 - `scoring-rubric.md` (generated from template)
+- `topics/NN-<topic-slug>.md` (one per topic)
 
-#### Calculate max-iterations
-
-`topics x 10 + 15`. PoC-heavy exploration needs room. Example: 5 topics -> `--max-iterations 65`.
-
-**Ask and wait for the user's choice before showing any commands:**
+**Ask and wait for user's choice:**
 
 > **How do you want to run this refactor exploration?**
-> 1. In the workshop container with auto-resume (Recommended)
-> 2. In the workshop container (manual)
-> 3. Locally
+> 1. `/workshop-loop` in the current Claude Code session (Recommended for write-only exploration)
+> 2. `/workshop-loop` inside a sandboxed container (Recommended if PoCs must execute against the codebase)
 
-**STOP HERE.** Wait for the user to pick 1, 2, or 3. Do not show commands, search for tools, or take any action until they respond.
+**STOP HERE.** Wait for the user to pick 1 or 2.
 
-**After the user responds**, print ONLY the command for their choice. All commands below are plain text for the user to copy — do NOT invoke, search for, or execute them. Do NOT resolve or locate the actual script path — use `./launch.sh` exactly as shown.
+For both options, the user must first copy their codebase into the probe dir:
 
-For container options (1 and 2), the user must copy their codebase into the output directory first. The container only sees `/workspace/`.
-
-**If user picks 1** (auto-resume), print:
 ```
-cp -r <codebase-path> <host-path>/codebase
-./launch.sh run --container=refactor <host-path> <TOPIC_COUNT * 10 + 15>
+cp -r <codebase-path> <probe-dir>/codebase
 ```
 
-**If user picks 2** (manual container), print the cp command first:
+**After the user responds**, print ONLY the command for their choice:
+
+**If user picks 1**, print:
 ```
-cp -r <codebase-path> <host-path>/codebase
-```
-Then tell them to shell into the container and type this in Claude Code (it's a slash command the user types, NOT something you invoke):
-```
-/ralph-loop "Do NOT invoke any skills or use the Skill tool. Read /workspace/prompt.md for context. Read /workspace/progress.md and do the next unchecked item in the Task Queue. Check it off when done. Output TASK DONE and stop." --max-iterations <TOPIC_COUNT * 10 + 15> --completion-promise "TASK DONE"
+/workshop-loop <probe-dir>
 ```
 
-**If user picks 3** (local), tell them to type this in Claude Code (it's a slash command the user types, NOT something you invoke):
+**If user picks 2**, print:
 ```
-/ralph-loop "Do NOT invoke any skills or use the Skill tool. Read <local-path>/prompt.md for context. Read <local-path>/progress.md and do the next unchecked item in the Task Queue. Check it off when done. Output TASK DONE and stop." --max-iterations <TOPIC_COUNT * 10 + 15> --completion-promise "TASK DONE"
+./containers/workshop/launch.sh build --container=refactor
+./containers/workshop/launch.sh shell --container=refactor <probe-dir>
+# inside container shell:
+claude
+# in Claude Code:
+/workshop-loop /workspace
 ```
 
-Replace `<host-path>`, `<local-path>`, and `<codebase-path>` with the actual paths.
+Replace `<probe-dir>` with the absolute path.
 
 Then ask:
 
