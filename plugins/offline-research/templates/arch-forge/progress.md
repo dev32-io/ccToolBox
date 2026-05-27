@@ -1,3 +1,6 @@
+max_iter: [MAX_ITER]
+max_parallel: 4
+
 # Architecture Expansion Progress
 
 ## Scoreboard
@@ -6,8 +9,6 @@
 [DECISION_SCOREBOARD]
 
 ## Task Queue
-
-> For every `Score` task: you MUST read `expansion-loop.md` and `scoring-rubric.md` before starting. Do not score from memory or assumption.
 
 - [ ] Decompose: read seed architecture, create exploration files in explorations/
 - [ ] Survey: all decision areas (skim landscape, log in sources.md)
