@@ -1,0 +1,15 @@
+{
+  "description": "offline-research workshop-loop stop hook (derives state from progress.md)",
+  "hooks": {
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash \"${CLAUDE_PLUGIN_ROOT}/hooks/workshop-loop-stop.sh\""
+          }
+        ]
+      }
+    ]
+  }
+}
