@@ -1,7 +1,7 @@
 {
   "name": "offline-research",
   "description": "Pure-skill structured offline research, architecture exploration, and codebase refactoring with /offline-research:workshop-loop orchestrator",
-  "version": "3.0.0",
+  "version": "3.0.1",
   "author": {
     "name": "dev32-io"
   }

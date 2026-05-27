@@ -4,6 +4,16 @@ All notable changes to the offline-research plugin are documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [3.0.1] — 2026-05-27
+
+### Fixed
+
+- Probe skills, templates, README, CHANGELOG, architecture.md, and container
+  shell-mode hints all said `/workshop-loop` (which fails — slash commands
+  resolve under the plugin namespace). Replaced with `/offline-research:workshop-loop`.
+  Internal file paths (`commands/workshop-loop.md`, `hooks/workshop-loop-stop.sh`)
+  and transcript markers (`[workshop-loop-active|done]`) unchanged.
+
 ## [Unreleased]
 
 ## [3.0.0] — 2026-05-26
