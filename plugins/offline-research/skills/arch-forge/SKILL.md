@@ -71,83 +71,81 @@ Continue for 3-5 questions until scope feels right.
 
 Ask the user if they'd like you to write the seed files now, or make further adjustments.
 
-Once confirmed, ask where to write them:
+Once confirmed, ask the user (and **wait for their response before proceeding**):
 
 > Where should I write the seed files?
-> 1. `~/offline-research/YYYY-MM-DD-short-title/`
-> 2. `<git-root>/offline-research/YYYY-MM-DD-short-title/` (or `./YYYY-MM-DD-short-title/` if not in a git repo)
+> 1. `<cwd>/<short-title>/`  (Recommended)
+> 2. `~/offline-research/<short-title>/`
 > 3. Type a custom path
 
-Get the current date via `date +%Y-%m-%d`. Determine git root via `git rev-parse --show-toplevel 2>/dev/null`.
+Get the current date via `date +%Y-%m-%d`. Determine git root via `git rev-parse --show-toplevel 2>/dev/null`. CWD = `$(pwd)` from a Bash invocation. Derive `<short-title>` as a kebab-case slug from the mission.
 
 Determine the plugin root (two directories up from this skill file) to find templates.
 
 **Read templates:**
-- Read `<plugin-root>/templates/arch-forge/prompt.md`
+- Read `<plugin-root>/templates/arch-forge/mission.md`
 - Read `<plugin-root>/templates/arch-forge/progress.md`
-- Read `<plugin-root>/templates/arch-forge/expansion-loop.md`
 - Read `<plugin-root>/templates/arch-forge/scoring-rubric.md`
 
-**Fill prompt.md:**
+**Fill mission.md:**
 - Replace `[PROJECT_NAME]` with the project name
 - Replace `[PROJECT_INTENT]` with the confirmed project intent paragraph
 - Replace `[CONSTRAINTS]` with the confirmed constraints list
 - Replace `[ARCHITECTURE_SKETCH]` with the user's original sketch (cleaned up)
-- Replace `[DECISIONS]` with the refined decision list, each formatted as:
-  ```
-  ### N. Decision Area Name (`decision-area-name.md`)
-  - what's unclear or needs exploration
-  - specific alternatives to consider
-  - ...
-  ```
+
+**Write topics/ files:** For each decision area, write `<probe-dir>/topics/NN-<decision>.md`. Content:
+
+```
+# <Decision Name>
+
+## Alternatives to consider
+- <option>
+- <option>
+
+## What's unclear
+- <question>
+- <question>
+
+## Hard constraints
+- <constraint from mission>
+```
 
 **Fill progress.md:**
-- Replace `[DECISION_SCOREBOARD]` with one row per decision:
-  ```
-  | decision-area-name | ACTIVE | - | - | - | - | - | - | - | 0 | 0 |
-  ```
-- Replace `[DECISION_EXPLORATION]` with one line per decision:
-  ```
-  - [ ] Explore: decision-area-name
-  ```
-- Replace `[DECISION_SCORING]` with one line per decision:
-  ```
-  - [ ] Score: decision-area-name
-  ```
+- Replace `[MAX_ITER]` in the header with: `decisions × 10 + 15`
+- Replace `[DECISION_SCOREBOARD]` (unchanged from v1)
+- Replace `[DECISION_EXPLORATION]` (unchanged)
+- Replace `[DECISION_SCORING]` (unchanged)
 
-**Write `expansion-loop.md` and `scoring-rubric.md`** unchanged (no placeholders to fill).
+**Write `scoring-rubric.md`** unchanged (no placeholders to fill).
 
-**Write all four files** to the user's chosen directory using the Write tool.
+**Write all files** to the user's chosen directory using the Write tool.
 
-**Calculate max-iterations:** `decisions × 10 + 15`. Higher multiplier than research-probe because architecture exploration spawns PoCs, alternative explorations, risk investigations, and decomposition tasks. Example: 6 decisions → `--max-iterations 75`.
-
-**Present three run options (without showing commands yet):**
+**Present two run options:**
 
 Derive `<folder-name>` from the last path segment of the user's chosen directory.
 
 > **How do you want to run this architecture exploration?**
-> 1. In the workshop container with auto-resume (Recommended)
-> 2. In the workshop container (manual)
-> 3. Locally
+> 1. `/workshop-loop` in the current Claude Code session (Recommended)
+> 2. `/workshop-loop` inside a sandboxed container (if PoC code execution will be material)
 
 After the user picks, print only the selected command:
 
-- **Auto-resume command** (option 1):
+- **Option 1**:
   ```
-  ./containers/workshop/launch.sh run --container=arch <host-path> <DECISION_COUNT * 10 + 15>
-  ```
-
-- **Manual container command** (option 2):
-  ```
-  /ralph-loop:ralph-loop "Read /workspace/prompt.md for context. Read /workspace/progress.md and do the next unchecked item in the Task Queue. Check it off when done. Output TASK DONE and stop." --max-iterations <DECISION_COUNT * 10 + 15> --completion-promise "TASK DONE"
+  /workshop-loop <probe-dir>
   ```
 
-- **Local command** (option 3):
+- **Option 2**:
   ```
-  /ralph-loop:ralph-loop "Read <local-path>/prompt.md for context. Read <local-path>/progress.md and do the next unchecked item in the Task Queue. Check it off when done. Output TASK DONE and stop." --max-iterations <DECISION_COUNT * 10 + 15> --completion-promise "TASK DONE"
+  ./containers/workshop/launch.sh build --container=arch
+  ./containers/workshop/launch.sh shell --container=arch <probe-dir>
+  # inside container shell:
+  claude
+  # in Claude Code:
+  /workshop-loop /workspace
   ```
 
-Replace `<host-path>` and `<local-path>` with the user's chosen directory path.
+Replace `<probe-dir>` with the user's chosen directory (absolute path).
 
 Then ask:
 
