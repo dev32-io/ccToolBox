@@ -10,7 +10,7 @@ max_parallel: 4
 
 ## Task Queue
 
-- [ ] Scan: read codebase, create exploration files in [PROBE_DIR]explorations/
+- [ ] Scan: read codebase under codebase/, create exploration files in explorations/
 - [ ] Survey: all topics (skim landscape + codebase patterns, log in sources.md)
 [TOPIC_EXPLORATION]
 - [ ] Synthesize: update synthesis.md

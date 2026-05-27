@@ -32,7 +32,7 @@ Then begin iteration 1.
 
 | Task prefix in progress.md | Subagent to dispatch | Notes |
 |---|---|---|
-| `Research:`, `Explore:`, `Improve:`, `Investigate:`, `Decompose:`, `Refocus:`, `Simplify:`, `Rethink:`, `Connect:` | `topic-researcher` | Parallelizable up to `max_parallel` (default 4) across distinct topics. |
+| `Research:`, `Explore:`, `Improve:`, `Investigate:`, `Decompose:`, `Refocus:`, `Simplify:`, `Rethink:`, `Connect:`, `Survey:`, `Scan:`, `Expand scope:` | `topic-researcher` | Parallelizable up to `max_parallel` (default 4) across distinct topics. The `Survey:`/`Scan:`/`Expand scope:` bootstrap tasks run alone (broad/cross-topic, not yet decomposed). |
 | `Score:`, `Critique & Score:` | `critique-scorer` **then** `expansion-planner` (sequential, scorer first) | Runs alone (never in parallel). expansion-planner is dispatched AFTER scorer returns, with the scorer's return data passed in the prompt. |
 | `PoC:`, `Build:` | `poc-builder` | Runs alone. |
 | `Synthesize` | `synthesizer` | Runs alone. |

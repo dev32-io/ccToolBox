@@ -1,7 +1,7 @@
 ---
 name: research-probe
 description: >
-  Guide freeform research intent into a structured prompt for offline ralph-loop execution.
+  Guide freeform research intent into a structured prompt for offline workshop-loop execution.
   Use when the user says "start an offline research on...", "offline research on...",
   "launch a research probe on...", or invokes /research-probe.
   Do NOT trigger on: "research this", "look into this", "find out about",
@@ -13,7 +13,7 @@ allowed-tools: WebSearch, WebFetch, Bash, Write, Read, Glob
 
 # Research Probe
 
-Guide the user from freeform research intent to a structured prompt ready for ralph-loop execution.
+Guide the user from freeform research intent to a structured prompt ready for workshop-loop execution.
 
 ## Tone
 
