@@ -4,6 +4,19 @@ All notable changes to the offline-research plugin are documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [3.0.2] — 2026-05-27
+
+### Fixed
+
+- **Critical**: expansion-planner was appending new `Investigate:`/`Score:` tasks
+  at the END of the task queue, but for multi-topic runs the queue still had
+  pending `Critique & Score:` tasks for other topics after the just-completed
+  one. Result: the orchestrator dove into re-investigating topic 01 before
+  scoring topics 02..N at the current findings round. Fix: expansion-planner
+  now inserts new tasks AFTER the last `Critique & Score:` / `Score:` task
+  in the queue and BEFORE any `Synthesize` / `Final report` task. All topics
+  get a first-round score before any single topic gets re-improved.
+
 ## [3.0.1] — 2026-05-27
 
 ### Fixed
