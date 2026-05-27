@@ -62,80 +62,76 @@ Continue until scope feels right.
 
 Ask the user if they'd like you to write the research files now, or if they want to make further adjustments first.
 
-Once confirmed, ask where to write them:
+Once confirmed, ask the user (and **wait for their response before proceeding**):
 
 > Where should I write the research files?
-> 1. `~/offline-research/YYYY-MM-DD-short-title/`
-> 2. `<git-root>/offline-research/YYYY-MM-DD-short-title/` (or `./YYYY-MM-DD-short-title/` if not in a git repo)
+> 1. `<cwd>/<short-title>/`  (Recommended — keeps probe co-located with the project that has the plugin installed)
+> 2. `~/offline-research/<short-title>/`
 > 3. Type a custom path
 
-Get the current date via `date +%Y-%m-%d`. Determine git root via `git rev-parse --show-toplevel 2>/dev/null`.
+Get the current date via `date +%Y-%m-%d`. Determine git root via `git rev-parse --show-toplevel 2>/dev/null`. CWD = `$(pwd)` from a Bash invocation. Derive `<short-title>` as a kebab-case slug from the mission.
 
 Determine the plugin root (two directories up from this skill file) to find templates.
 
 **Read templates:**
-- Read `<plugin-root>/templates/research-probe/prompt.md`
+- Read `<plugin-root>/templates/research-probe/mission.md`
 - Read `<plugin-root>/templates/research-probe/progress.md`
-- Read `<plugin-root>/templates/research-probe/critique-loop.md`
 - Read `<plugin-root>/templates/research-probe/scoring-rubric.md`
 
-**Fill prompt.md:**
+**Fill mission.md:**
 - Replace `[TOPIC]` with the research mission title
-- Replace `[TOPICS]` with the refined topic list, each formatted as:
-  ```
-  ### N. Topic Name (`topic-name.md`)
-  - sub-topic or question
-  - sub-topic or question
-  - ...
-  ```
+- Replace `[INTENT]` with one paragraph describing what the user wants to learn and why
+- Replace `[CONSTRAINTS]` with the user's hard boundaries (or "None specified" if none)
+
+**Write topics/ files:** For each refined topic, write `<probe-dir>/topics/NN-<topic-slug>.md` (zero-padded ordinal, kebab slug). Content:
+
+```
+# <Topic Name>
+
+## Sub-questions
+- <question>
+- <question>
+
+## Why this matters
+<one-line rationale>
+```
 
 **Fill progress.md:**
-- Replace `[TOPIC_SCOREBOARD]` with one row per topic:
-  ```
-  | topic-name | ACTIVE | - | - | - | - | - | - | - | 0 |
-  ```
-- Replace `[TOPIC_RESEARCH]` with one line per topic:
-  ```
-  - [ ] Research: topic-name
-  ```
-- Replace `[TOPIC_CRITIQUE]` with one line per topic:
-  ```
-  - [ ] Critique & Score: topic-name
-  ```
+- Replace `[MAX_ITER]` in the header with the computed value: `topics × 8 + 10`
+- Replace `[TOPIC_SCOREBOARD]` with one row per topic (unchanged from v1)
+- Replace `[TOPIC_RESEARCH]` with one line per topic (unchanged)
+- Replace `[TOPIC_CRITIQUE]` with one line per topic (unchanged)
 
-**Write `critique-loop.md` and `scoring-rubric.md`** unchanged (no placeholders to fill).
+**Write `scoring-rubric.md`** unchanged (no placeholders to fill).
 
-**Write all four files** to the user's chosen directory using the Write tool.
+**Write all files** to the user's chosen directory using the Write tool.
 
-**Calculate max-iterations:** `topics × 8 + 10`. Covers 3 rounds of research + critique & score + synthesis, plus buffer for new topics and PoC work. Example: 7 topics → `--max-iterations 66`.
+**Present two run options (without showing commands yet):**
 
-**Present three run options (without showing commands yet):**
-
-Derive `<folder-name>` from the last path segment of the user's chosen directory (e.g. `2026-04-02-llm-safety`).
+Derive `<folder-name>` from the last path segment of the user's chosen directory.
 
 > **How do you want to run this research?**
-> 1. In the workshop container with auto-resume (Recommended)
-> 2. In the workshop container (manual)
-> 3. Locally
+> 1. `/workshop-loop` in the current Claude Code session (Recommended)
+> 2. `/workshop-loop` inside a sandboxed container (only needed for PoC code execution; research-probe rarely needs this)
 
 After the user picks, print only the selected command:
 
-- **Auto-resume command** (option 1):
+- **Option 1 (recommended)**:
   ```
-  ./containers/workshop/launch.sh run --container=research <host-path> <TOPIC_COUNT * 8 + 10>
-  ```
-
-- **Manual container command** (option 2):
-  ```
-  /ralph-loop:ralph-loop "Read /workspace/prompt.md for context. Read /workspace/progress.md and do the next unchecked item in the Task Queue. Check it off when done. Output TASK DONE and stop." --max-iterations <TOPIC_COUNT * 8 + 10> --completion-promise "TASK DONE"
+  /workshop-loop <probe-dir>
   ```
 
-- **Local command** (option 3):
+- **Option 2 (sandbox)**:
   ```
-  /ralph-loop:ralph-loop "Read <local-path>/prompt.md for context. Read <local-path>/progress.md and do the next unchecked item in the Task Queue. Check it off when done. Output TASK DONE and stop." --max-iterations <TOPIC_COUNT * 8 + 10> --completion-promise "TASK DONE"
+  ./containers/workshop/launch.sh build --container=research
+  ./containers/workshop/launch.sh shell --container=research <probe-dir>
+  # inside the container shell:
+  claude
+  # in Claude Code:
+  /workshop-loop /workspace
   ```
 
-Replace `<host-path>` and `<local-path>` with the user's chosen directory path.
+Replace `<probe-dir>` with the user's chosen directory (absolute path).
 
 Then ask:
 
