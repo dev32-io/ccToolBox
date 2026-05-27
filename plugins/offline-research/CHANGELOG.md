@@ -6,6 +6,77 @@ This project follows [Semantic Versioning](https://semver.org/).
 
 ## [Unreleased]
 
+## [3.0.0] — 2026-05-26
+
+### Breaking
+
+- **Removed `./launch.sh run` subcommand.** Driving iteration via host-side
+  `docker exec ... claude -p` would move to Anthropic's separate Agent SDK
+  credit pool on 2026-06-15. Use `/workshop-loop <probe-dir>` from an
+  interactive Claude Code session instead. The session can be local
+  (subscription billing) or inside `./launch.sh shell` for PoC sandboxing
+  (still subscription billing — interactive `claude`, not `claude -p`).
+- **Removed light entrypoints** (`entrypoint-light.sh`, `entrypoint-light-opencode.sh`).
+  All container profiles now use the same interactive `entrypoint.sh`.
+- **Probe seed file shape changed.** `prompt.md` → `mission.md` (slimmed —
+  no embedded loop instructions). `critique-loop.md` and `expansion-loop.md`
+  files removed; their procedural logic now lives in the plugin-shipped
+  subagent definitions. `ralph-command.md` removed.
+- **For `refactor-probe` rubrics**, the `hint_action` column folds into
+  `scoring-rubric.md`. `expansion-planner` reads it; `critique-scorer`
+  ignores it.
+
+### Added
+
+- **`/workshop-loop <probe-dir> [--max-iter N]`** slash command. Runs the
+  master orchestrator in the user's interactive Claude Code session.
+  Validates the probe directory via `scripts/validate-probe-dir.sh`,
+  emits an activation marker, dispatches subagents per task.
+- **5 plugin-shipped subagents** under `agents/`:
+  - `topic-researcher` (opus) — Research/Improve/Investigate/Explore/etc.
+  - `critique-scorer` (sonnet, isolated) — Score/Critique & Score
+  - `expansion-planner` (sonnet) — applies plateau math + hint_action expansion
+  - `poc-builder` (opus) — PoC/Build, sandbox-aware via `$WORKSHOP_CONTAINER`
+  - `synthesizer` (opus) — Synthesize + Final report (with Suggested Reruns
+    retrospective)
+- **`hooks/workshop-loop-stop.sh`** Stop hook. Derives state from
+  `progress.md` (no external state file). Termination on RUN COMPLETE
+  promise, all-CONCLUDED-empty-queue, or `max_iter` reached.
+- **`./launch.sh shell <probe-dir>`** mounts the probe dir as `/workspace`
+  and sets `WORKSHOP_CONTAINER=1` so `poc-builder` can run code freely.
+- **`scripts/validate-probe-dir.sh`** — pre-orchestration param validation
+  with test harness.
+- **Parallel topic execution** — orchestrator dispatches up to
+  `max_parallel` (default 4) topic-researcher agents per iteration for
+  distinct-topic Research/Improve/Investigate/Explore/Connect tasks.
+- **`connections.md`** — cross-topic insights, created lazily; integrated
+  into `topic-researcher` (read on Improve/Explore, write on cross-topic
+  observations) and `expansion-planner` (can append `Connect:` tasks).
+- **End-of-run rubric retrospective** — `synthesizer` surfaces
+  `Suggested Reruns` for topics that plateaued early or at low totals.
+  Suggestions only; no mid-run rubric change.
+
+### Changed
+
+- Probe skills (`/research-probe`, `/arch-forge`, `/refactor-probe`) now
+  recommend `<cwd>/<short-title>/` for seed file location (was
+  `~/offline-research/<short-title>/`). Rationale: repo-level plugin
+  install scopes hooks to the project.
+- All three probe skills' final run-command emission now points at
+  `/workshop-loop` (single recommended path) with sandboxed
+  `./launch.sh shell` as the second option.
+- Container Dockerfiles preserved; only the host-side runner scripts +
+  light entrypoints removed.
+
+### Migration
+
+- v1 probe directories still readable in v3.0.0, but you cannot run them
+  via the orchestrator until you regenerate seed files with the new
+  templates (or manually add a `max_iter: N` header to existing
+  `progress.md`, rename `prompt.md` → `mission.md`, and split topics into
+  `topics/NN-<slug>.md` files). For new work, just re-invoke the probe
+  skill into a new dated directory.
+
 ## 2.4.2
 
 ### Changed
