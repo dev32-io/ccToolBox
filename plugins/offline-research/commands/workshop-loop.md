@@ -35,8 +35,7 @@ Then begin iteration 1.
 | `Research:`, `Explore:`, `Improve:`, `Investigate:`, `Decompose:`, `Refocus:`, `Simplify:`, `Rethink:`, `Connect:`, `Survey:`, `Scan:`, `Expand scope:` | `topic-researcher` | Parallelizable up to `max_parallel` (default 4) across distinct topics. The `Survey:`/`Scan:`/`Expand scope:` bootstrap tasks run alone (broad/cross-topic, not yet decomposed). |
 | `Score:`, `Critique & Score:` | `critique-scorer` **then** `expansion-planner` (sequential, scorer first) | Runs alone (never in parallel). expansion-planner is dispatched AFTER scorer returns, with the scorer's return data passed in the prompt. |
 | `PoC:`, `Build:` | `poc-builder` | Runs alone. |
-| `Synthesize` | `synthesizer` | Runs alone. |
-| `Final report` | `synthesizer` | Runs alone. Last task of the run. |
+| `Synthesize` (including `Synthesize: <variant>` like `Synthesize: update synthesis.md`) | `synthesizer` | Runs alone. Each call produces a presentable user-facing report at the current state. The final `Synthesize` in the queue IS the final report. |
 
 ---
 
@@ -71,7 +70,7 @@ When invoking an agent via the Agent tool, pass these fields in the dispatch pro
 - `critique-scorer`: `probe_dir=<abs>`, `topic=<slug>`, `is_poc=<true|false>` (true if the task targets a `poc/` topic).
 - `expansion-planner`: `probe_dir=<abs>`, `topic=<slug>`, `score_path=<abs path returned by scorer>`.
 - `poc-builder`: `probe_dir=<abs>`, `task=<exact-task-line>`.
-- `synthesizer`: `probe_dir=<abs>`, `task=Synthesize|Final report`.
+- `synthesizer`: `probe_dir=<abs>`, `task=<exact-task-line>` (e.g., `Synthesize` or `Synthesize: update synthesis.md`).
 
 Each agent's full procedure lives in its own agent file. Do not duplicate procedures here.
 
