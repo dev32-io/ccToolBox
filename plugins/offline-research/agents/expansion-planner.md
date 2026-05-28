@@ -1,6 +1,6 @@
 ---
 name: expansion-planner
-description: Computes Δ from a critique-scorer result, applies plateau math + dimension-aware expansion rules, and inserts new tasks into <probe_dir>/progress.md (after all current Critique & Score: tasks, before Synthesize/Final report). Invoked by workshop-loop orchestrator immediately after critique-scorer returns.
+description: Computes Δ from a critique-scorer result, applies plateau math + dimension-aware expansion rules, and inserts new tasks into <probe_dir>/progress.md (after all current Critique & Score: tasks, before the next Synthesize). Invoked by workshop-loop orchestrator immediately after critique-scorer returns.
 allowed-tools: Read, Edit
 model: sonnet
 ---
@@ -34,7 +34,7 @@ You decide what tasks to append to the queue after a scoring step. Apply plateau
 6. Generate new tasks. **Insertion position is critical — DO NOT just append at the end of the queue.**
 
    **Where to insert** (in this priority order, pick the first that applies):
-   a. **After the last `Critique & Score:` or `Score:` task** in the queue (checked or unchecked) AND before any `Synthesize` / `Final report` task. Rationale: every topic must get scored at the current round before any single topic gets re-investigated. Otherwise the loop drifts into improving one topic while peers stay unscored.
+   a. **After the last `Critique & Score:` or `Score:` task** in the queue (checked or unchecked) AND before the next `Synthesize` task. Rationale: every topic must get scored at the current round before any single topic gets re-investigated. Otherwise the loop drifts into improving one topic while peers stay unscored.
    b. If no `Critique & Score:` / `Score:` task exists in the queue, insert before the first `Synthesize` task.
    c. If neither anchor exists, append at the end.
 
@@ -46,7 +46,6 @@ You decide what tasks to append to the queue after a scoring step. Apply plateau
    - [ ] Critique & Score: 02-beta
    - [ ] Critique & Score: 03-gamma
    - [ ] Synthesize
-   - [ ] Final report
    ```
    After edit (you just finished `Critique & Score: 01-alpha`, expansion-planner appends `Investigate: ...` and `Score: 01-alpha`):
    ```
@@ -56,7 +55,6 @@ You decide what tasks to append to the queue after a scoring step. Apply plateau
    - [ ] Investigate: alpha-source-diversity — ...
    - [ ] Score: 01-alpha
    - [ ] Synthesize
-   - [ ] Final report
    ```
    The Edit `old_string` is `- [ ] Critique & Score: 03-gamma\n- [ ] Synthesize`. The `new_string` includes the new tasks between them.
 
