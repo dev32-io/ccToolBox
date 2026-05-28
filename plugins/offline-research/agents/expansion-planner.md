@@ -59,15 +59,21 @@ You decide what tasks to append to the queue after a scoring step. Apply plateau
    The Edit `old_string` is `- [ ] Critique & Score: 03-gamma\n- [ ] Synthesize`. The `new_string` includes the new tasks between them.
 
    **What to insert** (by mode):
-   - **EXPAND mode**: For each dim with score < 6, apply hint_action:
+
+   - **EXPAND mode** (friction-log-driven, NOT threshold-driven): Read the `## Friction Log` section of the score file. For EACH dim that has ≥1 friction entry, append ONE hint_action task for that dim (apply the hint_action mapping from step 2). Combine all friction-log entries for that dim into the task's gap text. Then append `- [ ] Score: <topic>` (re-score after improvements). The natural cap is 5 dims = up to 5 hint-action tasks + 1 Score per expansion.
+
+     Hint-action emission rules per dim:
      - `BUILD` → `- [ ] PoC: <topic>-<dim-slug>` (e.g., `PoC: stt-latency-bench`). If a PoC for this topic already exists in the queue or scoreboard, instead append `- [ ] PoC: <topic>-<dim-slug>-alt`.
-     - `INVESTIGATE` → `- [ ] Investigate: <topic>-<dim-slug> — <specific gap from friction log>`
-     - `RETHINK` → `- [ ] Decompose: <topic>` OR `- [ ] Rethink: <topic> (gap: <friction>)`. Pick Decompose if multiple dims are weak; Rethink if one specific dim dominates.
-     - `REFOCUS` → `- [ ] Refocus: <topic>` (ONLY this task gets appended; overrides all other dim hints — exclusive).
-   - After dim-driven inserts, also insert `- [ ] Score: <topic>` (re-score after improvements).
+     - `INVESTIGATE` → `- [ ] Investigate: <topic>-<dim-slug> — <combined gap text from friction log entries for this dim>`
+     - `RETHINK` → `- [ ] Decompose: <topic>` if multiple RETHINK-tagged dims have friction; `- [ ] Rethink: <topic> (gap: <combined friction>)` if one RETHINK dim dominates.
+     - `REFOCUS` → `- [ ] Refocus: <topic>` (EXCLUSIVE — if any REFOCUS-tagged dim has friction, this OVERRIDES all other dim emissions; emit ONLY the Refocus task plus the Score task. Skip all other dim-driven emissions).
+
+     If the friction log is empty (extremely rare — would imply the finding is flawless), still append `- [ ] Score: <topic>` so plateau math handles next round. Do NOT short-circuit to CONCLUDED based on absolute scores — only plateau math (Δ ≤ 3 + prev_streak ≥ 1) marks a topic CONCLUDED.
+
    - **LAST-CHANCE mode**: insert exactly one task: `- [ ] Improve: <topic> (last chance: <top friction>)`, plus `- [ ] Score: <topic>` to re-verify.
+
    - **CONCLUDED mode**: insert nothing. Topic done.
-7. Deduplicate before inserting: if `<topic>-<dim-slug>` already appears in the scoreboard or queue (ACTIVE or CONCLUDED), skip that insert.
+7. Deduplicate hint_action inserts: if `Investigate: <topic>-<dim-slug>`, `PoC: <topic>-<dim-slug>`, `Decompose: <topic>`, `Rethink: <topic>`, or `Refocus: <topic>` already appears unchecked in the queue, skip that specific insert. The `Score: <topic>` re-score insert is NEVER deduplicated — always emit it (the orchestrator needs the re-score signal).
 8. Update the scoreboard row for `<topic>` (using Edit) with new total, delta, streak, status.
 9. **Return ONE line**:
    ```
@@ -76,7 +82,8 @@ You decide what tasks to append to the queue after a scoring step. Apply plateau
 
 ## Critical rules
 
-- REFOCUS dim < 6 OVERRIDES all other hint actions. If REFOCUS triggers, append only `Refocus:` task.
+- REFOCUS dim with friction OVERRIDES all other hint actions. If REFOCUS triggers, append only `Refocus:` task plus `Score:`.
+- EXPAND mode is friction-log-driven, not threshold-driven. Any dim with ≥1 friction entry triggers a hint_action task regardless of absolute score.
 - DO NOT dispatch any other subagent. You only edit progress.md.
 - DO NOT modify findings or scores files. Read-only on those.
 - A topic CANNOT be marked CONCLUDED in EXPAND mode regardless of streak. Streak only advances in LAST-CHANCE/CONCLUDED branches.
