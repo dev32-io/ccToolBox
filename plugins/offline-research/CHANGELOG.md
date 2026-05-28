@@ -4,6 +4,22 @@ All notable changes to the offline-research plugin are documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [3.1.0] — 2026-05-27
+
+### Changed
+
+- `Synthesize` and `Final report` collapsed into a single `Synthesize` task type. Each `Synthesize` regenerates `<probe_dir>/synthesis.md` as a presentable mission-anchored report. README.md is no longer produced by the synthesizer.
+- `templates/research-probe/progress.md` drops the `Expand scope: all topics` task (redundant — probe skill creates topic files) and the `Final report` task (collapsed into `Synthesize`). Now matches arch-forge / refactor-probe template shape.
+- Synthesizer output restructured to a thesis-aligned IMRAD shape: Title → Abstract → Table of Contents → Introduction → Methods → Findings Index → Discussion → Mission Deliverables Audit → Conclusion & Recommendations → Open Questions & Suggested Reruns → References & Navigation. Mission deliverables explicitly audited against findings. Conclusion section delivers a prioritized actionable plan (the "now what").
+- Workshop-loop dispatch table updated: `Synthesize` row now covers `Synthesize: <variant>` forms (used by arch-forge / refactor-probe templates).
+- `plugins/offline-research/README.md` agent table + `docs/architecture.md` updated to reflect single Synthesize task type (no more "Final report" mentions outside CHANGELOG).
+
+### Removed
+
+- `Final report` task type. Use `Synthesize` instead — the last `Synthesize` in the queue IS the final report.
+- Word/length caps on synthesizer output. Agent gauges depth from material.
+- Synthesizer-generated `README.md` output.
+
 ## [3.0.4] — 2026-05-27
 
 ### Fixed

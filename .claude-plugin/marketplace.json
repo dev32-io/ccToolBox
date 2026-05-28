@@ -15,7 +15,7 @@
     {
       "name": "offline-research",
       "description": "Pure-skill structured offline research, architecture exploration, and codebase refactoring with /offline-research:workshop-loop orchestrator",
-      "version": "3.0.4",
+      "version": "3.1.0",
       "source": "./plugins/offline-research",
       "category": "productivity"
     },
