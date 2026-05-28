@@ -4,6 +4,14 @@ All notable changes to the offline-research plugin are documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [3.1.2] — 2026-05-27
+
+### Fixed
+
+- **Critical**: expansion-planner insertion anchor was wrong. New tasks were inserted BEFORE the next `Synthesize`, which caused the current round to bloat infinitely as each `Score:` triggered more expansion tasks ahead of the same Synth — the round-closing Synthesize would never fire. Rule rewritten: each expansion accretes a NEW ROUND (work block + `Score:` per parent) AFTER the next pending `Synthesize` and BEFORE the following `Synthesize`. If no following `Synthesize` exists, expansion-planner appends one. Each `Synthesize` now fires cleanly as a round boundary + presentable artifact. Loop oscillates: `Synth → work → Synth → work → ...`.
+- Seed templates dropped the post-Research/pre-C&S `Synthesize` task (`research-probe`, `arch-forge`, `refactor-probe`). That early Synth produced an artifact with no scoring data — wasted iteration. Round-1 close is now the post-C&S Synthesize.
+- expansion-planner prompt tightened: removed verbose example diffs and redundant rationale; folded hint_action defaults into a table; insertion rule has its own section. Functional behavior unchanged outside the insertion-anchor + friction-log-driven fixes; ~10 fewer lines.
+
 ## [3.1.1] — 2026-05-27
 
 ### Fixed

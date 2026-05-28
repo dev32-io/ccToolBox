@@ -12,6 +12,5 @@ max_parallel: 4
 
 - [ ] Survey: all topics (skim sources, log in sources.md)
 [TOPIC_RESEARCH]
-- [ ] Synthesize
 [TOPIC_CRITIQUE]
 - [ ] Synthesize

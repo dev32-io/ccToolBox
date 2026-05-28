@@ -13,6 +13,5 @@ max_parallel: 4
 - [ ] Decompose: read seed architecture, create exploration files in explorations/
 - [ ] Survey: all decision areas (skim landscape, log in sources.md)
 [DECISION_EXPLORATION]
-- [ ] Synthesize: update architecture.md
 [DECISION_SCORING]
 - [ ] Synthesize: update architecture.md
