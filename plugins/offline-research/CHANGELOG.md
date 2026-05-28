@@ -4,6 +4,12 @@ All notable changes to the offline-research plugin are documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [3.1.1] — 2026-05-27
+
+### Fixed
+
+- **Critical**: expansion-planner EXPAND-mode rule was threshold-driven (`dim < 6`), which (a) failed to fire any expansion tasks when all dims scored ≥6 even though friction logs surfaced real gaps, and (b) inconsistently appended `Score:` re-scoring tasks (sometimes appended, sometimes not, due to ambiguous "after dim-driven inserts" wording). Rule rewritten as friction-log-driven: any dim with ≥1 friction entry triggers a hint_action task; `Score:` is ALWAYS emitted (never deduplicated). Natural cap: up to 5 hint-action tasks + 1 Score per expansion. Topics with consistently strong findings still naturally CONCLUDED via plateau math (Δ ≤ 3 + prev_streak ≥ 1); no absolute-score short-circuit.
+
 ## [3.1.0] — 2026-05-27
 
 ### Changed
