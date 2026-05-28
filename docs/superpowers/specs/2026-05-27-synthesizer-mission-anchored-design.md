@@ -32,7 +32,7 @@ Three problems surfaced from the live `research/vancouver-townhouse-garden` run:
 - No changes to the Stop hook (`hooks/workshop-loop-stop.sh`); it already operates generically on `^- \[ \]` count and `| ACTIVE |` rows.
 - No changes to `critique-scorer`, `poc-builder`, or `topic-researcher` procedures (topic-researcher confirmed already has no word cap; no edit needed).
 - No changes to arch-forge or refactor-probe seed templates (already correct).
-- No migration tooling for existing v3.0.x probe directories; the synthesizer change is forward-compatible (it just regenerates `synthesis.md`).
+- No backward compatibility or migration for existing v3.0.x probe directories.
 
 ## Architectural decision
 
@@ -372,7 +372,7 @@ After:
 
 Add a `[3.1.0] — 2026-05-27` section documenting:
 
-- **Changed:** `Synthesize` and `Final report` collapsed into a single `Synthesize` task type. Each `Synthesize` regenerates `<probe_dir>/synthesis.md` as a presentable mission-anchored report. README.md is no longer produced by the synthesizer. Backward compatible: probe directories from v3.0.x still run; the deprecated `Final report` task (if present in an existing queue) dispatches to the synthesizer and produces a normal synthesize output.
+- **Changed:** `Synthesize` and `Final report` collapsed into a single `Synthesize` task type. Each `Synthesize` regenerates `<probe_dir>/synthesis.md` as a presentable mission-anchored report. README.md is no longer produced by the synthesizer.
 - **Changed:** `templates/research-probe/progress.md` drops the `Expand scope: all topics` task (redundant — probe skill creates topic files) and the `Final report` task (collapsed into `Synthesize`). Now matches arch-forge / refactor-probe template shape.
 - **Changed:** synthesizer output restructured to a thesis-aligned IMRAD shape: Title → Abstract → Table of Contents → Introduction → Methods → Findings Index → Discussion → Mission Deliverables Audit → Conclusion & Recommendations → Open Questions & Suggested Reruns → References & Navigation. Mission deliverables explicitly audited against findings. Conclusion section delivers a prioritized actionable plan (the "now what").
 - **Removed:** word/length caps on synthesizer output. Agent gauges depth from material.
@@ -380,12 +380,6 @@ Add a `[3.1.0] — 2026-05-27` section documenting:
 ### 6. `plugins/offline-research/.claude-plugin/plugin.json` and `.claude-plugin/marketplace.json`
 
 Bump version: `3.0.4` → `3.1.0`. Update both files in the same commit.
-
-## Compatibility
-
-- **Probe directories created by v3.0.x:** still runnable. If a `progress.md` contains a `Final report` task, it dispatches to the synthesizer (same agent) and produces a normal `Synthesize`-equivalent output. The user can manually delete the `Final report` line or leave it — it gets checked off after running and changes nothing.
-- **Existing `synthesis.md` files:** overwritten by the new structure on the next `Synthesize`. If a user wants to preserve the prior synthesis, they should rename the file before running.
-- **Existing `README.md` files:** untouched. The synthesizer no longer writes to `README.md`. Any prior synthesizer-generated `README.md` becomes stale but is not deleted.
 
 ## Validation plan
 
