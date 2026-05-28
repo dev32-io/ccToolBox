@@ -66,14 +66,15 @@ If the friction log is empty: emit only `Score: <topic>`.
 
 ## Insertion rule
 
-Every round = work block + `Synthesize` close. New tasks accrete into the NEXT round so each `Synthesize` fires as a presentable artifact.
+Every round has shape `work-block → Score-block → Synthesize`. New tasks accrete into the NEXT round (not the current one) so each `Synthesize` fires as a presentable artifact.
 
-1. Find next pending `Synthesize` in queue → **Synth-A**. If none, append `- [ ] Synthesize` at end and treat as Synth-A.
-2. Find next pending `Synthesize` AFTER Synth-A → **Synth-B**.
-3. If Synth-B exists: Edit `progress.md` to insert new tasks AFTER Synth-A and BEFORE Synth-B.
-4. If Synth-B does NOT exist: insert new tasks AFTER Synth-A at end, then append `- [ ] Synthesize` (becomes Synth-B for the next expansion).
+1. Find next pending `Synthesize` → **Synth-A**. If none, append `- [ ] Synthesize` at end of queue and treat as Synth-A.
+2. Find next pending `Synthesize` AFTER Synth-A → **Synth-B**. If none, append `- [ ] Synthesize` at end and treat as Synth-B.
+3. Within the block between Synth-A and Synth-B, find the first existing `Score:` line → **score-block-start**. If no `Score:` exists in the block, score-block-start = Synth-B.
+4. Edit `progress.md` to insert this topic's **hint_action tasks** immediately BEFORE score-block-start (joining the end of the work-block).
+5. Edit `progress.md` to insert this topic's `Score: <topic>` immediately BEFORE Synth-B (joining the end of the Score-block).
 
-Within an accreted round, group all hint_action tasks for the topic first, then the topic's `Score:` task. Subsequent expansion-planner runs for other topics append into the same round (still between Synth-A and Synth-B).
+Result: all topics' work tasks group at the top of the round; all `Score:` tasks group at the bottom; Synth-B closes the round.
 
 ## Dedup
 

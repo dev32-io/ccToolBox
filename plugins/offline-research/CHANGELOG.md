@@ -4,6 +4,12 @@ All notable changes to the offline-research plugin are documented here.
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 This project follows [Semantic Versioning](https://semver.org/).
 
+## [3.1.3] — 2026-05-27
+
+### Fixed
+
+- expansion-planner now enforces a two-block round shape: `work-block → Score-block → Synthesize`. Hint_action tasks insert at the end of the work-block (before the first existing `Score:` line); `Score: <topic>` inserts at the end of the Score-block (immediately before the round-closing Synthesize). Previously each topic's tasks went in as a per-topic bundle (`work + Score` together), interleaving Score lines through the round. Now all topics' work tasks cluster at top of round, all Scores cluster at bottom — matches "work × N → C&S × N → Synth" loop shape.
+
 ## [3.1.2] — 2026-05-27
 
 ### Fixed
