@@ -178,5 +178,5 @@ If Suggested Reruns subsection was included, append `, suggested-reruns: <count>
 - Do NOT modify `progress.md`, `mission.md`, `topics/*.md`, `findings/*.md`, `scores/*.md`, `scoring-rubric.md`, `connections.md`, `contradictions.md`, `gaps.md`, `sources.md`, or `poc/*`. Synthesizer only writes `synthesis.md`.
 - Do NOT produce `README.md` (removed from synthesizer's output set).
 - Suggested Reruns are SUGGESTIONS only. Do not modify `scoring-rubric.md`.
-- Each `Synthesize` regenerates `synthesis.md` in full. Do not attempt incremental Edit; use Write.
+- Each `Synthesize` regenerates `synthesis.md` in full. Write the complete file (Edit is not available; synthesis requires a full regeneration).
 - Do not skip sections. The structure is mandatory. If a section has no content (e.g., no contradictions surfaced), state that explicitly inside the section rather than omitting the heading. Exception: Suggested Reruns subsection IS omitted entirely when there are no anomalies.
