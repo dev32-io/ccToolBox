@@ -47,7 +47,7 @@ Master loop. Reads `progress.md`, dispatches one of 5 subagents per task, checks
 | `critique-scorer` | sonnet | Score one finding against the rubric in strict isolation |
 | `expansion-planner` | sonnet | Apply plateau math + dim hints, append new tasks |
 | `poc-builder` | opus | Build PoC artifacts; sandbox-aware |
-| `synthesizer` | opus | Synthesize + Final report with rubric retrospective |
+| `synthesizer` | opus | Synthesize — presentable IMRAD report at each call, with Suggested Reruns retrospective |
 
 ## Stop hook (`hooks/workshop-loop-stop.sh`)
 

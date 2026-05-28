@@ -65,7 +65,7 @@ v1 of the design (and ralph-loop, the closest prior art) keep an iteration count
 | `critique-scorer` | sonnet | Read, Write | Score / Critique & Score (strict isolation: rubric + one finding only) |
 | `expansion-planner` | sonnet | Read, Edit | Invoked immediately after `critique-scorer`; applies plateau math + dim hints; appends new tasks |
 | `poc-builder` | opus | Read, Write, Edit, Bash, Glob, Grep, WebSearch, WebFetch | PoC / Build; sandbox-aware via `$WORKSHOP_CONTAINER` env |
-| `synthesizer` | opus | Read, Glob, Write, Edit | Synthesize / Final report; writes Suggested Reruns retrospective |
+| `synthesizer` | opus | Read, Glob, Write | Synthesize — presentable IMRAD report at each call; writes Suggested Reruns retrospective into synthesis.md when anomalies detected |
 
 **Cross-cutting contract:**
 
@@ -82,7 +82,7 @@ The orchestrator can dispatch up to `max_parallel` (default 4, configurable via 
 **Not parallel (must run alone):**
 - `Score:`/`Critique & Score:` — `critique-scorer` needs isolation; `expansion-planner` mutates progress.md (race risk)
 - `PoC:`/`Build:` — Bash writes, expensive
-- `Synthesize`/`Final report` — reads all findings, end-of-run
+- `Synthesize` — reads all findings, regenerates synthesis.md as user-facing report at each call
 
 Iteration counter advances by N for an N-task batch. Each Edit on progress.md targets the specific task line that completed; failed subagents in a batch leave their task `[ ]`, retried next iteration.
 
@@ -123,7 +123,7 @@ Created lazily on first cross-topic insight. `topic-researcher`:
 
 ### End-of-run rubric retrospective
 
-`synthesizer`'s Final report scans the scoreboard for plateau anomalies (CONCLUDED at total < 60% of max, or first-plateau Δ ≤ 1). For each anomaly, writes a `Suggested Reruns` section in README.md:
+`synthesizer` scans the scoreboard for plateau anomalies (CONCLUDED at total < 60% of max, or first-plateau Δ ≤ 1). For each anomaly, writes a `Suggested Reruns` subsection in `synthesis.md` (omitted entirely when no anomalies):
 
 ```
 - **<topic>** plateaued at <total>/<max> after N rounds. Score floor came from
@@ -189,7 +189,7 @@ plugins/offline-research/
 │   ├── critique-scorer.md              # Score/Critique & Score (isolated)
 │   ├── expansion-planner.md            # plateau math + hint_action appends
 │   ├── poc-builder.md                  # PoC/Build (sandbox-aware)
-│   └── synthesizer.md                  # Synthesize/Final report + retro
+│   └── synthesizer.md                  # Synthesize — IMRAD report + retro
 ├── commands/
 │   └── workshop-loop.md                # /offline-research:workshop-loop slash command
 ├── hooks/
